@@ -9,7 +9,7 @@ objects=$(patsubst $(src)/%.c, $(obj)/%.o, $(sources))
 
 INSTALL_DIR=/usr/local/bin
 
-cflags=-g
+cflags=-g -DLASER_NF_SYMBOLS
 lflags=-g -ggdb -fsanitize=address -lm
 
 
@@ -20,7 +20,7 @@ $(obj)/%.o: $(src)/%.c mkdirs
 	gcc -c $(cflags) -o $@ $<
 
 mkdirs:
-	-mkdir -p $(build)
+	-mkdir -p $(bin)
 	-mkdir -p $(obj)
 
 
@@ -31,4 +31,4 @@ uninstall:
 	rm -rf $(INSTALL_DIR)/$(notdir $(exec))
 
 clean:
-	rm -rf $(build)
+	rm -rf $(bin)

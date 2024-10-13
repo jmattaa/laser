@@ -1,0 +1,47 @@
+---
+UseTab: Never
+IndentWidth: 4
+IndentCaseLabels: true
+
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+
+AlignConsecutiveDeclarations: false
+
+IncludeBlocks: Preserve
+IncludeCategories:
+  - Regex: '^<.*\.h>'
+    Priority: 2
+  - Regex: '^".*"'
+    Priority: 1
+
+ColumnLimit: 80
+
+AllowShortFunctionsOnASingleLine: false
+
+MaxEmptyLinesToKeep: 1
+
+SpaceBeforeParens: ControlStatements
+SpaceBeforeCpp11BracedList: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: false
+SpaceBeforeAssignmentOperators: true
+
+DerivePointerAlignment: false
+PointerAlignment: Right
+
+BreakBeforeBraces: Allman
+
+CommentPragmas: "^IWYU pragma:"
+
+ReflowComments: false

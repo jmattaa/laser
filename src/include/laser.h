@@ -23,6 +23,7 @@ typedef struct
 } laser_dir_entries;
 
 laser_dir_entries laser_getdirs(laser_opts opts);
-void laser_listdirs(laser_dir_entries lentries);
+
+void laser_list(laser_dir_entries lentries);
 
 #endif

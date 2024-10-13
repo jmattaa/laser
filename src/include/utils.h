@@ -8,7 +8,6 @@
 
 typedef struct laser_opts
 {
-    int show_tree;
     int show_all;
     char *dir;
 } laser_opts;

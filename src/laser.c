@@ -1,5 +1,6 @@
 #include "include/laser.h"
 #include "include/colors.h"
+#include "include/utils.h"
 
 laser_dir_entries laser_getdirs(laser_opts opts)
 {
@@ -7,7 +8,7 @@ laser_dir_entries laser_getdirs(laser_opts opts)
 
     laser_dir_entries entries = {0};
 
-    if (opts.dir == NULL)
+    if (dir_stuff == NULL)
     {
         perror("opendir");
         return entries;
@@ -50,7 +51,7 @@ int laser_cmp_string(const void *a, const void *b)
     return strcmp(*(const char **)a, *(const char **)b);
 }
 
-void laser_listdirs(laser_dir_entries lentries)
+void laser_list(laser_dir_entries lentries)
 {
     qsort(lentries.dirs, lentries.dir_count, sizeof(char *), laser_cmp_string);
     qsort(lentries.files, lentries.file_count, sizeof(char *),
@@ -62,9 +63,10 @@ void laser_listdirs(laser_dir_entries lentries)
 
     if (lentries.dir_count > 0)
     {
+        char full_path[1024];
         for (int i = 0; i < lentries.dir_count; i++)
         {
-            printf(DIR_COLOR "%s" RESET_COLOR "\n", lentries.dirs[i]);
+            printf(DIR_COLOR "%s/" RESET_COLOR "\n", lentries.dirs[i]);
             free(lentries.dirs[i]);
         }
 

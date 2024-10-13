@@ -27,5 +27,8 @@ mkdirs:
 install: $(exec)
 	install -m 755 $(exec) $(INSTALL_DIR)
 
+uninstall:
+	rm -rf $(INSTALL_DIR)/$(notdir $(exec))
+
 clean:
 	rm -rf $(build)

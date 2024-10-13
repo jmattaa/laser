@@ -28,3 +28,9 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
 
     return (laser_opts){show_tree, show_all, dir};
 }
+
+void format_date(time_t time, char *buffer, size_t buffer_size)
+{
+    struct tm *tm_info = localtime(&time);
+    strftime(buffer, buffer_size, "%d-%m-%Y", tm_info);
+}

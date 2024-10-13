@@ -2,7 +2,7 @@ src=src
 bin=bin
 obj=$(bin)/obj
 
-exec=$(bin)/laser
+exec=$(bin)/lsr
 
 sources=$(shell find $(src) -name *.c)
 objects=$(patsubst $(src)/%.c, $(obj)/%.o, $(sources))

@@ -2,6 +2,11 @@
 #include "include/colors.h"
 #include "include/utils.h"
 
+#define INITIAL_DIR_ALLOC 5
+#define INITIAL_SYMLINK_ALLOC 5
+#define INITIAL_HIDDEN_ALLOC 5
+#define INITIAL_FILE_ALLOC 5
+
 laser_dir_entries laser_getdirs(laser_opts opts)
 {
     DIR *dir_stuff = opendir(opts.dir); // idk what to name this
@@ -18,6 +23,11 @@ laser_dir_entries laser_getdirs(laser_opts opts)
     struct dirent *entry;
     char full_path[1024];
 
+    size_t dir_alloc = 10;
+    size_t symlink_alloc = 10;
+    size_t hidden_alloc = 10;
+    size_t file_alloc = 10;
+
     while ((entry = readdir(dir_stuff)) != NULL)
     {
         if (!opts.show_all && entry->d_name[0] == '.')
@@ -33,13 +43,41 @@ laser_dir_entries laser_getdirs(laser_opts opts)
         }
 
         if (S_ISDIR(file_stat.st_mode))
+        {
+            if (entries.dir_count == 0)
+                entries.dirs = malloc(dir_alloc * sizeof(char *));
+
+            entries.dirs = laser_utils_grow_strarray(entries.dirs, &dir_alloc,
+                                                     entries.dir_count);
             entries.dirs[entries.dir_count++] = strdup(entry->d_name);
+        }
         else if (S_ISLNK(file_stat.st_mode))
+        {
+            if (entries.symlink_count == 0)
+                entries.symlinks = malloc(symlink_alloc * sizeof(char *));
+
+            entries.symlinks = laser_utils_grow_strarray(
+                entries.symlinks, &symlink_alloc, entries.symlink_count);
             entries.symlinks[entries.symlink_count++] = strdup(entry->d_name);
+        }
         else if (entry->d_name[0] == '.')
+        {
+            if (entries.hidden_count == 0)
+                entries.hidden = malloc(hidden_alloc * sizeof(char *));
+
+            entries.hidden = laser_utils_grow_strarray(
+                entries.hidden, &hidden_alloc, entries.hidden_count);
             entries.hidden[entries.hidden_count++] = strdup(entry->d_name);
+        }
         else
+        {
+            if (entries.file_count == 0)
+                entries.files = malloc(file_alloc * sizeof(char *));
+
+            entries.files = laser_utils_grow_strarray(
+                entries.files, &file_alloc, entries.file_count);
             entries.files[entries.file_count++] = strdup(entry->d_name);
+        }
     }
 
     closedir(dir_stuff);
@@ -70,6 +108,7 @@ void laser_list(laser_dir_entries lentries)
             free(lentries.dirs[i]);
         }
 
+        free(lentries.dirs);
         printf("\n");
     }
 
@@ -81,6 +120,7 @@ void laser_list(laser_dir_entries lentries)
             free(lentries.files[i]);
         }
 
+        free(lentries.files);
         printf("\n");
     }
 
@@ -92,6 +132,7 @@ void laser_list(laser_dir_entries lentries)
             free(lentries.hidden[i]);
         }
 
+        free(lentries.hidden);
         printf("\n");
     }
 
@@ -103,6 +144,7 @@ void laser_list(laser_dir_entries lentries)
             free(lentries.symlinks[i]);
         }
 
+        free(lentries.symlinks);
         printf("\n");
     }
 }

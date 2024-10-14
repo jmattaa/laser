@@ -12,10 +12,10 @@
 
 typedef struct
 {
-    char *dirs[MAX_ENTRIES];
-    char *files[MAX_ENTRIES];
-    char *symlinks[MAX_ENTRIES];
-    char *hidden[MAX_ENTRIES];
+    char **dirs;
+    char **files;
+    char **symlinks;
+    char **hidden;
     int dir_count;
     int file_count;
     int symlink_count;

@@ -21,7 +21,9 @@ laser_dir_entries laser_getdirs(laser_opts opts)
 
     struct stat file_stat;
     struct dirent *entry;
+
     char full_path[1024];
+    char symlink_target[1024];
 
     size_t dir_alloc = 10;
     size_t symlink_alloc = 10;
@@ -56,9 +58,27 @@ laser_dir_entries laser_getdirs(laser_opts opts)
             if (entries.symlink_count == 0)
                 entries.symlinks = malloc(symlink_alloc * sizeof(char *));
 
+            int len =
+                readlink(full_path, symlink_target, sizeof(symlink_target) - 1);
+            if (len == -1)
+            {
+                perror("readlink");
+                continue;
+            }
+            symlink_target[len] = '\0';
+
+            char *arrow = " -> ";
+
+            size_t res_string_len =
+                len + strlen(entry->d_name) + strlen(arrow) + 1;
+            char res_string[res_string_len];
+
+            snprintf(res_string, res_string_len, "%s%s%s", entry->d_name, arrow,
+                     symlink_target);
+
             entries.symlinks = laser_utils_grow_strarray(
                 entries.symlinks, &symlink_alloc, entries.symlink_count);
-            entries.symlinks[entries.symlink_count++] = strdup(entry->d_name);
+            entries.symlinks[entries.symlink_count++] = strdup(res_string);
         }
         else if (entry->d_name[0] == '.')
         {

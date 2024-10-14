@@ -13,9 +13,14 @@
 typedef struct
 {
     char **dirs;
+
     char **files;
+
     char **symlinks;
+    char **symlinks_targets;
+
     char **hidden;
+
     int dir_count;
     int file_count;
     int symlink_count;

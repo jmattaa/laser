@@ -1,10 +1,11 @@
 #ifndef LASER_UTILS_H
 #define LASER_UTILS_H
 
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
 typedef struct laser_opts
 {

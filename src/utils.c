@@ -1,4 +1,5 @@
 #include "include/utils.h"
+#include <stdio.h>
 
 laser_opts laser_utils_parsecmd(int argc, char **argv)
 {
@@ -7,7 +8,9 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
 
     int opt;
 
-    while ((opt = getopt(argc, argv, "a")) != -1)
+    struct option long_args[] = {{"all", 0, 0, 'a'}, {0, 0, 0, 0}};
+
+    while ((opt = getopt_long(argc, argv, "a", long_args, NULL)) != -1)
     {
         switch (opt)
         {

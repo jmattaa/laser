@@ -10,6 +10,9 @@
 typedef struct laser_opts
 {
     int show_all;
+    int show_files;
+    int show_directories;
+    int show_symlinks;
     char *dir;
 } laser_opts;
 

@@ -44,7 +44,7 @@ laser_dir_entries laser_getdirs(laser_opts opts)
             continue;
         }
 
-        if (S_ISDIR(file_stat.st_mode))
+        if (S_ISDIR(file_stat.st_mode) && opts.show_directories)
         {
             if (entries.dir_count == 0)
                 entries.dirs = malloc(dir_alloc * sizeof(char *));
@@ -53,7 +53,7 @@ laser_dir_entries laser_getdirs(laser_opts opts)
                                                      entries.dir_count);
             entries.dirs[entries.dir_count++] = strdup(entry->d_name);
         }
-        else if (S_ISLNK(file_stat.st_mode))
+        else if (S_ISLNK(file_stat.st_mode) && opts.show_symlinks)
         {
             if (entries.symlink_count == 0)
                 entries.symlinks = malloc(symlink_alloc * sizeof(char *));
@@ -89,7 +89,7 @@ laser_dir_entries laser_getdirs(laser_opts opts)
                 entries.hidden, &hidden_alloc, entries.hidden_count);
             entries.hidden[entries.hidden_count++] = strdup(entry->d_name);
         }
-        else
+        else if (S_ISREG(file_stat.st_mode) && opts.show_files)
         {
             if (entries.file_count == 0)
                 entries.files = malloc(file_alloc * sizeof(char *));

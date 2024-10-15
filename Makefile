@@ -10,7 +10,7 @@ objects=$(patsubst $(src)/%.c, $(obj)/%.o, $(sources))
 INSTALL_DIR=/usr/local/bin
 
 cflags=-g -DLASER_NF_SYMBOLS
-lflags=-g -ggdb -fsanitize=address -lm
+lflags=-g -ggdb -fsanitize=address
 
 
 $(exec): $(objects)

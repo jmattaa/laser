@@ -25,18 +25,18 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                 show_all = 1;
                 break;
             case 'F':
-                show_directories = show_directories == -1 ? 0 : 1;
-                show_symlinks = show_symlinks == -1 ? 0 : 1;
+                show_directories = show_directories <= 0 ? 0 : 1;
+                show_symlinks = show_symlinks <= 0 ? 0 : 1;
                 show_files = 1;
                 break;
             case 'D':
-                show_symlinks = show_symlinks == -1 ? 0 : 1;
-                show_files = show_files == -1 ? 0 : 1;
+                show_symlinks = show_symlinks <= 0 ? 0 : 1;
+                show_files = show_files <= 0 ? 0 : 1;
                 show_directories = 1;
                 break;
             case 'S':
-                show_files = show_files == -1 ? 0 : 1;
-                show_directories = show_directories == -1 ? 0 : 1;
+                show_files = show_files <= 0 ? 0 : 1;
+                show_directories = show_directories <= 0 ? 0 : 1;
                 show_symlinks = 1;
                 break;
             default:

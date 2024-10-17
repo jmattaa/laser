@@ -31,7 +31,7 @@ typedef struct laser_dir_entries
 struct laser_dir
 {
     char *name;
-    laser_dir_entries sub_entires;
+    laser_dir_entries sub_entries;
 };
 
 

@@ -1,11 +1,7 @@
 #include "include/laser.h"
 #include "include/colors.h"
 #include "include/utils.h"
-
-#define INITIAL_DIR_ALLOC 5
-#define INITIAL_SYMLINK_ALLOC 5
-#define INITIAL_HIDDEN_ALLOC 5
-#define INITIAL_FILE_ALLOC 5
+#include <stdio.h>
 
 laser_dir_entries laser_getdirs(laser_opts opts)
 {
@@ -47,11 +43,23 @@ laser_dir_entries laser_getdirs(laser_opts opts)
         if (S_ISDIR(file_stat.st_mode) && opts.show_directories)
         {
             if (entries.dir_count == 0)
-                entries.dirs = malloc(dir_alloc * sizeof(char *));
+                entries.dirs = malloc(dir_alloc * sizeof(laser_dir *));
 
-            entries.dirs = laser_utils_grow_strarray(entries.dirs, &dir_alloc,
-                                                     entries.dir_count);
-            entries.dirs[entries.dir_count++] = strdup(entry->d_name);
+            entries.dirs = laser_grow_dirarray(entries.dirs, &dir_alloc,
+                                               entries.dir_count);
+            entries.dirs[entries.dir_count] = laser_init_dir(entry->d_name);
+
+            if (opts.show_recursive && strcmp(entry->d_name, ".") != 0 &&
+                strcmp(entry->d_name, "..") != 0)
+            {
+                laser_opts sub_opts = opts;
+                sub_opts.dir = full_path;
+
+                laser_dir_entries subentries = laser_getdirs(sub_opts);
+                entries.dirs[entries.dir_count]->sub_entires = subentries;
+            }
+
+            entries.dir_count++;
         }
         else if (S_ISLNK(file_stat.st_mode) && opts.show_symlinks)
         {
@@ -78,7 +86,9 @@ laser_dir_entries laser_getdirs(laser_opts opts)
 
             entries.symlinks = laser_utils_grow_strarray(
                 entries.symlinks, &symlink_alloc, entries.symlink_count);
-            entries.symlinks[entries.symlink_count++] = strdup(res_string);
+            entries.symlinks[entries.symlink_count] = strdup(res_string);
+
+            entries.symlink_count++;
         }
         else if (entry->d_name[0] == '.')
         {
@@ -87,7 +97,9 @@ laser_dir_entries laser_getdirs(laser_opts opts)
 
             entries.hidden = laser_utils_grow_strarray(
                 entries.hidden, &hidden_alloc, entries.hidden_count);
-            entries.hidden[entries.hidden_count++] = strdup(entry->d_name);
+            entries.hidden[entries.hidden_count] = strdup(entry->d_name);
+
+            entries.hidden_count++;
         }
         else if (S_ISREG(file_stat.st_mode) && opts.show_files)
         {
@@ -96,7 +108,9 @@ laser_dir_entries laser_getdirs(laser_opts opts)
 
             entries.files = laser_utils_grow_strarray(
                 entries.files, &file_alloc, entries.file_count);
-            entries.files[entries.file_count++] = strdup(entry->d_name);
+            entries.files[entries.file_count] = strdup(entry->d_name);
+
+            entries.file_count++;
         }
     }
 
@@ -109,62 +123,84 @@ int laser_cmp_string(const void *a, const void *b)
     return strcmp(*(const char **)a, *(const char **)b);
 }
 
-void laser_list(laser_dir_entries lentries)
+void laser_list(laser_dir_entries lentries, int depth)
 {
-    qsort(lentries.dirs, lentries.dir_count, sizeof(char *), laser_cmp_string);
-    qsort(lentries.files, lentries.file_count, sizeof(char *),
-          laser_cmp_string);
-    qsort(lentries.hidden, lentries.hidden_count, sizeof(char *),
-          laser_cmp_string);
-    qsort(lentries.symlinks, lentries.symlink_count, sizeof(char *),
-          laser_cmp_string);
+    char indent[depth * 4 + 1];
+    memset(indent, ' ', depth * 4);
+    indent[depth * 4] = '\0';
+
+    if (lentries.file_count > 0)
+        qsort(lentries.files, lentries.file_count, sizeof(char *),
+              laser_cmp_string);
+
+    if (lentries.hidden_count > 0)
+        qsort(lentries.hidden, lentries.hidden_count, sizeof(char *),
+              laser_cmp_string);
+
+    if (lentries.symlink_count > 0)
+        qsort(lentries.symlinks, lentries.symlink_count, sizeof(char *),
+              laser_cmp_string);
 
     if (lentries.dir_count > 0)
     {
-        char full_path[1024];
         for (int i = 0; i < lentries.dir_count; i++)
         {
-            printf(DIR_COLOR "%s/" RESET_COLOR "\n", lentries.dirs[i]);
-            free(lentries.dirs[i]);
+            printf("%s" DIR_COLOR "%s/" RESET_COLOR "\n", indent,
+                   lentries.dirs[i]->name);
+
+            laser_list(lentries.dirs[i]->sub_entires, depth + 1);
+
+            laser_free_dir(lentries.dirs[i]);
         }
 
         free(lentries.dirs);
-        printf("\n");
+
+        if (depth < 1)
+            printf("\n");
     }
 
     if (lentries.file_count > 0)
     {
         for (int i = 0; i < lentries.file_count; i++)
         {
-            printf(FILE_COLOR "%s" RESET_COLOR "\n", lentries.files[i]);
+            printf("%s" FILE_COLOR "%s" RESET_COLOR "\n", indent,
+                   lentries.files[i]);
             free(lentries.files[i]);
         }
 
         free(lentries.files);
-        printf("\n");
+
+        if (depth < 1)
+            printf("\n");
     }
 
     if (lentries.hidden_count > 0)
     {
         for (int i = 0; i < lentries.hidden_count; i++)
         {
-            printf(HIDDEN_COLOR "%s" RESET_COLOR "\n", lentries.hidden[i]);
+            printf("%s" HIDDEN_COLOR "%s" RESET_COLOR "\n", indent,
+                   lentries.hidden[i]);
             free(lentries.hidden[i]);
         }
 
         free(lentries.hidden);
-        printf("\n");
+
+        if (depth < 1)
+            printf("\n");
     }
 
     if (lentries.symlink_count > 0)
     {
         for (int i = 0; i < lentries.symlink_count; i++)
         {
-            printf(SYMLINK_COLOR "%s" RESET_COLOR "\n", lentries.symlinks[i]);
+            printf("%s" SYMLINK_COLOR "%s" RESET_COLOR "\n", indent,
+                   lentries.symlinks[i]);
             free(lentries.symlinks[i]);
         }
 
         free(lentries.symlinks);
-        printf("\n");
+
+        if (depth < 1)
+            printf("\n");
     }
 }

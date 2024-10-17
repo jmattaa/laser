@@ -41,5 +41,6 @@ void laser_list(laser_dir_entries lentries);
 
 laser_dir *laser_init_dir(char *name);
 laser_dir **laser_grow_dirarray(laser_dir **dirs, size_t *alloc_size, size_t count);
+void laser_free_dir(laser_dir *dir);
 
 #endif

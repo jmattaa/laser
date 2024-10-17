@@ -4,14 +4,14 @@ laser_dir *laser_init_dir(char *name)
 {
     laser_dir *dir = malloc(sizeof(laser_dir));
 
-    dir->name = name;
+    dir->name = strdup(name);
     dir->sub_entires = NULL;
 
     return dir;
 }
 
 laser_dir **laser_grow_dirarray(laser_dir **dirs, size_t *alloc_size,
-                               size_t count)
+                                size_t count)
 {
     if (count == *alloc_size)
     {
@@ -24,4 +24,14 @@ laser_dir **laser_grow_dirarray(laser_dir **dirs, size_t *alloc_size,
         }
     }
     return dirs;
+}
+
+void laser_free_dir(laser_dir *dir)
+{
+    if (dir->name)
+        free(dir->name);
+    if (dir->sub_entires)
+        free(dir->sub_entires);
+    if (dir)
+        free(dir);
 }

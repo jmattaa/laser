@@ -10,22 +10,15 @@
 
 #define MAX_ENTRIES 1024
 
-typedef struct laser_dir_entries laser_dir_entries;
+typedef struct laser_dir laser_dir;
 
-typedef struct 
-{
-    char *name;
-    laser_dir_entries *sub_entires;
-} laser_dir;
-
-struct  laser_dir_entries
+typedef struct laser_dir_entries
 {
     laser_dir **dirs;
 
     char **files;
 
     char **symlinks;
-    char **symlinks_targets;
 
     char **hidden;
 
@@ -33,11 +26,18 @@ struct  laser_dir_entries
     int file_count;
     int symlink_count;
     int hidden_count;
+} laser_dir_entries;
+
+struct laser_dir
+{
+    char *name;
+    laser_dir_entries sub_entires;
 };
+
 
 laser_dir_entries laser_getdirs(laser_opts opts);
 
-void laser_list(laser_dir_entries lentries);
+void laser_list(laser_dir_entries lentries, int depth);
 
 laser_dir *laser_init_dir(char *name);
 laser_dir **laser_grow_dirarray(laser_dir **dirs, size_t *alloc_size, size_t count);

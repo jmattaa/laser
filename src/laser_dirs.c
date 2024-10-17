@@ -5,7 +5,6 @@ laser_dir *laser_init_dir(char *name)
     laser_dir *dir = malloc(sizeof(laser_dir));
 
     dir->name = strdup(name);
-    dir->sub_entires = NULL;
 
     return dir;
 }
@@ -30,8 +29,6 @@ void laser_free_dir(laser_dir *dir)
 {
     if (dir->name)
         free(dir->name);
-    if (dir->sub_entires)
-        free(dir->sub_entires);
     if (dir)
         free(dir);
 }

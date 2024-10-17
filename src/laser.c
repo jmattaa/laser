@@ -2,11 +2,6 @@
 #include "include/colors.h"
 #include "include/utils.h"
 
-#define INITIAL_DIR_ALLOC 5
-#define INITIAL_SYMLINK_ALLOC 5
-#define INITIAL_HIDDEN_ALLOC 5
-#define INITIAL_FILE_ALLOC 5
-
 laser_dir_entries laser_getdirs(laser_opts opts)
 {
     DIR *dir_stuff = opendir(opts.dir); // idk what to name this
@@ -49,9 +44,21 @@ laser_dir_entries laser_getdirs(laser_opts opts)
             if (entries.dir_count == 0)
                 entries.dirs = malloc(dir_alloc * sizeof(char *));
 
-            entries.dirs = laser_utils_grow_strarray(entries.dirs, &dir_alloc,
-                                                     entries.dir_count);
-            entries.dirs[entries.dir_count++] = strdup(entry->d_name);
+            entries.dirs = laser_grow_dirarray(entries.dirs, &dir_alloc,
+                                               entries.dir_count);
+            entries.dirs[entries.dir_count++] = laser_init_dir(entry->d_name);
+
+            if (!opts.show_recursive)
+                continue;
+            if (strcmp(entry->d_name, ".") == 0 &&
+                strcmp(entry->d_name, "..") == 0)
+                continue;
+
+            laser_opts sub_opts = opts;
+            sub_opts.dir = full_path;
+
+            laser_dir_entries subentries = laser_getdirs(sub_opts);
+            entries.dirs[entries.dir_count]->sub_entires = &subentries;
         }
         else if (S_ISLNK(file_stat.st_mode) && opts.show_symlinks)
         {
@@ -124,7 +131,7 @@ void laser_list(laser_dir_entries lentries)
         char full_path[1024];
         for (int i = 0; i < lentries.dir_count; i++)
         {
-            printf(DIR_COLOR "%s/" RESET_COLOR "\n", lentries.dirs[i]);
+            printf(DIR_COLOR "%s/" RESET_COLOR "\n", lentries.dirs[i]->name);
             free(lentries.dirs[i]);
         }
 

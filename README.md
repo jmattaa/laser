@@ -42,6 +42,8 @@ After installing you can run laser in your current directory by simply
 running:
 ```sh
 lsr
+# or for a specific directory run:
+lsr some-directory
 ```
 
 ### Command-line options
@@ -60,6 +62,7 @@ you can directly pass in the flags.
 The flags can be chained for example using:
 ```sh
 lsr -Dar # this will show all directories including hidden ones recursivly
+lsr -SD # this will only show directories (not hidden) and symlinks
 ```
 
 Files, directories, symlinks and hidden files each have their own color.
@@ -67,3 +70,6 @@ The contents are also sorted alphabetically within each category. And they're
 separeted by a newline
 
 Tree view recursively shows the contents of subdirectories indented.
+
+# Authors
+- [@jmattaa](https://github.com/jmattaa)

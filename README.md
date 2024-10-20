@@ -17,6 +17,9 @@ It can even display the directory contents in a tree-like structure!
 
 ### Building from source
 
+>**_NOTE:_** If you want to dissable the nerdfonts symbols remove the 
+`-DLASER_NF_SYMBOLS` flag from the `Makefile` before compiling.
+
 Clone the repository:
 
 ```sh
@@ -35,9 +38,6 @@ To uninstall you can run
 ```sh
 sudo make uninstall
 ```
-
->**_NOTE:_** If you want to dissable the nerdfonts symbols remove the 
-`-DLASER_NF_SYMBOLS` flag from the `Makefile` before compiling.
 
 ## Usage
 

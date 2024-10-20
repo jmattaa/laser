@@ -42,6 +42,10 @@ laser_dir_entries laser_getdirs(laser_opts opts)
 
         if (S_ISDIR(file_stat.st_mode) && opts.show_directories)
         {
+            if (strcmp(entry->d_name, ".") == 0 ||
+                strcmp(entry->d_name, "..") == 0)
+                continue;
+
             if (entries.dir_count == 0)
                 entries.dirs = malloc(dir_alloc * sizeof(laser_dir *));
 
@@ -49,14 +53,13 @@ laser_dir_entries laser_getdirs(laser_opts opts)
                                                entries.dir_count);
             entries.dirs[entries.dir_count] = laser_init_dir(entry->d_name);
 
-            if (opts.show_recursive && strcmp(entry->d_name, ".") != 0 &&
-                strcmp(entry->d_name, "..") != 0)
+            if (opts.show_recursive)
             {
                 laser_opts sub_opts = opts;
                 sub_opts.dir = full_path;
 
                 laser_dir_entries subentries = laser_getdirs(sub_opts);
-                entries.dirs[entries.dir_count]->sub_entires = subentries;
+                entries.dirs[entries.dir_count]->sub_entries = subentries;
             }
 
             entries.dir_count++;
@@ -123,11 +126,25 @@ int laser_cmp_string(const void *a, const void *b)
     return strcmp(*(const char **)a, *(const char **)b);
 }
 
+int laser_cmp_dir(const void *a, const void *b)
+{
+    // my brother chatgpt told me to cast to ** and then to *
+    // cuz qsort gives us a pointer and then we cast idk????
+    laser_dir *dir_a = *(laser_dir **)a;
+    laser_dir *dir_b = *(laser_dir **)b;
+
+    return strcmp(dir_a->name, dir_b->name);
+}
+
 void laser_list(laser_dir_entries lentries, int depth)
 {
     char indent[depth * 4 + 1];
     memset(indent, ' ', depth * 4);
     indent[depth * 4] = '\0';
+
+    if (lentries.dir_count > 0)
+        qsort(lentries.dirs, lentries.dir_count, sizeof(laser_dir *),
+              laser_cmp_dir);
 
     if (lentries.file_count > 0)
         qsort(lentries.files, lentries.file_count, sizeof(char *),
@@ -148,7 +165,7 @@ void laser_list(laser_dir_entries lentries, int depth)
             printf("%s" DIR_COLOR "%s/" RESET_COLOR "\n", indent,
                    lentries.dirs[i]->name);
 
-            laser_list(lentries.dirs[i]->sub_entires, depth + 1);
+            laser_list(lentries.dirs[i]->sub_entries, depth + 1);
 
             laser_free_dir(lentries.dirs[i]);
         }

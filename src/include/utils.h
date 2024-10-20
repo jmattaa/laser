@@ -13,7 +13,7 @@ typedef struct laser_opts
     int show_files;
     int show_directories;
     int show_symlinks;
-    int show_recursive;
+    int show_tree;
     char *dir;
 } laser_opts;
 

@@ -7,7 +7,7 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     int show_files = -1;
     int show_directories = -1;
     int show_symlinks = -1;
-    int show_recursive = 0;
+    int show_tree = 0;
     char *dir = ".";
 
     int opt;
@@ -40,7 +40,7 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                 show_symlinks = 1;
                 break;
             case 'r':
-                show_recursive = 1;
+                show_tree = 1;
                 break;
             default:
                 exit(1);
@@ -50,8 +50,8 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     if (optind < argc)
         dir = argv[optind];
 
-    return (laser_opts){show_all,      show_files,     show_directories,
-                        show_symlinks, show_recursive, dir};
+    return (laser_opts){show_all,      show_files, show_directories,
+                        show_symlinks, show_tree,  dir};
 }
 
 void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)

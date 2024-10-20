@@ -42,8 +42,8 @@ laser_dir_entries laser_getdirs(laser_opts opts)
 
         if (S_ISDIR(file_stat.st_mode) && opts.show_directories)
         {
-            if (strcmp(entry->d_name, ".") == 0 ||
-                strcmp(entry->d_name, "..") == 0)
+            if ((strcmp(entry->d_name, ".") == 0 ||
+                strcmp(entry->d_name, "..") == 0) && opts.show_tree)
                 continue;
 
             if (entries.dir_count == 0)
@@ -53,7 +53,7 @@ laser_dir_entries laser_getdirs(laser_opts opts)
                                                entries.dir_count);
             entries.dirs[entries.dir_count] = laser_init_dir(entry->d_name);
 
-            if (opts.show_recursive)
+            if (opts.show_tree)
             {
                 laser_opts sub_opts = opts;
                 sub_opts.dir = full_path;

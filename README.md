@@ -36,6 +36,9 @@ To uninstall you can run
 sudo make uninstall
 ```
 
+>**_NOTE:_** If you want to dissable the nerdfonts symbols remove the 
+`-DLASER_NF_SYMBOLS` flag from the `Makefile` before compiling.
+
 ## Usage
 
 After installing you can run laser in your current directory by simply

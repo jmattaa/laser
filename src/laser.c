@@ -128,8 +128,10 @@ int laser_cmp_string(const void *a, const void *b)
 
 int laser_cmp_dir(const void *a, const void *b)
 {
-    laser_dir *dir_a = (laser_dir *)a;
-    laser_dir *dir_b = (laser_dir *)b;
+    // my brother chatgpt told me to cast to ** and then to *
+    // cuz qsort gives us a pointer and then we cast idk????
+    laser_dir *dir_a = *(laser_dir **)a;
+    laser_dir *dir_b = *(laser_dir **)b;
 
     return strcmp(dir_a->name, dir_b->name);
 }
@@ -141,7 +143,8 @@ void laser_list(laser_dir_entries lentries, int depth)
     indent[depth * 4] = '\0';
 
     if (lentries.dir_count > 0)
-        qsort(lentries.dirs, lentries.dir_count, sizeof(char *), laser_cmp_dir);
+        qsort(lentries.dirs, lentries.dir_count, sizeof(laser_dir *),
+              laser_cmp_dir);
 
     if (lentries.file_count > 0)
         qsort(lentries.files, lentries.file_count, sizeof(char *),

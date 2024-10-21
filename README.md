@@ -65,7 +65,7 @@ you can directly pass in the flags.
 The flags can be chained for example using:
 ```sh
 lsr -Dar # this will show all directories including hidden ones recursivly
-lsr -SD # this will only show directories (not hidden) and symlinks
+lsr -DS # this will only show directories (not hidden) and symlinks
 ```
 
 Files, directories, symlinks and hidden files each have their own color.

@@ -9,8 +9,8 @@
 </div>
 
 **lsr** basically `ls` but with colorization and sorting for better readability.
-It offers advanced filtering options, making it easy to
-locate specific files and folders. (with grep you'll find exactly what you need)
+It offers filtering options, making it easy to
+locate specific files and folders (with grep you'll find exactly what you need)
 It can even display the directory contents in a tree-like structure!
 
 ## Installation

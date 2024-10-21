@@ -43,7 +43,8 @@ laser_dir_entries laser_getdirs(laser_opts opts)
         if (S_ISDIR(file_stat.st_mode) && opts.show_directories)
         {
             if ((strcmp(entry->d_name, ".") == 0 ||
-                strcmp(entry->d_name, "..") == 0) && opts.show_tree)
+                 strcmp(entry->d_name, "..") == 0) &&
+                opts.show_tree)
                 continue;
 
             if (entries.dir_count == 0)
@@ -136,6 +137,21 @@ int laser_cmp_dir(const void *a, const void *b)
     return strcmp(dir_a->name, dir_b->name);
 }
 
+void laser_print_entries(int entries_count, char **entries, const char *color,
+                         char *indent)
+{
+    if (entries_count <= 0)
+        return;
+
+    for (int i = 0; i < entries_count; i++)
+    {
+        printf("%s%s%s" RESET_COLOR "\n", indent, color, entries[i]);
+        free(entries[i]);
+    }
+
+    free(entries);
+}
+
 void laser_list(laser_dir_entries lentries, int depth)
 {
     char indent[depth * 4 + 1];
@@ -176,48 +192,13 @@ void laser_list(laser_dir_entries lentries, int depth)
             printf("\n");
     }
 
-    if (lentries.file_count > 0)
-    {
-        for (int i = 0; i < lentries.file_count; i++)
-        {
-            printf("%s" FILE_COLOR "%s" RESET_COLOR "\n", indent,
-                   lentries.files[i]);
-            free(lentries.files[i]);
-        }
+    laser_print_entries(lentries.file_count, lentries.files, FILE_COLOR,
+                        indent);
+    laser_print_entries(lentries.hidden_count, lentries.hidden, HIDDEN_COLOR,
+                        indent);
+    laser_print_entries(lentries.symlink_count, lentries.symlinks,
+                        SYMLINK_COLOR, indent);
 
-        free(lentries.files);
-
-        if (depth < 1)
-            printf("\n");
-    }
-
-    if (lentries.hidden_count > 0)
-    {
-        for (int i = 0; i < lentries.hidden_count; i++)
-        {
-            printf("%s" HIDDEN_COLOR "%s" RESET_COLOR "\n", indent,
-                   lentries.hidden[i]);
-            free(lentries.hidden[i]);
-        }
-
-        free(lentries.hidden);
-
-        if (depth < 1)
-            printf("\n");
-    }
-
-    if (lentries.symlink_count > 0)
-    {
-        for (int i = 0; i < lentries.symlink_count; i++)
-        {
-            printf("%s" SYMLINK_COLOR "%s" RESET_COLOR "\n", indent,
-                   lentries.symlinks[i]);
-            free(lentries.symlinks[i]);
-        }
-
-        free(lentries.symlinks);
-
-        if (depth < 1)
-            printf("\n");
-    }
+    if (depth < 1)
+        printf("\n");
 }

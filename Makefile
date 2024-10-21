@@ -2,11 +2,11 @@ CC := gcc
 
 LASER_DEFINES=-DLASER_NF_SYMBOLS
 
-CFLAGS := -Wall -Wextra -pedantic -std=c11 $(LASER_DEFINES)
+CFLAGS := -Wall -Wextra -pedantic $(LASER_DEFINES)
 CFLAGS_DEBUG := $(CFLAGS) -g -DDEBUG -fsanitize=address
 CFLAGS_RELEASE := $(CFLAGS) -O2 -DNDEBUG
 
-LDFLAGS := -lm
+LDFLAGS := 
 LDFLAGS_DEBUG := $(LDFLAGS) -fsanitize=address
 
 SRC_DIR := src

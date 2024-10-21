@@ -1,7 +1,6 @@
 #include "include/laser.h"
 #include "include/colors.h"
 #include "include/utils.h"
-#include <stdio.h>
 
 laser_dir_entries laser_getdirs(laser_opts opts)
 {

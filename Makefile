@@ -1,45 +1,48 @@
-src=src
-bin=bin
-obj=$(bin)/obj
+CC := gcc
 
-exec=$(bin)/lsr
+LASER_DEFINES=-DLASER_NF_SYMBOLS
 
-sources=$(shell find $(src) -name *.c)
-objects=$(patsubst $(src)/%.c, $(obj)/%.o, $(sources))
+CFLAGS := -Wall -Wextra -pedantic -std=c11 $(LASER_DEFINES)
+CFLAGS_DEBUG := $(CFLAGS) -g -DDEBUG -fsanitize=address
+CFLAGS_RELEASE := $(CFLAGS) -O2 -DNDEBUG
 
-INSTALL_DIR=/usr/local/bin
+LDFLAGS := -lm
+LDFLAGS_DEBUG := $(LDFLAGS) -fsanitize=address
 
-cflags=-g -DLASER_NF_SYMBOLS
-lflags=-g -ggdb -fsanitize=address
+SRC_DIR := src
+BIN_DIR := bin
+OBJ_DIR := $(BIN_DIR)/obj
 
-cflags_release=-DLASER_NF_SYMBOLS
-lflags_release=
+SRCS := $(wildcard $(SRC_DIR)/*.c)
+OBJS := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
+TARGET := $(BIN_DIR)/lsr
 
-$(exec): $(objects)
-	gcc $(lflags) -o $@ $^
+.PHONY: all debug release clean format test install uninstall
 
-$(obj)/%.o: $(src)/%.c mkdirs
-	gcc -c $(cflags) -o $@ $<
+all: debug
 
+debug: $(TARGET)
 
-release: $(objects)
-	gcc $(lflags_release) -o $(exec) $^
+release: $(TARGET)
 
-$(obj)/%.o: $(src)/%.c 
-	make clean
-	gcc -c $(cflags) -o $@ $<
+$(TARGET): $(OBJS) | $(BIN_DIR)
+	$(CC) $(LDFLAGS) $^ -o $@
 
-mkdirs:
-	-mkdir -p $(bin)
-	-mkdir -p $(obj)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-
-install: release
-	install -m 755 $(exec) $(INSTALL_DIR)
-
-uninstall:
-	rm -rf $(INSTALL_DIR)/$(notdir $(exec))
+$(BIN_DIR) $(OBJ_DIR):
+	mkdir -p $@
 
 clean:
-	-rm -rf $(bin)
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
+
+format:
+	clang-format -i $(SRC_DIR)/*.c $(SRC_DIR)/include/*.h
+
+install: release
+	install -m 755 $(TARGET) /usr/local/bin
+
+uninstall:
+	rm -f /usr/local/bin/$(notdir $(TARGET))

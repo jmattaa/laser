@@ -17,8 +17,10 @@ It can even display the directory contents in a tree-like structure!
 
 ### Building from source
 
->**_NOTE:_** If you want to dissable the nerdfonts symbols remove the 
-`-DLASER_NF_SYMBOLS` flag from the `Makefile` before compiling.
+> [!NOTE] 
+> If you want to dissable the nerdfonts symbols remove the 
+`-DLASER_NF_SYMBOLS` flag from the `Makefile` under the variable `LASER_DEFINES
+before compiling.
 
 Clone the repository:
 

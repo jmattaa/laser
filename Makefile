@@ -13,7 +13,7 @@ SRC_DIR := src
 BIN_DIR := bin
 OBJ_DIR := $(BIN_DIR)/obj
 
-SRCS := $(wildcard $(SRC_DIR)/*.c)
+SRCS := $(shell find $(SRC_DIR) -name "*.c")
 OBJS := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 TARGET := $(BIN_DIR)/lsr
@@ -33,7 +33,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BIN_DIR) $(OBJ_DIR):
-	mkdir -p $@
+	-mkdir -p $@
+	-mkdir -p $(shell dirname $(OBJS))
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)

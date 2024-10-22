@@ -7,17 +7,21 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     int show_files = -1;
     int show_directories = -1;
     int show_symlinks = -1;
+    int show_git = 0;
     int show_tree = 0;
     char *dir = ".";
 
     int opt;
 
-    struct option long_args[] = {
-        {"all", 0, 0, 'a'},         {"Files", 0, 0, 'F'},
-        {"Directories", 0, 0, 'D'}, {"Symlinks", 0, 0, 'S'},
-        {"recursive", 0, 0, 'r'},   {0, 0, 0, 0}};
+    struct option long_args[] = {{"all", 0, 0, 'a'},
+                                 {"Files", 0, 0, 'F'},
+                                 {"Directories", 0, 0, 'D'},
+                                 {"Symlinks", 0, 0, 'S'},
+                                 {"Git", 0, 0, 'G'},
+                                 {"recursive", 0, 0, 'r'},
+                                 {0, 0, 0, 0}};
 
-    while ((opt = getopt_long(argc, argv, "aFDSr", long_args, NULL)) != -1)
+    while ((opt = getopt_long(argc, argv, "aFDSGr", long_args, NULL)) != -1)
     {
         switch (opt)
         {
@@ -39,6 +43,9 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                 show_directories = show_directories <= 0 ? 0 : 1;
                 show_symlinks = 1;
                 break;
+            case 'G':
+                show_git = 1;
+                break;
             case 'r':
                 show_tree = 1;
                 break;
@@ -50,8 +57,9 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     if (optind < argc)
         dir = argv[optind];
 
-    return (laser_opts){show_all,      show_files, show_directories,
-                        show_symlinks, show_tree,  dir};
+    return (laser_opts){show_all,      show_files,      show_directories,
+                        show_symlinks, show_git,        show_tree,
+                        dir,           .parentDir = dir};
 }
 
 void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)

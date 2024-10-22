@@ -1,4 +1,5 @@
 #include "include/laser.h"
+#include "git/include/lgit.h"
 #include "include/colors.h"
 #include "include/utils.h"
 
@@ -24,6 +25,14 @@ laser_dir_entries laser_getdirs(laser_opts opts)
     size_t symlink_alloc = 10;
     size_t hidden_alloc = 10;
     size_t file_alloc = 10;
+
+    if (opts.show_git)
+    {
+        // get all of the git entries from the repo
+        // and use them without going into the loop below
+        lgit_entries *entries_git = lgit_getGitEntries(opts);
+        free(entries_git);
+    }
 
     while ((entry = readdir(dir_stuff)) != NULL)
     {

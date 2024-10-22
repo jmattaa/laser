@@ -13,8 +13,11 @@ typedef struct laser_opts
     int show_files;
     int show_directories;
     int show_symlinks;
+    int show_git;
     int show_tree;
+    
     char *dir;
+    char *parentDir; // TODO: maybe this static?
 } laser_opts;
 
 laser_opts laser_utils_parsecmd(int argc, char **argv);

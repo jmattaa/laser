@@ -17,9 +17,7 @@ typedef struct laser_dir_entries
     laser_dir **dirs;
 
     char **files;
-
     char **symlinks;
-
     char **hidden;
 
     int dir_count;

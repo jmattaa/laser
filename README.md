@@ -61,13 +61,14 @@ you can directly pass in the flags.
 - `-D` or `--Directories` shows only directories
 - `-F` or `--Files` shows only files
 - `-S` or `--Symlinks` shows only symlinks
+- `-G` or `--Git` shows only the entries that are not named in `.gitignore` (works only if there exists a `.gitignore`)
 - `-r` or `--recursive` shows directory tree structure
 
 
 The flags can be chained for example using:
 ```sh
 lsr -Dar # this will show all directories including hidden ones recursivly
-lsr -DS # this will only show directories (not hidden) and symlinks
+lsr -GDS # this will only show directories (not hidden) and symlinks that are not mentioned in .gitignore
 ```
 
 Files, directories, symlinks and hidden files each have their own color.

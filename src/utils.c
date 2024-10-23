@@ -68,6 +68,30 @@ void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)
     strftime(buffer, buffer_size, "%d-%m-%Y", tm_info);
 }
 
+int laser_cmp_string_for_gitignore(const void *a, const void *b)
+{
+    const char *target = *(const char **)a;
+    const char *pattern = *(const char **)b;
+
+    size_t pattern_len = strlen(pattern);
+
+    if (pattern[pattern_len - 1] == '/')
+    {
+        if (strncmp(target, pattern, pattern_len - 1) == 0)
+            return 0;
+    }
+    else
+        return strcmp(target, pattern);
+
+    return strcmp(target, pattern);
+}
+int laser_string_in_sorted_array(char *target, char **array, int size)
+{
+    char **item = (char **)bsearch(&target, array, size, sizeof(char *),
+                                   laser_cmp_string_for_gitignore);
+    return item != NULL;
+}
+
 char **laser_utils_grow_strarray(char **array, size_t *alloc_size, size_t count)
 {
     if (count == *alloc_size)
@@ -81,4 +105,9 @@ char **laser_utils_grow_strarray(char **array, size_t *alloc_size, size_t count)
         }
     }
     return array;
+}
+
+int laser_cmp_string(const void *a, const void *b)
+{
+    return strcmp(*(const char **)a, *(const char **)b);
 }

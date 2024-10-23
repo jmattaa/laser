@@ -3,8 +3,65 @@
 #include <stdio.h>
 #include <string.h>
 
-#define GIT_INDEX_HEAD_LEN 48 // in bits
+#define MAX_LINE_LENGTH 1024
+#define INITIAL_CAPACITY 10
 
+char **lgit_parseGitignore(char *dir, int *count)
+{
+    size_t filename_len =
+        strlen(dir) + strlen(".gitignore") +
+        2; // why +2 not +1.... cuz it works, other than that idk??
+
+    char *filename = malloc(filename_len);
+
+    snprintf(filename, filename_len, "%s/.gitignore", dir);
+    FILE *file = fopen(filename, "r");
+    if (!file)
+    {
+        perror("Could not open .gitignore");
+        return NULL;
+    }
+
+    char **ignored_patterns = malloc(INITIAL_CAPACITY * sizeof(char *));
+    if (!ignored_patterns)
+    {
+        perror("Could not allocate memory for ignored patterns");
+        fclose(file);
+        return NULL;
+    }
+
+    size_t capacity = INITIAL_CAPACITY;
+    *count = 0;
+
+    char line[MAX_LINE_LENGTH];
+    while (fgets(line, sizeof(line), file))
+    {
+        char *trimmed = strtok(line, "\n");
+        if (trimmed && trimmed[0] != '#' && trimmed[0] != '\0')
+        {
+            if (*count >= capacity)
+            {
+                capacity *= 2;
+                ignored_patterns =
+                    realloc(ignored_patterns, capacity * sizeof(char *));
+                if (!ignored_patterns)
+                {
+                    perror("Could not reallocate memory for ignored patterns");
+                    fclose(file);
+                    return NULL;
+                }
+            }
+            ignored_patterns[*count] = strdup(trimmed);
+            (*count)++;
+        }
+    }
+
+    fclose(file);
+    return ignored_patterns;
+}
+
+// NO NEED FOR THESE NOW
+// --------------------------------------------------
 lgit_entries *lgit_getGitEntries(laser_opts opts)
 {
     lgit_entries *entries = malloc(sizeof(lgit_entries));

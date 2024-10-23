@@ -3,6 +3,19 @@
 #include "include/colors.h"
 #include "include/utils.h"
 
+char *strip_parent_dir(const char *full_path, const char *parent_dir)
+{
+    size_t parent_len = strlen(parent_dir);
+
+    if (strncmp(full_path, parent_dir, parent_len) == 0 &&
+        full_path[parent_len] == '/')
+    {
+        return (char *)(full_path + parent_len + 1);
+    }
+
+    return (char *)full_path;
+}
+
 laser_dir_entries laser_getdirs(laser_opts opts)
 {
     DIR *dir_stuff = opendir(opts.dir); // idk what to name this
@@ -26,12 +39,15 @@ laser_dir_entries laser_getdirs(laser_opts opts)
     size_t hidden_alloc = 10;
     size_t file_alloc = 10;
 
+    int gitignore_count = 0;
+    char **gitignore_patterns = NULL;
+
     if (opts.show_git)
     {
-        // get all of the git entries from the repo
-        // and use them without going into the loop below
-        lgit_entries *entries_git = lgit_getGitEntries(opts);
-        free(entries_git);
+        gitignore_patterns =
+            lgit_parseGitignore(opts.parentDir, &gitignore_count);
+        qsort(gitignore_patterns, gitignore_count, sizeof(char *),
+              laser_cmp_string);
     }
 
     while ((entry = readdir(dir_stuff)) != NULL)
@@ -47,6 +63,11 @@ laser_dir_entries laser_getdirs(laser_opts opts)
             perror("lstat");
             continue;
         }
+
+        if (opts.show_git && laser_string_in_sorted_array(
+                                 strip_parent_dir(full_path, opts.parentDir),
+                                 gitignore_patterns, gitignore_count))
+            continue;
 
         if (S_ISDIR(file_stat.st_mode) && opts.show_directories)
         {
@@ -127,12 +148,17 @@ laser_dir_entries laser_getdirs(laser_opts opts)
     }
 
     closedir(dir_stuff);
-    return entries;
-}
 
-int laser_cmp_string(const void *a, const void *b)
-{
-    return strcmp(*(const char **)a, *(const char **)b);
+    if (gitignore_patterns)
+    {
+        for (int i = 0; i < gitignore_count; i++)
+        {
+            free(gitignore_patterns[i]);
+        }
+        free(gitignore_patterns);
+    }
+
+    return entries;
 }
 
 int laser_cmp_dir(const void *a, const void *b)

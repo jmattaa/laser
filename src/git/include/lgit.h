@@ -18,6 +18,8 @@ typedef struct
     char **lgit_entry;
 } lgit_entries;
 
+char **lgit_parseGitignore(char *dir, int *count);
+
 lgit_entries *lgit_getGitEntries(laser_opts opts);
 
 void lgit_parseGit(char *dir);

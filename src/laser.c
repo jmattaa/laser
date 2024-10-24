@@ -3,6 +3,8 @@
 #include "include/colors.h"
 #include "include/utils.h"
 
+static int laser_max_depth = -1;
+
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
     size_t parent_len = strlen(parent_dir);
@@ -161,6 +163,8 @@ laser_dir_entries laser_getdirs(laser_opts opts)
         free(gitignore_patterns);
     }
 
+    laser_max_depth++;
+
     return entries;
 }
 
@@ -175,14 +179,26 @@ int laser_cmp_dir(const void *a, const void *b)
 }
 
 void laser_print_entries(int entries_count, char **entries, const char *color,
-                         char *indent)
+                         char *indent, int depth)
 {
     if (entries_count <= 0)
         return;
 
     for (int i = 0; i < entries_count; i++)
     {
-        printf("%s%s%s" RESET_COLOR "\n", indent, color, entries[i]);
+        char branch[depth > 0 ? 8 : 1]; // 8 cuz the ting be 8 chars long
+        if (depth > 0)
+        {
+            if (i == entries_count - 1)
+                strcpy(branch, "└─ ");
+            else
+                strcpy(branch, "├─ ");
+        }
+        else
+            branch[0] = '\0';
+
+        printf("%s%s%s%s" RESET_COLOR "\n", indent, branch, color, entries[i]);
+
         free(entries[i]);
     }
 
@@ -191,9 +207,14 @@ void laser_print_entries(int entries_count, char **entries, const char *color,
 
 void laser_list(laser_dir_entries lentries, int depth)
 {
-    char indent[depth * 4 + 1];
-    memset(indent, ' ', depth * 4);
-    indent[depth * 4] = '\0';
+    char *pipe = "│   ";
+    size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
+    char *indent = malloc(indent_len);
+
+    indent[0] = '\0';
+    if (depth > 0)
+        for (int i = 1; i < depth; i++) // so we dont do no pipe in the begining
+            strcat(indent, pipe);
 
     if (lentries.dir_count > 0)
         qsort(lentries.dirs, lentries.dir_count, sizeof(laser_dir *),
@@ -215,27 +236,35 @@ void laser_list(laser_dir_entries lentries, int depth)
     {
         for (int i = 0; i < lentries.dir_count; i++)
         {
-            printf("%s" DIR_COLOR "%s/" RESET_COLOR "\n", indent,
+            char branch[8];
+            if (depth > 0)
+                strcpy(branch, "├─ ");
+            else
+                branch[0] = '\0';
+
+            printf("%s%s%s%s" RESET_COLOR "\n", indent, branch, DIR_COLOR,
                    lentries.dirs[i]->name);
 
             laser_list(lentries.dirs[i]->sub_entries, depth + 1);
 
             laser_free_dir(lentries.dirs[i]);
         }
-
         free(lentries.dirs);
 
         if (depth < 1)
             printf("\n");
     }
 
-    laser_print_entries(lentries.file_count, lentries.files, FILE_COLOR,
-                        indent);
+    laser_print_entries(lentries.file_count, lentries.files, FILE_COLOR, indent,
+                        depth);
+
     laser_print_entries(lentries.hidden_count, lentries.hidden, HIDDEN_COLOR,
-                        indent);
+                        indent, depth);
     laser_print_entries(lentries.symlink_count, lentries.symlinks,
-                        SYMLINK_COLOR, indent);
+                        SYMLINK_COLOR, indent, depth);
 
     if (depth < 1)
         printf("\n");
+
+    free(indent);
 }

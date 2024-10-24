@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 uint32_t lgit_utils_hexToUint32(const char *hex);
 uint32_t lgit_utils_binToUint32(const char *bin);

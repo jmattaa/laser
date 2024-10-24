@@ -4,6 +4,7 @@
 #include "../../include/utils.h"
 
 #include <stdlib.h>
+#include <stdint.h>
 
 typedef struct
 {

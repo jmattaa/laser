@@ -48,6 +48,8 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                 break;
             case 'r':
                 show_tree = 1;
+                // recursive listing has to ovveride dir flag
+                show_directories = 1;
                 break;
             default:
                 exit(1);

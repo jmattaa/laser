@@ -18,6 +18,7 @@ laser_dir **laser_grow_dirarray(laser_dir **dirs, size_t *alloc_size,
         dirs = realloc(dirs, (*alloc_size) * sizeof(laser_dir *));
         if (dirs == NULL)
         {
+            free(dirs);
             perror("realloc");
             exit(EXIT_FAILURE);
         }

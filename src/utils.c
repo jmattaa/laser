@@ -102,6 +102,7 @@ char **laser_utils_grow_strarray(char **array, size_t *alloc_size, size_t count)
         array = realloc(array, (*alloc_size) * sizeof(char *));
         if (array == NULL)
         {
+            free(array);
             perror("realloc");
             exit(EXIT_FAILURE);
         }

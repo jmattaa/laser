@@ -26,7 +26,8 @@ laser_dir_entries laser_getdirs(laser_opts opts)
 
     if (dir_stuff == NULL)
     {
-        perror("opendir");
+        fprintf(stderr, "lsr: couldn't open %s, %s\n", opts.dir,
+                strerror(errno));
         return entries;
     }
 
@@ -62,7 +63,7 @@ laser_dir_entries laser_getdirs(laser_opts opts)
 
         if (lstat(full_path, &file_stat) == -1)
         {
-            perror("lstat");
+            fprintf(stderr, "lsr: %s\n", strerror(errno));
             continue;
         }
 
@@ -108,6 +109,8 @@ laser_dir_entries laser_getdirs(laser_opts opts)
                 readlink(full_path, symlink_target, sizeof(symlink_target) - 1);
             if (len == -1)
             {
+                if (entries.symlink_count == 0)
+                    free(entries.symlinks);
                 perror("readlink");
                 continue;
             }

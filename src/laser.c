@@ -69,6 +69,9 @@ laser_dir_entries laser_getdirs(laser_opts opts)
                                  gitignore_patterns, gitignore_count))
             continue;
 
+        if (opts.show_git && strcmp(entry->d_name, ".git") == 0)
+            continue;
+
         if (S_ISDIR(file_stat.st_mode) && opts.show_directories)
         {
             if ((strcmp(entry->d_name, ".") == 0 ||

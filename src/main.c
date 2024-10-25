@@ -4,9 +4,6 @@
 int main(int argc, char **argv)
 {
     laser_opts opts = laser_utils_parsecmd(argc, argv);
-    laser_dir_entries lentries = laser_getdirs(opts);
-
-    laser_list(lentries, 0);
-
+    laser_list_directory(opts, 0);
     return 0;
 }

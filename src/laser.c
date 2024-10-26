@@ -1,7 +1,5 @@
 #include "include/laser.h"
 #include "git/include/lgit.h"
-#include "include/colors.h"
-#include "include/utils.h"
 
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
@@ -16,29 +14,29 @@ char *strip_parent_dir(const char *full_path, const char *parent_dir)
     return (char *)full_path;
 }
 
-int laser_cmp_dirent(void *arg, const void *a, const void *b)
+int laser_cmp_dirent(const void *a, const void *b)
 {
-    char *dir_path = (char *)arg;
+    //char *dir_path = (char *)arg;
 
     struct dirent *dirent_a = *(struct dirent **)a;
     struct dirent *dirent_b = *(struct dirent **)b;
 
-    char path_a[1024];
-    char path_b[1024];
-    snprintf(path_a, sizeof(path_a), "%s/%s", dir_path, dirent_a->d_name);
-    snprintf(path_b, sizeof(path_b), "%s/%s", dir_path, dirent_b->d_name);
+    // char path_a[1024];
+    // char path_b[1024];
+    // snprintf(path_a, sizeof(path_a), "%s/%s", dir_path, dirent_a->d_name);
+    // snprintf(path_b, sizeof(path_b), "%s/%s", dir_path, dirent_b->d_name);
 
-    struct stat stat_a, stat_b;
+    // struct stat stat_a, stat_b;
 
-    lstat(path_a, &stat_a);
-    lstat(path_b, &stat_b);
+    // lstat(path_a, &stat_a);
+    // lstat(path_b, &stat_b);
 
-    // add weight if is file so files go down, u see gravity (me big brain)
+    // // add weight if is file so files go down, u see gravity (me big brain)
     int weight = 0; // idk what to call this
-    if (S_ISDIR(stat_a.st_mode) && !S_ISDIR(stat_b.st_mode))
-        weight = -1;
-    else if (!S_ISDIR(stat_a.st_mode) && S_ISDIR(stat_b.st_mode))
-        weight = 1; // weigh more --> fall down
+    // if (S_ISDIR(stat_a.st_mode) && !S_ISDIR(stat_b.st_mode))
+    //     weight = -1;
+    // else if (!S_ISDIR(stat_a.st_mode) && S_ISDIR(stat_b.st_mode))
+    //     weight = 1; // weigh more --> fall down
 
     if (weight == 0) // they weigh the same so compare the name
         return strcmp(dirent_a->d_name, dirent_b->d_name);
@@ -116,8 +114,7 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
     }
 
     // sort and print stuff
-    qsort_r(entries, entry_count, sizeof(struct dirent *), opts.parentDir,
-            laser_cmp_dirent);
+    qsort(entries, entry_count, sizeof(struct dirent *), laser_cmp_dirent);
     for (int i = 0; i < entry_count; i++)
     {
         int is_last = (i == entry_count - 1);

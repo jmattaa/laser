@@ -64,11 +64,11 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                         dir,           .parentDir = dir};
 }
 
-void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)
-{
-    struct tm *tm_info = localtime(&time);
-    strftime(buffer, buffer_size, "%d-%m-%Y", tm_info);
-}
+// void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)
+// {
+//     struct tm *tm_info = localtime(&time);
+//     strftime(buffer, buffer_size, "%d-%m-%Y", tm_info);
+// }
 
 int laser_cmp_string_for_gitignore(const void *a, const void *b)
 {
@@ -87,6 +87,7 @@ int laser_cmp_string_for_gitignore(const void *a, const void *b)
 
     return strcmp(target, pattern);
 }
+
 int laser_string_in_sorted_array(char *target, char **array, int size)
 {
     char **item = (char **)bsearch(&target, array, size, sizeof(char *),
@@ -113,4 +114,16 @@ char **laser_utils_grow_strarray(char **array, size_t *alloc_size, size_t count)
 int laser_cmp_string(const void *a, const void *b)
 {
     return strcmp(*(const char **)a, *(const char **)b);
+}
+
+void laser_swap(void *a, void *b, size_t size)
+{
+    char temp;
+    char *pa = (char *)a, *pb = (char *)b;
+    while (size--)
+    {
+        temp = *pa;
+        *pa++ = *pb;
+        *pb++ = temp;
+    }
 }

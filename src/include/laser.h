@@ -3,6 +3,7 @@
 
 #include "colors.h"
 #include "utils.h"
+#include "sort.h"
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>

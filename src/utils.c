@@ -111,19 +111,32 @@ char **laser_utils_grow_strarray(char **array, size_t *alloc_size, size_t count)
     return array;
 }
 
-int laser_cmp_string(const void *a, const void *b)
+int laser_cmp_string(const void *a, const void *b, void *arg)
 {
     return strcmp(*(const char **)a, *(const char **)b);
 }
 
 void laser_swap(void *a, void *b, size_t size)
 {
-    char temp;
+    if (a == b || size == 0)
+        return;
+
     char *pa = (char *)a, *pb = (char *)b;
     while (size--)
     {
-        temp = *pa;
-        *pa++ = *pb;
-        *pb++ = temp;
+        *pa ^= *pb;
+        *pb ^= *pa;
+        *pa ^= *pb;
+
+        pa++;
+        pb++;
     }
+}
+
+int laser_charcmp(const char *str1, const char *str2)
+{
+    if (*str1 == '\0' || *str2 == '\0')
+        return (*str1 == '\0') - (*str2 == '\0');
+
+    return *str1 - *str2;
 }

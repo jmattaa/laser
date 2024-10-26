@@ -17,9 +17,9 @@ void *partition(void *base, size_t n, size_t size,
     char *pivot = median_of_three(array, array + (n / 2) * size,
                                   array + (n - 1) * size, cmp, arg);
 
-    laser_swap(pivot, array + (n - 1) * size, size);
+    laser_swap(pivot, array + ((n - 1) * size), size);
 
-    pivot = array + (n - 1) * size;
+    pivot = array + ((n - 1) * size);
     char *i = array;
 
     for (char *j = array; j < pivot; j += size)

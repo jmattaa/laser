@@ -9,8 +9,8 @@
 char **lgit_parseGitignore(char *dir, int *count)
 {
     size_t filename_len =
-        strlen(dir) + strlen(".gitignore") +
-        2; // why +2 not +1.... cuz it works, other than that idk??
+        strlen(dir) + strlen("/.gitignore") +
+        1;
 
     char *filename = malloc(filename_len);
 
@@ -56,6 +56,7 @@ char **lgit_parseGitignore(char *dir, int *count)
         }
     }
 
+    free(filename);
     fclose(file);
     return ignored_patterns;
 }

@@ -94,7 +94,8 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
             continue;
 
         if ((S_ISDIR(file_stat.st_mode) && opts.show_directories) ||
-            (!S_ISDIR(file_stat.st_mode) && opts.show_files))
+            (S_ISLNK(file_stat.st_mode) && opts.show_symlinks) ||
+            (S_ISREG(file_stat.st_mode) && opts.show_files))
         {
             if (opts.show_tree && S_ISDIR(file_stat.st_mode) &&
                 (strcmp(entry->d_name, ".") == 0 ||
@@ -188,7 +189,7 @@ void laser_list_directory(laser_opts opts, int depth)
         gitignore_patterns =
             lgit_parseGitignore(opts.parentDir, &gitignore_count);
         laser_sort(gitignore_patterns, gitignore_count, sizeof(char *),
-              laser_cmp_string, NULL);
+                   laser_cmp_string, NULL);
     }
 
     laser_process_entries(opts, depth, indent, gitignore_patterns,

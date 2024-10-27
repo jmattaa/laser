@@ -121,16 +121,24 @@ void laser_swap(void *a, void *b, size_t size)
     if (a == b || size == 0)
         return;
 
-    char *pa = (char *)a, *pb = (char *)b;
-    while (size--)
+    if (size <= 16)
     {
-        *pa ^= *pb;
-        *pb ^= *pa;
-        *pa ^= *pb;
-
-        pa++;
-        pb++;
+        char *pa = (char *)a, *pb = (char *)b;
+        while (size--)
+        {
+            *pa ^= *pb;
+            *pb ^= *pa;
+            *pa ^= *pb;
+            pa++;
+            pb++;
+        }
+        return;
     }
+
+    char temp[size];
+    memcpy(temp, a, size);
+    memcpy(a, b, size);
+    memcpy(b, temp, size);
 }
 
 int laser_charcmp(const char *str1, const char *str2)

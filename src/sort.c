@@ -14,6 +14,7 @@ void *partition(void *base, size_t n, size_t size,
                 int(cmp)(const void *, const void *, void *), void *arg)
 {
     char *array = base;
+    // first middle and last
     char *pivot = median_of_three(array, array + (n / 2) * size,
                                   array + (n - 1) * size, cmp, arg);
 
@@ -77,15 +78,31 @@ void laser_insertsort(void *base, size_t elem_count, size_t elem_size,
                       void *arg)
 {
     char *array = base;
-
     for (size_t i = 1; i < elem_count; i++)
     {
-        for (size_t j = i; j > 0 && cmp(array + j * elem_size,
-                                        array + (j - 1) * elem_size, arg) < 0;
-             j--)
+        char *target = array + i * elem_size;
+        size_t left = 0, right = i;
+
+        while (left < right)
         {
-            laser_swap(array + j * elem_size, array + (j - 1) * elem_size,
-                       elem_size);
+            size_t mid = left + (right - left) / 2;
+            if (cmp(target, array + mid * elem_size, arg) < 0)
+            {
+                right = mid;
+            }
+            else
+            {
+                left = mid + 1;
+            }
+        }
+
+        if (left != i)
+        {
+            char temp[elem_size];
+            memcpy(temp, target, elem_size);
+            memmove(array + (left + 1) * elem_size, array + left * elem_size,
+                    (i - left) * elem_size);
+            memcpy(array + left * elem_size, temp, elem_size);
         }
     }
 }

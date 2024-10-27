@@ -1,13 +1,14 @@
 CC := gcc
 
-LASER_DEFINES=-DLASER_NF_SYMBOLS
+LASER_DEFINES := -DLASER_NF_SYMBOLS
 
-CFLAGS := -Wall -Wextra -pedantic $(LASER_DEFINES)
-CFLAGS_DEBUG := $(CFLAGS) -g -DDEBUG -fsanitize=address
+CFLAGS := $(LASER_DEFINES)
+CFLAGS_DEBUG := $(CFLAGS) -g -DDEBUG -fsanitize=address -Wall -Wextra -pedantic
 CFLAGS_RELEASE := $(CFLAGS) -O2 -DNDEBUG
 
-LDFLAGS := 
+LDFLAGS :=
 LDFLAGS_DEBUG := $(LDFLAGS) -fsanitize=address
+LDFLAGS_RELEASE := $(LDFLAGS)
 
 SRC_DIR := src
 BIN_DIR := bin
@@ -22,8 +23,12 @@ TARGET := $(BIN_DIR)/lsr
 
 all: debug
 
+debug: CFLAGS += $(CFLAGS_DEBUG)
+debug: LDFLAGS += $(LDFLAGS_DEBUG)
 debug: $(TARGET)
 
+release: CFLAGS += $(CFLAGS_RELEASE)
+release: LDFLAGS += $(LDFLAGS_RELEASE)
 release: $(TARGET)
 
 $(TARGET): $(OBJS) | $(BIN_DIR)
@@ -47,3 +52,4 @@ install: release
 
 uninstall:
 	rm -f /usr/local/bin/$(notdir $(TARGET))
+

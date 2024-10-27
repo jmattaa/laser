@@ -1,9 +1,6 @@
 #include "include/laser.h"
 #include "git/include/lgit.h"
-#include "include/colors.h"
 #include "include/utils.h"
-
-static int laser_max_depth = -1;
 
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
@@ -18,144 +15,183 @@ char *strip_parent_dir(const char *full_path, const char *parent_dir)
     return (char *)full_path;
 }
 
-laser_dir_entries laser_getdirs(laser_opts opts)
+int laser_cmp_dirent(const void *a, const void *b, void *arg)
 {
-    DIR *dir_stuff = opendir(opts.dir); // idk what to name this
+    char *dir_path = (char *)arg;
 
-    laser_dir_entries entries = {0};
+    struct dirent *dirent_a = *(struct dirent **)a;
+    struct dirent *dirent_b = *(struct dirent **)b;
 
-    if (dir_stuff == NULL)
+    char path_a[1024];
+    char path_b[1024];
+    snprintf(path_a, sizeof(path_a), "%s/%s", dir_path, dirent_a->d_name);
+    snprintf(path_b, sizeof(path_b), "%s/%s", dir_path, dirent_b->d_name);
+
+    struct stat stat_a, stat_b;
+
+    lstat(path_a, &stat_a);
+    lstat(path_b, &stat_b);
+
+    // // add weight if is file so files go down, u see gravity (me big brain)
+    int weight = 0; // idk what to call this
+    if (S_ISDIR(stat_a.st_mode) && !S_ISDIR(stat_b.st_mode))
+        weight = -1;
+    else if (!S_ISDIR(stat_a.st_mode) && S_ISDIR(stat_b.st_mode))
+        weight = 1; // weigh more --> fall down
+
+    if (weight == 0) // they weigh the same so compare the name
+        return laser_charcmp(dirent_a->d_name, dirent_b->d_name);
+
+    return weight;
+}
+
+void laser_print_entry(const char *name, const char *color, char *indent,
+                       int depth, int is_last)
+{
+    char branch[8] = "";
+    if (depth > 0)
+        strcpy(branch, is_last ? "└─ " : "├─ ");
+
+    printf("%s%s%s%s" RESET_COLOR "\n", indent, branch, color, name);
+}
+
+void laser_process_entries(laser_opts opts, int depth, char *indent,
+                           char **gitignore_patterns, int gitignore_count)
+{
+    DIR *dir = opendir(opts.dir);
+    if (dir == NULL)
     {
         fprintf(stderr, "lsr: couldn't open %s, %s\n", opts.dir,
                 strerror(errno));
-        return entries;
+        return;
     }
 
-    struct stat file_stat;
     struct dirent *entry;
+    struct dirent **entries = malloc(sizeof(struct dirent *));
+    int entry_count = 0;
 
     char full_path[1024];
-    char symlink_target[1024];
-
-    size_t dir_alloc = 10;
-    size_t symlink_alloc = 10;
-    size_t hidden_alloc = 10;
-    size_t file_alloc = 10;
-
-    int gitignore_count = 0;
-    char **gitignore_patterns = NULL;
-
-    if (opts.show_git)
+    while ((entry = readdir(dir)) != NULL)
     {
-        gitignore_patterns =
-            lgit_parseGitignore(opts.parentDir, &gitignore_count);
-        qsort(gitignore_patterns, gitignore_count, sizeof(char *),
-              laser_cmp_string);
-    }
-
-    while ((entry = readdir(dir_stuff)) != NULL)
-    {
-        if (!opts.show_all && entry->d_name[0] == '.')
-            continue;
-
         snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
                  entry->d_name);
 
+        struct stat file_stat;
         if (lstat(full_path, &file_stat) == -1)
         {
             fprintf(stderr, "lsr: %s\n", strerror(errno));
             continue;
         }
 
-        if (opts.show_git && laser_string_in_sorted_array(
-                                 strip_parent_dir(full_path, opts.parentDir),
-                                 gitignore_patterns, gitignore_count))
+        if (!opts.show_all && entry->d_name[0] == '.')
             continue;
 
-        if (opts.show_git && strcmp(entry->d_name, ".git") == 0)
+        if (opts.show_git && (laser_string_in_sorted_array(
+                                  strip_parent_dir(full_path, opts.parentDir),
+                                  gitignore_patterns, gitignore_count) ||
+                              strcmp(entry->d_name, ".git") == 0))
             continue;
 
-        if (S_ISDIR(file_stat.st_mode) && opts.show_directories)
+        if ((S_ISDIR(file_stat.st_mode) && opts.show_directories) ||
+            (S_ISLNK(file_stat.st_mode) && opts.show_symlinks) ||
+            (S_ISREG(file_stat.st_mode) && opts.show_files))
         {
-            if ((strcmp(entry->d_name, ".") == 0 ||
-                 strcmp(entry->d_name, "..") == 0) &&
-                opts.show_tree)
+            if (opts.show_tree && S_ISDIR(file_stat.st_mode) &&
+                (strcmp(entry->d_name, ".") == 0 ||
+                 strcmp(entry->d_name, "..") == 0))
                 continue;
 
-            if (entries.dir_count == 0)
-                entries.dirs = malloc(dir_alloc * sizeof(laser_dir *));
+            entries =
+                realloc(entries, (entry_count + 1) * sizeof(struct dirent *));
 
-            entries.dirs = laser_grow_dirarray(entries.dirs, &dir_alloc,
-                                               entries.dir_count);
-            entries.dirs[entries.dir_count] = laser_init_dir(entry->d_name);
+            size_t entry_size =
+                offsetof(struct dirent, d_name) + strlen(entry->d_name) + 1;
+            entries[entry_count] = malloc(entry_size);
+            memcpy(entries[entry_count], entry, entry_size);
+            entry_count++;
+        }
+    }
+    // sort and print stuff
+    laser_sort(entries, entry_count, sizeof(struct dirent *), laser_cmp_dirent,
+               opts.parentDir);
+    for (int i = 0; i < entry_count; i++)
+    {
+        int is_last = (i == entry_count - 1);
+        struct stat file_stat;
+        snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
+                 entries[i]->d_name);
+        lstat(full_path, &file_stat);
+
+        if (S_ISDIR(file_stat.st_mode))
+        {
+            laser_print_entry(entries[i]->d_name, DIR_COLOR, indent, depth,
+                              is_last);
 
             if (opts.show_tree)
             {
                 laser_opts sub_opts = opts;
                 sub_opts.dir = full_path;
-
-                laser_dir_entries subentries = laser_getdirs(sub_opts);
-                entries.dirs[entries.dir_count]->sub_entries = subentries;
+                laser_list_directory(sub_opts, depth + 1);
             }
-
-            entries.dir_count++;
         }
-        else if (S_ISLNK(file_stat.st_mode) && opts.show_symlinks)
+        else
         {
-            if (entries.symlink_count == 0)
-                entries.symlinks = malloc(symlink_alloc * sizeof(char *));
-
-            int len =
-                readlink(full_path, symlink_target, sizeof(symlink_target) - 1);
-            if (len == -1)
+            if (S_ISLNK(file_stat.st_mode) && opts.show_symlinks)
             {
-                if (entries.symlink_count == 0)
-                    free(entries.symlinks);
-                perror("readlink");
-                continue;
+                char symlink_target[1024];
+                int len = readlink(full_path, symlink_target,
+                                   sizeof(symlink_target) - 1);
+                if (len != -1)
+                {
+                    symlink_target[len] = '\0';
+                    char res_string[2048];
+                    snprintf(res_string, sizeof(res_string), "%s -> %s",
+                             entries[i]->d_name, symlink_target);
+                    laser_print_entry(res_string, SYMLINK_COLOR, indent, depth,
+                                      is_last);
+                }
             }
-            symlink_target[len] = '\0';
-
-            char *arrow = " -> ";
-
-            size_t res_string_len =
-                len + strlen(entry->d_name) + strlen(arrow) + 1;
-            char res_string[res_string_len];
-
-            snprintf(res_string, res_string_len, "%s%s%s", entry->d_name, arrow,
-                     symlink_target);
-
-            entries.symlinks = laser_utils_grow_strarray(
-                entries.symlinks, &symlink_alloc, entries.symlink_count);
-            entries.symlinks[entries.symlink_count] = strdup(res_string);
-
-            entries.symlink_count++;
+            else if (entries[i]->d_name[0] == '.')
+            {
+                laser_print_entry(entries[i]->d_name, HIDDEN_COLOR, indent,
+                                  depth, is_last);
+            }
+            else if (S_ISREG(file_stat.st_mode))
+            {
+                laser_print_entry(entries[i]->d_name, FILE_COLOR, indent, depth,
+                                  is_last);
+            }
         }
-        else if (entry->d_name[0] == '.')
-        {
-            if (entries.hidden_count == 0)
-                entries.hidden = malloc(hidden_alloc * sizeof(char *));
 
-            entries.hidden = laser_utils_grow_strarray(
-                entries.hidden, &hidden_alloc, entries.hidden_count);
-            entries.hidden[entries.hidden_count] = strdup(entry->d_name);
+        free(entries[i]);
+    }
+    free(entries);
+    closedir(dir);
+}
 
-            entries.hidden_count++;
-        }
-        else if (S_ISREG(file_stat.st_mode) && opts.show_files)
-        {
-            if (entries.file_count == 0)
-                entries.files = malloc(file_alloc * sizeof(char *));
+void laser_list_directory(laser_opts opts, int depth)
+{
+    char *pipe = "│   ";
+    size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
+    char *indent = malloc(indent_len + 1);
+    indent[0] = '\0';
+    if (depth > 0)
+        for (int i = 1; i < depth; i++)
+            strcat(indent, pipe);
 
-            entries.files = laser_utils_grow_strarray(
-                entries.files, &file_alloc, entries.file_count);
-            entries.files[entries.file_count] = strdup(entry->d_name);
-
-            entries.file_count++;
-        }
+    int gitignore_count = 0;
+    char **gitignore_patterns = NULL;
+    if (opts.show_git)
+    {
+        gitignore_patterns =
+            lgit_parseGitignore(opts.parentDir, &gitignore_count);
+        laser_sort(gitignore_patterns, gitignore_count, sizeof(char *),
+                   laser_cmp_string, NULL);
     }
 
-    closedir(dir_stuff);
+    laser_process_entries(opts, depth, indent, gitignore_patterns,
+                          gitignore_count);
+    free(indent);
 
     if (gitignore_patterns)
     {
@@ -165,109 +201,4 @@ laser_dir_entries laser_getdirs(laser_opts opts)
         }
         free(gitignore_patterns);
     }
-
-    laser_max_depth++;
-
-    return entries;
-}
-
-int laser_cmp_dir(const void *a, const void *b)
-{
-    // my brother chatgpt told me to cast to ** and then to *
-    // cuz qsort gives us a pointer and then we cast idk????
-    laser_dir *dir_a = *(laser_dir **)a;
-    laser_dir *dir_b = *(laser_dir **)b;
-
-    return strcmp(dir_a->name, dir_b->name);
-}
-
-void laser_print_entries(int entries_count, char **entries, const char *color,
-                         char *indent, int depth)
-{
-    if (entries_count <= 0)
-        return;
-
-    for (int i = 0; i < entries_count; i++)
-    {
-        char branch[depth > 0 ? 8 : 1]; // 8 cuz the ting be 8 chars long
-        if (depth > 0)
-        {
-            if (i == entries_count - 1)
-                strcpy(branch, "└─ ");
-            else
-                strcpy(branch, "├─ ");
-        }
-        else
-            branch[0] = '\0';
-
-        printf("%s%s%s%s" RESET_COLOR "\n", indent, branch, color, entries[i]);
-
-        free(entries[i]);
-    }
-
-    free(entries);
-}
-
-void laser_list(laser_dir_entries lentries, int depth)
-{
-    char *pipe = "│   ";
-    size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
-    char *indent = malloc(indent_len);
-
-    indent[0] = '\0';
-    if (depth > 0)
-        for (int i = 1; i < depth; i++) // so we dont do no pipe in the begining
-            strcat(indent, pipe);
-
-    if (lentries.dir_count > 0)
-        qsort(lentries.dirs, lentries.dir_count, sizeof(laser_dir *),
-              laser_cmp_dir);
-
-    if (lentries.file_count > 0)
-        qsort(lentries.files, lentries.file_count, sizeof(char *),
-              laser_cmp_string);
-
-    if (lentries.hidden_count > 0)
-        qsort(lentries.hidden, lentries.hidden_count, sizeof(char *),
-              laser_cmp_string);
-
-    if (lentries.symlink_count > 0)
-        qsort(lentries.symlinks, lentries.symlink_count, sizeof(char *),
-              laser_cmp_string);
-
-    if (lentries.dir_count > 0)
-    {
-        for (int i = 0; i < lentries.dir_count; i++)
-        {
-            char branch[8];
-            if (depth > 0)
-                strcpy(branch, "├─ ");
-            else
-                branch[0] = '\0';
-
-            printf("%s%s%s%s" RESET_COLOR "\n", indent, branch, DIR_COLOR,
-                   lentries.dirs[i]->name);
-
-            laser_list(lentries.dirs[i]->sub_entries, depth + 1);
-
-            laser_free_dir(lentries.dirs[i]);
-        }
-        free(lentries.dirs);
-
-        if (depth < 1)
-            printf("\n");
-    }
-
-    laser_print_entries(lentries.file_count, lentries.files, FILE_COLOR, indent,
-                        depth);
-
-    laser_print_entries(lentries.hidden_count, lentries.hidden, HIDDEN_COLOR,
-                        indent, depth);
-    laser_print_entries(lentries.symlink_count, lentries.symlinks,
-                        SYMLINK_COLOR, indent, depth);
-
-    if (depth < 1)
-        printf("\n");
-
-    free(indent);
 }

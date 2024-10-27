@@ -21,9 +21,8 @@ typedef struct
 
 char **lgit_parseGitignore(char *dir, int *count);
 
-lgit_entries *lgit_getGitEntries(laser_opts opts);
-
-void lgit_parseGit(char *dir);
-void lgit_entries_free(lgit_entries *lgit);
+// lgit_entries *lgit_getGitEntries(laser_opts opts);
+// void lgit_parseGit(char *dir);
+// void lgit_entries_free(lgit_entries *lgit);
 
 #endif

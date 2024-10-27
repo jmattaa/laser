@@ -39,7 +39,7 @@ int laser_cmp_dirent(const void *a, const void *b, void *arg)
         weight = 1; // weigh more --> fall down
 
     if (weight == 0) // they weigh the same so compare the name
-        return laser_charcmp(dirent_a->d_name, dirent_b->d_name);
+        return strcmp(dirent_a->d_name, dirent_b->d_name);
 
     return weight;
 }

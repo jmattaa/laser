@@ -1,5 +1,6 @@
 #include "include/laser.h"
 #include "git/include/lgit.h"
+#include "include/utils.h"
 
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
@@ -39,7 +40,7 @@ int laser_cmp_dirent(const void *a, const void *b, void *arg)
         weight = 1; // weigh more --> fall down
 
     if (weight == 0) // they weigh the same so compare the name
-        return strcmp(dirent_a->d_name, dirent_b->d_name);
+        return laser_charcmp(dirent_a->d_name, dirent_b->d_name);
 
     return weight;
 }
@@ -66,11 +67,9 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
     }
 
     struct dirent *entry;
-    struct dirent **entries = NULL;
+    struct dirent **entries = malloc(sizeof(struct dirent *));
     int entry_count = 0;
-    int entry_capacity = 16;
 
-    entries = malloc(entry_capacity * sizeof(struct dirent *));
     char full_path[1024];
     while ((entry = readdir(dir)) != NULL)
     {
@@ -102,18 +101,16 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
                  strcmp(entry->d_name, "..") == 0))
                 continue;
 
-            if (entry_count >= entry_capacity)
-            {
-                entry_capacity *= 2;
-                entries =
-                    realloc(entries, entry_capacity * sizeof(struct dirent *));
-            }
-            entries[entry_count] = malloc(sizeof(struct dirent));
-            memcpy(entries[entry_count], entry, sizeof(struct dirent));
+            entries =
+                realloc(entries, (entry_count + 1) * sizeof(struct dirent *));
+
+            size_t entry_size =
+                offsetof(struct dirent, d_name) + strlen(entry->d_name) + 1;
+            entries[entry_count] = malloc(entry_size);
+            memcpy(entries[entry_count], entry, entry_size);
             entry_count++;
         }
     }
-
     // sort and print stuff
     laser_sort(entries, entry_count, sizeof(struct dirent *), laser_cmp_dirent,
                opts.parentDir);

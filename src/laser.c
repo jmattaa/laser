@@ -15,10 +15,9 @@ char *strip_parent_dir(const char *full_path, const char *parent_dir)
     return (char *)full_path;
 }
 
-int laser_cmp_dirent(const void *a, const void *b, void *arg)
+int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 {
-    char *dir_path = (char *)arg;
-
+    const char *dir_path = (char *)arg;
     struct dirent *dirent_a = *(struct dirent **)a;
     struct dirent *dirent_b = *(struct dirent **)b;
 
@@ -171,7 +170,7 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
 
 void laser_list_directory(laser_opts opts, int depth)
 {
-    char *pipe = "│   ";
+    const char *pipe = "│   ";
     size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
     char *indent = malloc(indent_len + 1);
     indent[0] = '\0';

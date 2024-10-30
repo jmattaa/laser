@@ -7,7 +7,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
-
 typedef struct laser_opts
 {
     int show_all;
@@ -16,9 +15,9 @@ typedef struct laser_opts
     int show_symlinks;
     int show_git;
     int show_tree;
-    
-    char *dir;
-    char *parentDir; // TODO: maybe this static?
+
+    const char *dir;
+    const char *parentDir; // TODO: maybe this static?
 } laser_opts;
 
 laser_opts laser_utils_parsecmd(int argc, char **argv);

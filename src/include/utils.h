@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <string.h>
 
 typedef struct laser_opts
 {
@@ -16,14 +15,15 @@ typedef struct laser_opts
     int show_symlinks;
     int show_git;
     int show_tree;
-    
-    char *dir;
-    char *parentDir; // TODO: maybe this static?
+
+    const char *dir;
+    const char *parentDir; // TODO: maybe this static?
 } laser_opts;
 
 laser_opts laser_utils_parsecmd(int argc, char **argv);
 //void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size);
-char **laser_utils_grow_strarray(char **array, size_t *alloc_size, size_t count);
+char **laser_utils_grow_strarray(char **array, size_t *alloc_size,
+                                 size_t count);
 int laser_string_in_sorted_array(char *target, char **array, int size);
 int laser_cmp_string(const void *a, const void *b, void *arg);
 void laser_swap(void *a, void *b, size_t size);

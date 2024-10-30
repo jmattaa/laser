@@ -9,7 +9,7 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     int show_symlinks = -1;
     int show_git = 0;
     int show_tree = 0;
-    char *dir = ".";
+    const char *dir = ".";
 
     int opt;
 

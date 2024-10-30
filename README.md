@@ -2,7 +2,7 @@
 
 # Laser
 
-###### (lsr) Basically `ls` but readable
+###### (lsr) Basically `ls` but readable 
 
 ![demo](./assets/demo.png)
 
@@ -11,7 +11,7 @@
 **lsr** basically `ls` but with colorization and sorting for better readability.
 It offers filtering options, making it easy to
 locate specific files and folders (with grep you'll find exactly what you need)
-It can even display the directory contents in a tree-like structure!
+It can even display the directory contents in a tree-like structure! :fire:
 
 ## Installation
 
@@ -70,6 +70,11 @@ The flags can be chained for example using:
 lsr -Dar # this will show all directories including hidden ones recursivly
 lsr -GDS # this will only show directories (not hidden) and symlinks that are not mentioned in .gitignore
 ```
+
+# Contributing
+
+Feel free to contribute to this project to make it better :rocket: check the 
+[CONTRIBUTING.md](/CONTRIBUTING.md) and follow the guidlines from there!
 
 # Authors
 - [@jmattaa](https://github.com/jmattaa)

@@ -111,7 +111,7 @@ char **laser_utils_grow_strarray(char **array, size_t *alloc_size, size_t count)
     return array;
 }
 
-int laser_cmp_string(const void *a, const void *b, void *arg)
+int laser_cmp_string(const void *a, const void *b, const void *arg)
 {
     return strcmp(*(const char **)a, *(const char **)b);
 }

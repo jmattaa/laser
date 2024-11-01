@@ -150,12 +150,17 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
                                       is_last);
                 }
             }
+            else if (laser_is_filestat_exec(&file_stat))
+            {
+                laser_print_entry(entries[i]->d_name, EXEC_COLOR, indent,
+                                  depth, is_last);
+            }
             else if (entries[i]->d_name[0] == '.')
             {
                 laser_print_entry(entries[i]->d_name, HIDDEN_COLOR, indent,
                                   depth, is_last);
             }
-            else if (S_ISREG(file_stat.st_mode))
+            else
             {
                 laser_print_entry(entries[i]->d_name, FILE_COLOR, indent, depth,
                                   is_last);

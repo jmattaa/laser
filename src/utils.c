@@ -1,5 +1,4 @@
 #include "include/utils.h"
-#include <stdio.h>
 
 laser_opts laser_utils_parsecmd(int argc, char **argv)
 {
@@ -147,4 +146,10 @@ int laser_charcmp(const char *str1, const char *str2)
         return (*str1 == '\0') - (*str2 == '\0');
 
     return *str1 - *str2;
+}
+
+int laser_is_filestat_exec(const struct stat *file_stat)
+{
+    return (file_stat->st_mode & S_IXUSR) || (file_stat->st_mode & S_IXGRP) ||
+           (file_stat->st_mode & S_IXOTH);
 }

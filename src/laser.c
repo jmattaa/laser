@@ -1,5 +1,6 @@
 #include "include/laser.h"
 #include "git/include/lgit.h"
+#include "include/archives.h"
 #include "include/utils.h"
 
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
@@ -152,7 +153,12 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
             }
             else if (laser_is_filestat_exec(&file_stat))
             {
-                laser_print_entry(entries[i]->d_name, EXEC_COLOR, indent,
+                laser_print_entry(entries[i]->d_name, EXEC_COLOR, indent, depth,
+                                  is_last);
+            }
+            else if (laser_is_archive(full_path))
+            {
+                laser_print_entry(entries[i]->d_name, ARCHIVE_COLOR, indent,
                                   depth, is_last);
             }
             else if (entries[i]->d_name[0] == '.')
@@ -160,7 +166,7 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
                 laser_print_entry(entries[i]->d_name, HIDDEN_COLOR, indent,
                                   depth, is_last);
             }
-            else
+            else if (S_ISREG(file_stat.st_mode))
             {
                 laser_print_entry(entries[i]->d_name, FILE_COLOR, indent, depth,
                                   is_last);

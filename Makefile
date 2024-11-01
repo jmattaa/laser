@@ -10,12 +10,13 @@ LDFLAGS :=
 LDFLAGS_DEBUG := $(LDFLAGS) -fsanitize=address
 LDFLAGS_RELEASE := $(LDFLAGS)
 
-SRC_DIR := src
+PROJECT_DIR := .
+INC=-I./include
 BIN_DIR := bin
 OBJ_DIR := $(BIN_DIR)/obj
 
-SRCS := $(shell find $(SRC_DIR) -name "*.c")
-OBJS := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+SRCS := $(shell find $(PROJECT_DIR) -name "*.c")
+OBJS := $(SRCS:$(PROJECT_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 TARGET := $(BIN_DIR)/lsr
 
@@ -32,10 +33,10 @@ release: LDFLAGS += $(LDFLAGS_RELEASE)
 release: $(TARGET)
 
 $(TARGET): $(OBJS) | $(BIN_DIR)
-	$(CC) $(LDFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $(INC) $^ -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJ_DIR)/%.o: $(PROJECT_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(INC) -c $< -o $@
 
 $(BIN_DIR) $(OBJ_DIR):
 	-mkdir -p $@
@@ -45,7 +46,7 @@ clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 format:
-	clang-format -i $(SRC_DIR)/*.c $(SRC_DIR)/include/*.h
+	clang-format -i $(PROJECT_DIR)/*.c $(PROJECT_DIR)/include/*.h
 
 install: release
 	install -m 755 $(TARGET) /usr/local/bin

@@ -1,6 +1,6 @@
-#include "include/laser.h"
-#include "git/include/lgit.h"
-#include "include/utils.h"
+#include "laser.h"
+#include "git/lgit.h"
+#include "utils.h"
 
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {

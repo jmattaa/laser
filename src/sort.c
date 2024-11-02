@@ -1,5 +1,5 @@
-#include "include/sort.h"
-#include "include/utils.h"
+#include "sort.h"
+#include "utils.h"
 
 // HELPER FUNCTIONS
 void *median_of_three(void *a, void *b, void *c,

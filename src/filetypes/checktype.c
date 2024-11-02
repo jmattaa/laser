@@ -1,4 +1,4 @@
-#include "include/checktypes.h"
+#include "filetypes/checktypes.h"
 
 #include <fcntl.h>
 #include <stdio.h>

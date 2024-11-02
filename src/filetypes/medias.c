@@ -1,4 +1,4 @@
-#include "include/checktypes.h"
+#include "filetypes/checktypes.h"
 
 const struct laser_magicnumber laser_mediaformats[] = {
     {(unsigned char[]){0xFF, 0xD8, 0xFF, 0xE0}, 4}, // JPEG

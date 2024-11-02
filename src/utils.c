@@ -1,4 +1,5 @@
-#include "include/utils.h"
+#include "utils.h"
+#include <stdio.h>
 
 laser_opts laser_utils_parsecmd(int argc, char **argv)
 {

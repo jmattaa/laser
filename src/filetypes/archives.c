@@ -1,4 +1,4 @@
-#include "include/checktypes.h"
+#include "filetypes/checktypes.h"
 
 const struct laser_magicnumber laser_archiveformats[] = {
     {(unsigned char[]){0x50, 0x4B, 0x03, 0x04}, 4},       // ZIP

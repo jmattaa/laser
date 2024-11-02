@@ -1,5 +1,5 @@
-#include "include/lgit.h"
-#include "include/utils.h"
+#include "git/lgit.h"
+#include "utils.h"
 #include <stdio.h>
 #include <string.h>
 

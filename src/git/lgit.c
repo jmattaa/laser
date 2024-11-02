@@ -6,7 +6,7 @@
 #define MAX_LINE_LENGTH 1024
 #define INITIAL_CAPACITY 10
 
-char **lgit_parseGitignore(char *dir, int *count)
+char **lgit_parseGitignore(const char *dir, int *count)
 {
     size_t filename_len =
         strlen(dir) + strlen("/.gitignore") +
@@ -19,6 +19,7 @@ char **lgit_parseGitignore(char *dir, int *count)
     if (!file)
     {
         perror("Could not open .gitignore");
+        free(filename);
         return NULL;
     }
 
@@ -27,6 +28,7 @@ char **lgit_parseGitignore(char *dir, int *count)
     {
         perror("Could not allocate memory for ignored patterns");
         fclose(file);
+        free(filename);
         return NULL;
     }
 
@@ -48,6 +50,7 @@ char **lgit_parseGitignore(char *dir, int *count)
                 {
                     perror("Could not reallocate memory for ignored patterns");
                     fclose(file);
+                    free(filename);
                     return NULL;
                 }
             }

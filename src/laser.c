@@ -16,7 +16,7 @@ char *strip_parent_dir(const char *full_path, const char *parent_dir)
     return (char *)full_path;
 }
 
-int laser_cmp_dirent(const void *a, const void *b, void *arg)
+int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 {
     const char *dir_path = (char *)arg;
     struct dirent *dirent_a = *(struct dirent **)a;

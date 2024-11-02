@@ -10,6 +10,7 @@
 #define HIDDEN_COLOR "\x1b[90m "
 #define EXEC_COLOR "\x1b[32m "
 #define ARCHIVE_COLOR "\x1b[31m "
+#define MEDIA_COLOR "\x1b[33m "
 
 #else
 
@@ -20,6 +21,7 @@
 #define HIDDEN_COLOR "\x1b[90m "
 #define EXEC_COLOR "\x1b[32m "
 #define ARCHIVE_COLOR "\x1b[31m "
+#define MEDIA_COLOR "\x1b[33m "
 
 #endif
 

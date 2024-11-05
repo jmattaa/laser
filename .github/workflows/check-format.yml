@@ -1,5 +1,9 @@
-name: clang-format CheckV
-on: [push, pull_request]
+name: clang-format Check
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   clang-format:
@@ -7,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install clang-format
         run: sudo apt-get install -y clang-format

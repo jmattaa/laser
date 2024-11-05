@@ -38,7 +38,7 @@ typedef enum
     LASER_COLORKEY_EXEC,
     LASER_COLORKEY_ARCHIVE,
     LASER_COLORKEY_MEDIA,
-    LASER_COLORKEY_UNKNOWN 
+    LASER_COLORKEY_UNKNOWN
 } laser_colorkey;
 
 void laser_colors_init(void);

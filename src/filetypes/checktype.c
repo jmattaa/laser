@@ -32,7 +32,8 @@ int laser_checktype(const char *filename,
     while (formats[i].magic_size != 0)
     {
         if (bytesRead >= formats[i].magic_size &&
-            memcmp(buffer, formats[i].magic, formats[i].magic_size) == 0)
+            memcmp(buffer, formats[i].magic, formats[i].magic_size) ==
+                0) ///asdjaklsdjalksdj
             return 1;
         i++;
     }

@@ -47,7 +47,7 @@ clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 format:
-	clang-format -i $(PROJECT_DIR)/*.c $(PROJECT_DIR)/include/*.h
+	clang-format -i $(SRCS) $(PROJECT_DIR)/include/**.h
 
 install: release
 	install -m 755 $(TARGET) /usr/local/bin

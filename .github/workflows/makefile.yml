@@ -14,8 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Format
-      run: make format
       
     - name: Run make
       run: make

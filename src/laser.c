@@ -2,7 +2,7 @@
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "utils.h"
-
+#define BRANCH_SIZE  8
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
     size_t parent_len = strlen(parent_dir);
@@ -48,7 +48,7 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 void laser_print_entry(const char *name, const char *color, char *indent,
                        int depth, int is_last)
 {
-    char branch[8] = "";
+    char branch[BRANCH_SIZE] = "";
     if (depth > 0)
         strcpy(branch, is_last ? "└─ " : "├─ ");
 

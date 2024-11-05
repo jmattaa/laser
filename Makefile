@@ -1,8 +1,6 @@
 CC := gcc
 
-LASER_DEFINES := -DLASER_NF_SYMBOLS
-
-CFLAGS := $(LASER_DEFINES)
+CFLAGS := 
 CFLAGS_DEBUG := $(CFLAGS) -g -DDEBUG -fsanitize=address -Wall -Wextra -pedantic
 CFLAGS_RELEASE := $(CFLAGS) -O2 -DNDEBUG
 

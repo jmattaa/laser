@@ -17,11 +17,6 @@ It can even display the directory contents in a tree-like structure! :fire:
 
 ### Building from source
 
-> [!NOTE] 
-> If you want to disable the nerdfonts symbols remove the 
-`-DLASER_NF_SYMBOLS` flag from the `Makefile` under the variable `LASER_DEFINES`
-before compiling.
-
 Clone the repository:
 
 ```sh
@@ -50,6 +45,26 @@ lsr
 # or for a specific directory run:
 lsr some-directory
 ```
+
+### Change colors or add icons
+
+If you want to change the colors of the output you can set an environment 
+variable called `LSR_COLORS` for example if you want to add nerd font icons to
+the existing colors you can use:
+
+```sh
+export LSR_COLORS="RESET=\x1b[0m:\
+DIR=\x1b[34m :\
+SYMLINK=\x1b[36m :\
+FILE=\x1b[38m :\
+HIDDEN=\x1b[90m :\
+EXEC=\x1b[32m :\
+ARCHIVE=\x1b[31m :\
+MEDIA=\x1b[33m"
+```
+
+You don't have to change all of these if there is only one you want to change
+you can do that, to leave the rest on default
 
 ### Command-line options
 

@@ -30,6 +30,7 @@ debug: $(TARGET)
 
 release: CFLAGS += $(CFLAGS_RELEASE)
 release: LDFLAGS += $(LDFLAGS_RELEASE)
+release: clean
 release: $(TARGET)
 
 $(TARGET): $(OBJS) | $(BIN_DIR)
@@ -50,6 +51,7 @@ format:
 
 install: release
 	install -m 755 $(TARGET) /usr/local/bin
+	make clean
 
 uninstall:
 	rm -f /usr/local/bin/$(notdir $(TARGET))

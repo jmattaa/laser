@@ -2,7 +2,9 @@
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "utils.h"
-#define BRANCH_SIZE  8
+
+#define BRANCH_SIZE 8
+
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
     size_t parent_len = strlen(parent_dir);
@@ -144,7 +146,7 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
                 if (len != -1)
                 {
                     symlink_target[len] = '\0';
-                    char res_string[PATH_MAX*2+4];//4 is " -> "
+                    char res_string[PATH_MAX * 2 + 4]; // 4 is " -> "
                     snprintf(res_string, sizeof(res_string), "%s -> %s",
                              entries[i]->d_name, symlink_target);
                     laser_print_entry(res_string, SYMLINK_COLOR, indent, depth,

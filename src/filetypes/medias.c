@@ -8,5 +8,4 @@ const struct laser_magicnumber laser_mediaformats[] = {
     {(unsigned char[]){0x66, 0x74, 0x79, 0x70, 0x4D, 0x53, 0x4E, 0x56},
      3}, // MP4
     // ADD MORE MEDIA TYPES
-    {NULL, 0}
-};
+    {NULL, 0}};

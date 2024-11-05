@@ -30,6 +30,7 @@ debug: $(TARGET)
 
 release: CFLAGS += $(CFLAGS_RELEASE)
 release: LDFLAGS += $(LDFLAGS_RELEASE)
+release: clean
 release: $(TARGET)
 
 $(TARGET): $(OBJS) | $(BIN_DIR)
@@ -46,10 +47,11 @@ clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 format:
-	clang-format -i $(PROJECT_DIR)/*.c $(PROJECT_DIR)/include/*.h
+	clang-format -i $(SRCS) $(PROJECT_DIR)/include/**.h
 
 install: release
 	install -m 755 $(TARGET) /usr/local/bin
+	make clean
 
 uninstall:
 	rm -f /usr/local/bin/$(notdir $(TARGET))

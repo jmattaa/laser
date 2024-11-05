@@ -3,6 +3,8 @@
 #include "git/lgit.h"
 #include "utils.h"
 
+#define BRANCH_SIZE 8
+
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
     size_t parent_len = strlen(parent_dir);
@@ -22,8 +24,8 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
     struct dirent *dirent_a = *(struct dirent **)a;
     struct dirent *dirent_b = *(struct dirent **)b;
 
-    char path_a[1024];
-    char path_b[1024];
+    char path_a[PATH_MAX];
+    char path_b[PATH_MAX];
     snprintf(path_a, sizeof(path_a), "%s/%s", dir_path, dirent_a->d_name);
     snprintf(path_b, sizeof(path_b), "%s/%s", dir_path, dirent_b->d_name);
 
@@ -48,7 +50,7 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 void laser_print_entry(const char *name, const char *color, char *indent,
                        int depth, int is_last)
 {
-    char branch[8] = "";
+    char branch[BRANCH_SIZE] = "";
     if (depth > 0)
         strcpy(branch, is_last ? "└─ " : "├─ ");
 
@@ -70,7 +72,7 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
     struct dirent **entries = malloc(sizeof(struct dirent *));
     int entry_count = 0;
 
-    char full_path[1024];
+    char full_path[PATH_MAX];
     while ((entry = readdir(dir)) != NULL)
     {
         snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
@@ -138,13 +140,13 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
         {
             if (S_ISLNK(file_stat.st_mode) && opts.show_symlinks)
             {
-                char symlink_target[1024];
+                char symlink_target[PATH_MAX];
                 int len = readlink(full_path, symlink_target,
                                    sizeof(symlink_target) - 1);
                 if (len != -1)
                 {
                     symlink_target[len] = '\0';
-                    char res_string[2048];
+                    char res_string[PATH_MAX * 2 + 4]; // 4 is " -> "
                     snprintf(res_string, sizeof(res_string), "%s -> %s",
                              entries[i]->d_name, symlink_target);
                     laser_print_entry(res_string, SYMLINK_COLOR, indent, depth,

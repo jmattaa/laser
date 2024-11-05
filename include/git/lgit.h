@@ -3,18 +3,18 @@
 
 #include "../../include/utils.h"
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct
 {
     char *name;
-    unsigned tracked:1;
+    unsigned tracked : 1;
 
-    mode_t mode; 
+    mode_t mode;
 } lgit_entry;
 
-typedef struct 
+typedef struct
 {
     char **lgit_entry;
 } lgit_entries;

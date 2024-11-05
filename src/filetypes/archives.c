@@ -7,5 +7,4 @@ const struct laser_magicnumber laser_archiveformats[] = {
     {(unsigned char[]){0x42, 0x5A, 0x68}, 3},             // BZIP2
     {(unsigned char[]){0xFD, 0x37, 0x7A, 0x58, 0x5A}, 5}, // XZ
     // ADD MORE ARCHIVES
-    {NULL, 0}
-};
+    {NULL, 0}};

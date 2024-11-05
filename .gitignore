@@ -1,4 +1,7 @@
 bin/
 assets/demo-dir
+.cache/
+
+compile_commands.json
 
 .quickmarks

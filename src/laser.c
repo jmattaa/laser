@@ -1,4 +1,5 @@
 #include "laser.h"
+#include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "utils.h"
 
@@ -15,7 +16,7 @@ char *strip_parent_dir(const char *full_path, const char *parent_dir)
     return (char *)full_path;
 }
 
-int laser_cmp_dirent(const void *a, const void *b, void *arg)
+int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 {
     const char *dir_path = (char *)arg;
     struct dirent *dirent_a = *(struct dirent **)a;
@@ -149,6 +150,21 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
                     laser_print_entry(res_string, SYMLINK_COLOR, indent, depth,
                                       is_last);
                 }
+            }
+            else if (laser_is_filestat_exec(&file_stat))
+            {
+                laser_print_entry(entries[i]->d_name, EXEC_COLOR, indent, depth,
+                                  is_last);
+            }
+            else if (laser_checktype(full_path, laser_archiveformats))
+            {
+                laser_print_entry(entries[i]->d_name, ARCHIVE_COLOR, indent,
+                                  depth, is_last);
+            }
+            else if (laser_checktype(full_path, laser_mediaformats))
+            {
+                laser_print_entry(entries[i]->d_name, MEDIA_COLOR, indent,
+                                  depth, is_last);
             }
             else if (entries[i]->d_name[0] == '.')
             {

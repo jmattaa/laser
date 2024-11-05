@@ -3,7 +3,8 @@
 
 // HELPER FUNCTIONS
 void *median_of_three(void *a, void *b, void *c,
-                      int(cmp)(const void *, const void *, void *), void *arg)
+                      int(cmp)(const void *, const void *, const void *),
+                      const void *arg)
 {
     return cmp(a, b, arg) < 0
                ? (cmp(b, c, arg) < 0 ? b : (cmp(a, c, arg) < 0 ? c : a))
@@ -11,7 +12,8 @@ void *median_of_three(void *a, void *b, void *c,
 }
 
 void *partition(void *base, size_t n, size_t size,
-                int(cmp)(const void *, const void *, void *), void *arg)
+                int(cmp)(const void *, const void *, const void *),
+                const void *arg)
 {
     char *array = base;
     // first middle and last
@@ -38,15 +40,16 @@ void *partition(void *base, size_t n, size_t size,
 // ------------------------MAIN FUNCTIONS------------------------------------
 
 void laser_sort(void *base, size_t elem_count, size_t elem_size,
-                int(cmp)(const void *a, const void *b, void *arg), void *arg)
+                int(cmp)(const void *a, const void *b, const void *arg),
+                const void *arg)
 {
     laser_quicksort(base, elem_count, elem_size, cmp, arg);
 }
 
 #define SWITCH_SORT_UNDER 8
 void laser_quicksort(void *base, size_t elem_count, size_t elem_size,
-                     int(cmp)(const void *a, const void *b, void *arg),
-                     void *arg)
+                     int(cmp)(const void *a, const void *b, const void *arg),
+                     const void *arg)
 {
     while (elem_count > SWITCH_SORT_UNDER)
     {
@@ -74,8 +77,8 @@ void laser_quicksort(void *base, size_t elem_count, size_t elem_size,
 }
 
 void laser_insertsort(void *base, size_t elem_count, size_t elem_size,
-                      int(cmp)(const void *a, const void *b, void *arg),
-                      void *arg)
+                      int cmp(const void *, const void *, const void *),
+                      const void *arg)
 {
     char *array = base;
     for (size_t i = 1; i < elem_count; i++)

@@ -80,22 +80,14 @@ void laser_colors_parseToken(const char *token)
 
 void laser_colors_destroy(void)
 {
-    if (LASER_COLORS->reset)
-        free(LASER_COLORS->reset);
-    if (LASER_COLORS->dir)
-        free(LASER_COLORS->dir);
-    if (LASER_COLORS->symlink)
-        free(LASER_COLORS->symlink);
-    if (LASER_COLORS->file)
-        free(LASER_COLORS->file);
-    if (LASER_COLORS->hidden)
-        free(LASER_COLORS->hidden);
-    if (LASER_COLORS->exec)
-        free(LASER_COLORS->exec);
-    if (LASER_COLORS->archive)
-        free(LASER_COLORS->archive);
-    if (LASER_COLORS->media)
-        free(LASER_COLORS->media);
+    free((void *)LASER_COLORS->reset);
+    free((void *)LASER_COLORS->dir);
+    free((void *)LASER_COLORS->symlink);
+    free((void *)LASER_COLORS->file);
+    free((void *)LASER_COLORS->hidden);
+    free((void *)LASER_COLORS->exec);
+    free((void *)LASER_COLORS->archive);
+    free((void *)LASER_COLORS->media);
 
     free(LASER_COLORS);
 }

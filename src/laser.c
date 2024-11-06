@@ -154,30 +154,28 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
                 }
             }
             else if (laser_is_filestat_exec(&file_stat))
-            {
                 laser_print_entry(entries[i]->d_name, LASER_COLORS->exec,
                                   indent, depth, is_last);
-            }
+
             else if (laser_checktype(full_path, laser_archiveformats))
-            {
                 laser_print_entry(entries[i]->d_name, LASER_COLORS->archive,
                                   indent, depth, is_last);
-            }
+
             else if (laser_checktype(full_path, laser_mediaformats))
-            {
                 laser_print_entry(entries[i]->d_name, LASER_COLORS->media,
                                   indent, depth, is_last);
-            }
+
+            else if (laser_checktype(full_path, laser_documentformats))
+                laser_print_entry(entries[i]->d_name, LASER_COLORS->documents,
+                                  indent, depth, is_last);
+
             else if (entries[i]->d_name[0] == '.')
-            {
                 laser_print_entry(entries[i]->d_name, LASER_COLORS->hidden,
                                   indent, depth, is_last);
-            }
+
             else if (S_ISREG(file_stat.st_mode))
-            {
                 laser_print_entry(entries[i]->d_name, LASER_COLORS->file,
                                   indent, depth, is_last);
-            }
         }
 
         free(entries[i]);

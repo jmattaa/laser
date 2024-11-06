@@ -10,11 +10,10 @@
 #define LASER_DEFAULT_SYMLINK_COLOR "\x1b[36m"
 #define LASER_DEFAULT_FILE_COLOR "\x1b[38m"
 #define LASER_DEFAULT_HIDDEN_COLOR "\x1b[90m"
-#define LASER_DEFAULT_EXEC_COLOR "\x1b[32m"
+#define LASER_DEFAULT_EXEC_COLOR "\x1b[32;4m"
 #define LASER_DEFAULT_ARCHIVE_COLOR "\x1b[31m"
 #define LASER_DEFAULT_MEDIA_COLOR "\x1b[33m"
-
-#define NUM_KEYS 8 // update this to be as many colors there is!!!!
+#define LASER_DEFAULT_DOCUMENT_COLOR "\x1b[35;3m"
 
 typedef struct laser_colors
 {
@@ -26,6 +25,7 @@ typedef struct laser_colors
     const char *exec;
     const char *archive;
     const char *media;
+    const char *documents;
 } laser_colors;
 
 typedef enum
@@ -38,6 +38,7 @@ typedef enum
     LASER_COLORKEY_EXEC,
     LASER_COLORKEY_ARCHIVE,
     LASER_COLORKEY_MEDIA,
+    LASER_COLORKEY_DOCUMENTS,
     LASER_COLORKEY_UNKNOWN
 } laser_colorkey;
 

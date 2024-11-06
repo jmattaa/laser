@@ -14,6 +14,7 @@ void laser_colors_init(void)
     LASER_COLORS->exec = strdup(LASER_DEFAULT_EXEC_COLOR);
     LASER_COLORS->archive = strdup(LASER_DEFAULT_ARCHIVE_COLOR);
     LASER_COLORS->media = strdup(LASER_DEFAULT_MEDIA_COLOR);
+    LASER_COLORS->documents = strdup(LASER_DEFAULT_DOCUMENT_COLOR);
 
     const char *env_colors = getenv("LSR_COLORS");
 
@@ -75,6 +76,8 @@ void laser_colors_parseToken(const char *token)
             LASER_COLORS->archive = value;
         else if (strcmp(key, "MEDIA") == 0)
             LASER_COLORS->media = value;
+        else if (strcmp(key, "DOCUMENT") == 0)
+            LASER_COLORS->documents = value;
     }
 }
 
@@ -88,6 +91,7 @@ void laser_colors_destroy(void)
     free((void *)LASER_COLORS->exec);
     free((void *)LASER_COLORS->archive);
     free((void *)LASER_COLORS->media);
+    free((void *)LASER_COLORS->documents);
 
     free(LASER_COLORS);
 }

@@ -53,14 +53,15 @@ variable called `LSR_COLORS` for example if you want to add nerd font icons to
 the existing colors you can use:
 
 ```sh
-export LSR_COLORS="RESET=\x1b[0m:\
+export LSR_COLORS="
 DIR=\x1b[34m :\
 SYMLINK=\x1b[36m :\
 FILE=\x1b[38m :\
 HIDDEN=\x1b[90m :\
-EXEC=\x1b[32m :\
+EXEC=\x1b[32;4m :\
 ARCHIVE=\x1b[31m :\
-MEDIA=\x1b[33m"
+MEDIA=\x1b[33m :\
+DOCUMENT=\x1b[35m :"
 ```
 
 You don't have to change all of these if there is only one you want to change

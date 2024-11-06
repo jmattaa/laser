@@ -14,5 +14,6 @@ int laser_checktype(const char *filename,
 
 extern const struct laser_magicnumber laser_archiveformats[];
 extern const struct laser_magicnumber laser_mediaformats[];
+extern const struct laser_magicnumber laser_documentformats[];
 
 #endif

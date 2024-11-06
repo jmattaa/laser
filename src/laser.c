@@ -1,4 +1,5 @@
 #include "laser.h"
+#include "colors.h"
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "utils.h"
@@ -54,7 +55,8 @@ void laser_print_entry(const char *name, const char *color, char *indent,
     if (depth > 0)
         strcpy(branch, is_last ? "└─ " : "├─ ");
 
-    printf("%s%s%s%s%s\n", indent, branch, color, name, LASER_COLORS->reset);
+    printf("%s%s%s%s%s\n", indent, branch, color, name,
+           LASER_COLORS[LASER_COLOR_RESET].value);
 }
 
 void laser_process_entries(laser_opts opts, int depth, char *indent,
@@ -126,7 +128,8 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
 
         if (S_ISDIR(file_stat.st_mode))
         {
-            laser_print_entry(entries[i]->d_name, LASER_COLORS->dir, indent,
+            laser_print_entry(entries[i]->d_name,
+                              LASER_COLORS[LASER_COLOR_DIR].value, indent,
                               depth, is_last);
 
             if (opts.show_tree)
@@ -149,33 +152,40 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
                     char res_string[PATH_MAX * 2 + 4]; // 4 is " -> "
                     snprintf(res_string, sizeof(res_string), "%s -> %s",
                              entries[i]->d_name, symlink_target);
-                    laser_print_entry(res_string, LASER_COLORS->symlink, indent,
-                                      depth, is_last);
+                    laser_print_entry(res_string,
+                                      LASER_COLORS[LASER_COLOR_SYMLINK].value,
+                                      indent, depth, is_last);
                 }
             }
             else if (laser_is_filestat_exec(&file_stat))
-                laser_print_entry(entries[i]->d_name, LASER_COLORS->exec,
-                                  indent, depth, is_last);
+                laser_print_entry(entries[i]->d_name,
+                                  LASER_COLORS[LASER_COLOR_EXEC].value, indent,
+                                  depth, is_last);
 
             else if (laser_checktype(full_path, laser_archiveformats))
-                laser_print_entry(entries[i]->d_name, LASER_COLORS->archive,
+                laser_print_entry(entries[i]->d_name,
+                                  LASER_COLORS[LASER_COLOR_ARCHIVE].value,
                                   indent, depth, is_last);
 
             else if (laser_checktype(full_path, laser_mediaformats))
-                laser_print_entry(entries[i]->d_name, LASER_COLORS->media,
-                                  indent, depth, is_last);
+                laser_print_entry(entries[i]->d_name,
+                                  LASER_COLORS[LASER_COLOR_MEDIA].value, indent,
+                                  depth, is_last);
 
             else if (laser_checktype(full_path, laser_documentformats))
-                laser_print_entry(entries[i]->d_name, LASER_COLORS->documents,
+                laser_print_entry(entries[i]->d_name,
+                                  LASER_COLORS[LASER_COLOR_DOCUMENT].value,
                                   indent, depth, is_last);
 
             else if (entries[i]->d_name[0] == '.')
-                laser_print_entry(entries[i]->d_name, LASER_COLORS->hidden,
+                laser_print_entry(entries[i]->d_name,
+                                  LASER_COLORS[LASER_COLOR_HIDDEN].value,
                                   indent, depth, is_last);
 
             else if (S_ISREG(file_stat.st_mode))
-                laser_print_entry(entries[i]->d_name, LASER_COLORS->file,
-                                  indent, depth, is_last);
+                laser_print_entry(entries[i]->d_name,
+                                  LASER_COLORS[LASER_COLOR_FILE].value, indent,
+                                  depth, is_last);
         }
 
         free(entries[i]);

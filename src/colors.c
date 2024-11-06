@@ -1,20 +1,17 @@
 #include "colors.h"
+#include <stdio.h>
 
-laser_colors *LASER_COLORS;
+laser_color *LASER_COLORS;
 
 void laser_colors_init(void)
 {
-    LASER_COLORS = malloc(sizeof(laser_colors));
+    LASER_COLORS = malloc(sizeof(laser_color) * COLOR_COUNT);
 
-    LASER_COLORS->reset = strdup(LASER_DEFAULT_RESET_COLOR);
-    LASER_COLORS->dir = strdup(LASER_DEFAULT_DIR_COLOR);
-    LASER_COLORS->symlink = strdup(LASER_DEFAULT_SYMLINK_COLOR);
-    LASER_COLORS->file = strdup(LASER_DEFAULT_FILE_COLOR);
-    LASER_COLORS->hidden = strdup(LASER_DEFAULT_HIDDEN_COLOR);
-    LASER_COLORS->exec = strdup(LASER_DEFAULT_EXEC_COLOR);
-    LASER_COLORS->archive = strdup(LASER_DEFAULT_ARCHIVE_COLOR);
-    LASER_COLORS->media = strdup(LASER_DEFAULT_MEDIA_COLOR);
-    LASER_COLORS->documents = strdup(LASER_DEFAULT_DOCUMENT_COLOR);
+    for (int i = 0; i < COLOR_COUNT; i++)
+    {
+        LASER_COLORS[i].key = strdup(LASER_COLORS_DEFAULTS[i].key);
+        LASER_COLORS[i].value = strdup(LASER_COLORS_DEFAULTS[i].value);
+    }
 
     const char *env_colors = getenv("LSR_COLORS");
 
@@ -59,39 +56,24 @@ void laser_colors_parseToken(const char *token)
         *dest = '\0';
         value = processed_value;
 
-        // TODO: DO SOMETHING INSTEAD OF THE IF-ELSE AND STRCMP
-        if (strcmp(key, "RESET") == 0)
-            LASER_COLORS->reset = value;
-        else if (strcmp(key, "DIR") == 0)
-            LASER_COLORS->dir = value;
-        else if (strcmp(key, "SYMLINK") == 0)
-            LASER_COLORS->symlink = value;
-        else if (strcmp(key, "FILE") == 0)
-            LASER_COLORS->file = value;
-        else if (strcmp(key, "HIDDEN") == 0)
-            LASER_COLORS->hidden = value;
-        else if (strcmp(key, "EXEC") == 0)
-            LASER_COLORS->exec = value;
-        else if (strcmp(key, "ARCHIVE") == 0)
-            LASER_COLORS->archive = value;
-        else if (strcmp(key, "MEDIA") == 0)
-            LASER_COLORS->media = value;
-        else if (strcmp(key, "DOCUMENT") == 0)
-            LASER_COLORS->documents = value;
+        for (int i = 0; i < COLOR_COUNT; i++)
+        {
+            if (strcmp(key, LASER_COLORS[i].key) == 0)
+            {
+                LASER_COLORS[i].value = value;
+                break;
+            }
+        }
     }
 }
 
 void laser_colors_destroy(void)
 {
-    free((void *)LASER_COLORS->reset);
-    free((void *)LASER_COLORS->dir);
-    free((void *)LASER_COLORS->symlink);
-    free((void *)LASER_COLORS->file);
-    free((void *)LASER_COLORS->hidden);
-    free((void *)LASER_COLORS->exec);
-    free((void *)LASER_COLORS->archive);
-    free((void *)LASER_COLORS->media);
-    free((void *)LASER_COLORS->documents);
+    for (int i = 0; i < COLOR_COUNT; i++)
+    {
+        free((void *)LASER_COLORS[i].value);
+        free((void *)LASER_COLORS[i].key);
+    }
 
     free(LASER_COLORS);
 }

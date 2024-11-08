@@ -53,8 +53,7 @@ variable called `LSR_COLORS` for example if you want to add nerd font icons to
 the existing colors you can use:
 
 ```sh
-export LSR_COLORS="
-DIR=\x1b[34m :\
+export LSR_COLORS="DIR=\x1b[34m :\
 SYMLINK=\x1b[36m :\
 FILE=\x1b[38m :\
 HIDDEN=\x1b[90m :\

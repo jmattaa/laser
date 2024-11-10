@@ -25,8 +25,8 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
     struct dirent *dirent_a = *(struct dirent **)a;
     struct dirent *dirent_b = *(struct dirent **)b;
 
-    char path_a[PATH_MAX];
-    char path_b[PATH_MAX];
+    char path_a[LASER_PATH_MAX];
+    char path_b[LASER_PATH_MAX];
     snprintf(path_a, sizeof(path_a), "%s/%s", dir_path, dirent_a->d_name);
     snprintf(path_b, sizeof(path_b), "%s/%s", dir_path, dirent_b->d_name);
 
@@ -35,7 +35,7 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
     lstat(path_a, &stat_a);
     lstat(path_b, &stat_b);
 
-    // // add weight if is file so files go down, u see gravity (me big brain)
+    // add weight if is file so files go down, u see gravity (me big brain)
     int weight = 0; // idk what to call this
     if (S_ISDIR(stat_a.st_mode) && !S_ISDIR(stat_b.st_mode))
         weight = -1;
@@ -48,15 +48,53 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
     return weight;
 }
 
+void laser_print_long_entry(const char *name, const char *color, char *indent,
+                            struct stat file_stat, const char *branch)
+{
+    char size[6];
+    if (S_ISDIR(file_stat.st_mode) || S_ISLNK(file_stat.st_mode))
+        snprintf(size, sizeof(size), "%5s", "-");
+    else if (file_stat.st_size < 1000)
+        snprintf(size, sizeof(size), "%5d", (int)file_stat.st_size);
+    else if (file_stat.st_size < 1000000)
+        snprintf(size, sizeof(size), "%4dK", (int)(file_stat.st_size / 1000));
+    else if (file_stat.st_size < 1000000000)
+        snprintf(size, sizeof(size), "%4dM",
+                 (int)(file_stat.st_size / 1000000));
+    else
+        snprintf(size, sizeof(size), "%4dG",
+                 (int)(file_stat.st_size / 1000000000));
+
+    char *user = getpwuid(file_stat.st_uid)->pw_name;
+
+    char mtime[20];
+    struct tm *tm_info = localtime(&file_stat.st_mtime);
+    strftime(mtime, sizeof(mtime), "%b %e %H:%M %Y", tm_info);
+
+    // TODO: change the colors!!
+    printf("%s%s%s %s%s%s %s%s%s  %s%s%s%s%s\n",
+           LASER_COLORS[LASER_COLOR_EXEC].value, mtime,
+           LASER_COLORS[LASER_COLOR_RESET].value,
+           LASER_COLORS[LASER_COLOR_MEDIA].value, size,
+           LASER_COLORS[LASER_COLOR_RESET].value,
+           LASER_COLORS[LASER_COLOR_SYMLINK].value, user,
+           LASER_COLORS[LASER_COLOR_RESET].value, indent, branch, color, name,
+           LASER_COLORS[LASER_COLOR_RESET].value);
+}
+
 void laser_print_entry(const char *name, const char *color, char *indent,
-                       int depth, int is_last)
+                       int depth, struct stat file_stat, laser_opts opts,
+                       int is_last)
 {
     char branch[BRANCH_SIZE] = "";
     if (depth > 0)
         strcpy(branch, is_last ? "└─ " : "├─ ");
 
-    printf("%s%s%s%s%s\n", indent, branch, color, name,
-           LASER_COLORS[LASER_COLOR_RESET].value);
+    if (opts.show_long)
+        laser_print_long_entry(name, color, indent, file_stat, branch);
+    else
+        printf("%s%s%s%s%s\n", indent, branch, color, name,
+               LASER_COLORS[LASER_COLOR_RESET].value);
 }
 
 void laser_process_entries(laser_opts opts, int depth, char *indent,
@@ -74,7 +112,7 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
     struct dirent **entries = malloc(sizeof(struct dirent *));
     int entry_count = 0;
 
-    char full_path[PATH_MAX];
+    char full_path[LASER_PATH_MAX];
     while ((entry = readdir(dir)) != NULL)
     {
         snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
@@ -130,7 +168,7 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
         {
             laser_print_entry(entries[i]->d_name,
                               LASER_COLORS[LASER_COLOR_DIR].value, indent,
-                              depth, is_last);
+                              depth, file_stat, opts, is_last);
 
             if (opts.show_tree)
             {
@@ -143,49 +181,49 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
         {
             if (S_ISLNK(file_stat.st_mode) && opts.show_symlinks)
             {
-                char symlink_target[PATH_MAX];
+                char symlink_target[LASER_PATH_MAX];
                 int len = readlink(full_path, symlink_target,
                                    sizeof(symlink_target) - 1);
                 if (len != -1)
                 {
                     symlink_target[len] = '\0';
-                    char res_string[PATH_MAX * 2 + 4]; // 4 is " -> "
+                    char res_string[LASER_PATH_MAX * 2 + 4]; // 4 is " -> "
                     snprintf(res_string, sizeof(res_string), "%s -> %s",
                              entries[i]->d_name, symlink_target);
                     laser_print_entry(res_string,
                                       LASER_COLORS[LASER_COLOR_SYMLINK].value,
-                                      indent, depth, is_last);
+                                      indent, depth, file_stat, opts, is_last);
                 }
             }
             else if (laser_is_filestat_exec(&file_stat))
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_EXEC].value, indent,
-                                  depth, is_last);
+                                  depth, file_stat, opts, is_last);
 
             else if (laser_checktype(full_path, laser_archiveformats))
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_ARCHIVE].value,
-                                  indent, depth, is_last);
+                                  indent, depth, file_stat, opts, is_last);
 
             else if (laser_checktype(full_path, laser_mediaformats))
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_MEDIA].value, indent,
-                                  depth, is_last);
+                                  depth, file_stat, opts, is_last);
 
             else if (laser_checktype(full_path, laser_documentformats))
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_DOCUMENT].value,
-                                  indent, depth, is_last);
+                                  indent, depth, file_stat, opts, is_last);
 
             else if (entries[i]->d_name[0] == '.')
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_HIDDEN].value,
-                                  indent, depth, is_last);
+                                  indent, depth, file_stat, opts, is_last);
 
             else if (S_ISREG(file_stat.st_mode))
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_FILE].value, indent,
-                                  depth, is_last);
+                                  depth, file_stat, opts, is_last);
         }
 
         free(entries[i]);

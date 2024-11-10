@@ -71,8 +71,8 @@ void laser_colors_destroy(void)
 {
     for (int i = 0; i < COLOR_COUNT; i++)
     {
-        free((void *)LASER_COLORS[i].value);
         free((void *)LASER_COLORS[i].key);
+        free((void *)LASER_COLORS[i].value);
     }
 
     free(LASER_COLORS);

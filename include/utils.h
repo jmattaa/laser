@@ -17,6 +17,7 @@ typedef struct laser_opts
     int show_symlinks;
     int show_git;
     int show_tree;
+    int show_long;
 
     const char *dir;
     const char *parentDir; // TODO: maybe this static?

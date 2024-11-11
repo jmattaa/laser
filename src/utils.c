@@ -19,7 +19,7 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                                  {"Directories", 0, 0, 'D'},
                                  {"Symlinks", 0, 0, 'S'},
                                  {"Git", 0, 0, 'G'},
-                                 {"recursive", 0, 0, 'r'},
+                                 {"recursive", optional_argument, 0, 'r'},
                                  {0, 0, 0, 0}};
 
     while ((opt = getopt_long(argc, argv, "aFDSGr::", long_args, NULL)) != -1)
@@ -49,17 +49,15 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                 break;
             case 'r':
                 show_tree = 1;
-                // recursive listing has to ovveride dir flag
                 char *end;
                 if (optarg != NULL)
                 {
                     recursive_depth = strtol(optarg, &end, 10);
                     if (end == optarg)
-                    {
                         recursive_depth = -1;
-                    }
                 }
 
+                // recursive listing has to ovveride dir flag
                 show_directories = 1;
                 break;
             default:

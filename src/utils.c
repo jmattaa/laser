@@ -6,6 +6,7 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     int show_all = 0;
     int show_files = -1;
     int show_directories = -1;
+    int recursive_depth = -1;
     int show_symlinks = -1;
     int show_git = 0;
     int show_tree = 0;
@@ -21,7 +22,7 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                                  {"recursive", 0, 0, 'r'},
                                  {0, 0, 0, 0}};
 
-    while ((opt = getopt_long(argc, argv, "aFDSGr", long_args, NULL)) != -1)
+    while ((opt = getopt_long(argc, argv, "aFDSGr::", long_args, NULL)) != -1)
     {
         switch (opt)
         {
@@ -49,6 +50,16 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
             case 'r':
                 show_tree = 1;
                 // recursive listing has to ovveride dir flag
+                char *end;
+                if (optarg != NULL)
+                {
+                    recursive_depth = strtol(optarg, &end, 10);
+                    if (end == optarg)
+                    {
+                        recursive_depth = -1;
+                    }
+                }
+
                 show_directories = 1;
                 break;
             default:
@@ -59,15 +70,9 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     if (optind < argc)
         dir = argv[optind];
 
-    return (laser_opts){show_all,
-                        show_files,
-                        show_directories,
-                        show_symlinks,
-                        show_git,
-                        show_tree,
-                        -1,
-                        dir,
-                        .parentDir = dir};
+    return (laser_opts){show_all,        show_files, show_directories,
+                        show_symlinks,   show_git,   show_tree,
+                        recursive_depth, dir,        .parentDir = dir};
 }
 
 // void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)

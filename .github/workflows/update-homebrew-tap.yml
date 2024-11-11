@@ -39,11 +39,12 @@ jobs:
 
       - name: Commit and push changes to the Homebrew Tap
         run: |
+          cd homebrew-laser
+        
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/jmattaa/homebrew-laser.git
 
-          cd homebrew-laser
           git add laser.rb
           git commit -m "chore: update laser.rb for ${RELEASE_VERSION}"
           git push origin main

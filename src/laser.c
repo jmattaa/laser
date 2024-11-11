@@ -3,7 +3,9 @@
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "utils.h"
+
 #define BRANCH_SIZE 8
+
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
     size_t parent_len = strlen(parent_dir);

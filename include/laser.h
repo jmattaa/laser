@@ -6,10 +6,10 @@
 #include "utils.h"
 #include <dirent.h>
 #include <errno.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <pwd.h>
 
 #define LASER_PATH_MAX 1024
 

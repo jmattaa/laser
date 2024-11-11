@@ -15,6 +15,15 @@ It can even display the directory contents in a tree-like structure! :fire:
 
 ## Installation
 
+### From Homebrew
+
+[Homebrew](https://brew.sh/) (MacOS and Linux)
+
+```sh
+brew tap jmattaa/laser
+brew install --formula laser
+```
+
 ### Building from source
 
 Clone the repository:

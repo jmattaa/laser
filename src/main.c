@@ -7,8 +7,6 @@ int main(int argc, char **argv)
     laser_colors_init();
 
     laser_opts opts = laser_utils_parsecmd(argc, argv);
-    laser_list_directory(opts, 0);
-
-    laser_colors_destroy();
+    laser_list_directory(opts, 0, -1);
     return 0;
 }

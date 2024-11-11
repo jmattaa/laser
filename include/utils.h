@@ -17,7 +17,7 @@ typedef struct laser_opts
     int show_symlinks;
     int show_git;
     int show_tree;
-
+    int recursive_depth;
     const char *dir;
     const char *parentDir; // TODO: maybe this static?
 } laser_opts;

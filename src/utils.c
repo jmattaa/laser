@@ -59,9 +59,15 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     if (optind < argc)
         dir = argv[optind];
 
-    return (laser_opts){show_all,      show_files,      show_directories,
-                        show_symlinks, show_git,        show_tree,-1,
-                        dir,           .parentDir = dir};
+    return (laser_opts){show_all,
+                        show_files,
+                        show_directories,
+                        show_symlinks,
+                        show_git,
+                        show_tree,
+                        -1,
+                        dir,
+                        .parentDir = dir};
 }
 
 // void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)

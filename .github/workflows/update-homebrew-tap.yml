@@ -14,12 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Git
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
-
       - name: Set release version from tag
         run: echo "RELEASE_VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
@@ -45,6 +39,10 @@ jobs:
 
       - name: Commit and push changes to the Homebrew Tap
         run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
+
           cd homebrew-laser
           git add laser.rb
           git commit -m "Update laser.rb for ${RELEASE_VERSION}"

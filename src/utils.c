@@ -6,6 +6,7 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     int show_all = 0;
     int show_files = -1;
     int show_directories = -1;
+    int recursive_depth = -1;
     int show_symlinks = -1;
     int show_git = 0;
     int show_tree = 0;
@@ -14,13 +15,16 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
 
     int opt;
 
-    struct option long_args[] = {
-        {"all", 0, 0, 'a'},         {"Files", 0, 0, 'F'},
-        {"Directories", 0, 0, 'D'}, {"Symlinks", 0, 0, 'S'},
-        {"Git", 0, 0, 'G'},         {"recursive", 0, 0, 'r'},
-        {"long", 0, 0, 'l'},        {0, 0, 0, 0}};
+    struct option long_args[] = {{"all", 0, 0, 'a'},
+                                 {"Files", 0, 0, 'F'},
+                                 {"Directories", 0, 0, 'D'},
+                                 {"Symlinks", 0, 0, 'S'},
+                                 {"Git", 0, 0, 'G'},
+                                 {"long", 0, 0, 'l'},
+                                 {"recursive", optional_argument, 0, 'r'},
+                                 {0, 0, 0, 0}};
 
-    while ((opt = getopt_long(argc, argv, "aFDSGrl", long_args, NULL)) != -1)
+    while ((opt = getopt_long(argc, argv, "aFDSGr::l", long_args, NULL)) != -1)
     {
         switch (opt)
         {
@@ -47,6 +51,14 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                 break;
             case 'r':
                 show_tree = 1;
+                char *end;
+                if (optarg != NULL)
+                {
+                    recursive_depth = strtol(optarg, &end, 10);
+                    if (end == optarg)
+                        recursive_depth = -1;
+                }
+
                 // recursive listing has to ovveride dir flag
                 show_directories = 1;
                 break;
@@ -61,9 +73,10 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     if (optind < argc)
         dir = argv[optind];
 
-    return (laser_opts){show_all,      show_files, show_directories,
-                        show_symlinks, show_git,   show_tree,
-                        show_long,     dir,        .parentDir = dir};
+    return (laser_opts){show_all,        show_files,      show_directories,
+                        show_symlinks,   show_git,        show_tree,
+                        show_long,       recursive_depth, dir,
+                        .parentDir = dir};
 }
 
 void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)

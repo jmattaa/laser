@@ -97,8 +97,9 @@ void laser_print_entry(const char *name, const char *color, char *indent,
                LASER_COLORS[LASER_COLOR_RESET].value);
 }
 
-void laser_process_entries(laser_opts opts, int depth, char *indent,
-                           char **gitignore_patterns, int gitignore_count)
+void laser_process_entries(laser_opts opts, int depth, int max_depth,
+                           char *indent, char **gitignore_patterns,
+                           int gitignore_count)
 {
     DIR *dir = opendir(opts.dir);
     if (dir == NULL)
@@ -174,7 +175,7 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
             {
                 laser_opts sub_opts = opts;
                 sub_opts.dir = full_path;
-                laser_list_directory(sub_opts, depth + 1);
+                laser_list_directory(sub_opts, depth + 1, max_depth);
             }
         }
         else
@@ -187,7 +188,9 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
                 if (len != -1)
                 {
                     symlink_target[len] = '\0';
+
                     char res_string[LASER_PATH_MAX * 2 + 4]; // 4 is " -> "
+
                     snprintf(res_string, sizeof(res_string), "%s -> %s",
                              entries[i]->d_name, symlink_target);
                     laser_print_entry(res_string,
@@ -232,8 +235,11 @@ void laser_process_entries(laser_opts opts, int depth, char *indent,
     closedir(dir);
 }
 
-void laser_list_directory(laser_opts opts, int depth)
+void laser_list_directory(laser_opts opts, int depth, int max_depth)
 {
+    if (max_depth >= 0 && depth > max_depth)
+        return;
+
     const char *pipe = "│   ";
     size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
     char *indent = malloc(indent_len + 1);
@@ -252,7 +258,7 @@ void laser_list_directory(laser_opts opts, int depth)
                    laser_cmp_string, NULL);
     }
 
-    laser_process_entries(opts, depth, indent, gitignore_patterns,
+    laser_process_entries(opts, depth, max_depth, indent, gitignore_patterns,
                           gitignore_count);
     free(indent);
 

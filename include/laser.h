@@ -21,8 +21,7 @@ struct laser_dirent
 };
 
 void laser_list_directory(laser_opts opts, int depth, int max_depth);
-void laser_print_entry(struct laser_dirent *entry, const char *color, char *indent,
-                       int depth, laser_opts opts,
-                       int is_last);
+void laser_print_entry(struct laser_dirent *entry, const char *color,
+                       char *indent, int depth, laser_opts opts, int is_last);
 
 #endif

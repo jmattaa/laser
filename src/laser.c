@@ -41,6 +41,22 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 void laser_print_long_entry(struct laser_dirent *entry, const char *color,
                             char *indent, const char *branch)
 {
+    char perms[10];
+    perms[0] = (entry->s.st_mode & S_IRUSR) ? 'r' : '-';
+    perms[1] = (entry->s.st_mode & S_IWUSR) ? 'w' : '-';
+    perms[2] = (entry->s.st_mode & S_IXUSR) ? 'x' : '-';
+    perms[3] = (entry->s.st_mode & S_IRGRP) ? 'r' : '-';
+    perms[4] = (entry->s.st_mode & S_IWGRP) ? 'w' : '-';
+    perms[5] = (entry->s.st_mode & S_IXGRP) ? 'x' : '-';
+    perms[6] = (entry->s.st_mode & S_IROTH) ? 'r' : '-';
+    perms[7] = (entry->s.st_mode & S_IWOTH) ? 'w' : '-';
+    perms[8] = (entry->s.st_mode & S_IXOTH) ? 'x' : '-';
+    perms[9] = '\0'; // Ensure null termination
+
+    char mtime[20];
+    struct tm *tm_info = localtime(&entry->s.st_mtime);
+    strftime(mtime, sizeof(mtime), "%b %e %H:%M", tm_info);
+
     char size[6];
     if (S_ISDIR(entry->s.st_mode) || S_ISLNK(entry->s.st_mode))
         snprintf(size, sizeof(size), "%5s", "-");
@@ -56,19 +72,14 @@ void laser_print_long_entry(struct laser_dirent *entry, const char *color,
 
     char *user = getpwuid(entry->s.st_uid)->pw_name;
 
-    char mtime[20];
-    struct tm *tm_info = localtime(&entry->s.st_mtime);
-    strftime(mtime, sizeof(mtime), "%b %e %H:%M %Y", tm_info);
-
-    // TODO: change the colors!!
-    printf("%s%s%s %s%s%s %s%s%s  %s%s%s%s%s\n",
-           LASER_COLORS[LASER_COLOR_EXEC].value, mtime,
-           LASER_COLORS[LASER_COLOR_RESET].value,
-           LASER_COLORS[LASER_COLOR_MEDIA].value, size,
-           LASER_COLORS[LASER_COLOR_RESET].value,
-           LASER_COLORS[LASER_COLOR_SYMLINK].value, user,
-           LASER_COLORS[LASER_COLOR_RESET].value, indent, branch, color,
-           entry->d->d_name, LASER_COLORS[LASER_COLOR_RESET].value);
+    printf("%s  %s%s%s %s%s%s %s%s%s  %s%s%s%s%s\n", perms,
+           LASER_COLORS_DEFAULTS[LASER_COLOR_SYMLINK].value, mtime,
+           LASER_COLORS_DEFAULTS[LASER_COLOR_RESET].value,
+           LASER_COLORS_DEFAULTS[LASER_COLOR_MEDIA].value, size,
+           LASER_COLORS_DEFAULTS[LASER_COLOR_RESET].value,
+           LASER_COLORS_DEFAULTS[LASER_COLOR_SYMLINK].value, user,
+           LASER_COLORS_DEFAULTS[LASER_COLOR_RESET].value, indent, branch,
+           color, entry->d->d_name, LASER_COLORS[LASER_COLOR_RESET].value);
 }
 
 void laser_print_entry(struct laser_dirent *entry, const char *color,

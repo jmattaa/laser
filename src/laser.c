@@ -3,7 +3,7 @@
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "utils.h"
-
+#include <fcntl.h>
 #define BRANCH_SIZE 8
 
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
@@ -142,6 +142,8 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
         }
         else
         {
+            int fd = open(full_path, O_RDONLY);
+
             if (S_ISLNK(file_stat.st_mode) && opts.show_symlinks)
             {
                 char symlink_target[PATH_MAX];
@@ -163,17 +165,17 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
                                   LASER_COLORS[LASER_COLOR_EXEC].value, indent,
                                   depth, is_last);
 
-            else if (laser_checktype(full_path, laser_archiveformats))
+            else if (laser_checktype_ex(fd, full_path, laser_archiveformats))
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_ARCHIVE].value,
                                   indent, depth, is_last);
 
-            else if (laser_checktype(full_path, laser_mediaformats))
+            else if (laser_checktype_ex(fd, full_path, laser_mediaformats))
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_MEDIA].value, indent,
                                   depth, is_last);
 
-            else if (laser_checktype(full_path, laser_documentformats))
+            else if (laser_checktype_ex(fd, full_path, laser_documentformats))
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_DOCUMENT].value,
                                   indent, depth, is_last);
@@ -187,6 +189,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
                 laser_print_entry(entries[i]->d_name,
                                   LASER_COLORS[LASER_COLOR_FILE].value, indent,
                                   depth, is_last);
+            close(fd);
         }
 
         free(entries[i]);

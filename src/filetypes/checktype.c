@@ -57,7 +57,6 @@ int laser_checktype(const char *filename,
         return 0;
     }
     int rv = laser_checktype_fd(fd, formats);
-    // should be updated if there is a magic number larger than 8 bits
     switch (rv)
     {
         case NotOpened:
@@ -66,7 +65,6 @@ int laser_checktype(const char *filename,
         case CannotRead:
             fprintf(stderr, "laser: cannot read %s", filename);
             break;
-            //Fallthrough
         default:
             break;
     }
@@ -84,7 +82,6 @@ int laser_checktype_ex(int fd, const char *filename,
         return 0;
     }
     int rv = laser_checktype_fd(fd, formats);
-    // should be updated if there is a magic number larger than 8 bits
     switch (rv)
     {
         case NotOpened:
@@ -93,7 +90,6 @@ int laser_checktype_ex(int fd, const char *filename,
         case CannotRead:
             fprintf(stderr, "laser: cannot read %s", filename);
             break;
-            //Fallthrough
         default:
             break;
     }

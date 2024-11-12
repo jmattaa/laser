@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 int laser_checktype(const char *filename,
-                    const struct laser_format_token formats[])
+                    const struct laser_file_signature formats[])
 {
     int fd = open(filename, O_RDONLY);
     if (fd == -1)

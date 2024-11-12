@@ -14,10 +14,12 @@ enum check_type_return
 };
 static int laser_checktype_fd(int fd, const struct laser_magicnumber formats[])
 {
+    off_t curr_pos = lseek(fd, 0, SEEK_CUR);
     if (fd == -1)
     {
         return NotOpened;
     }
+    lseek(fd, 0, SEEK_SET); // seek to start
     // should be updated if there is a magic number larger than 8 bits
     unsigned char buffer[8];
 
@@ -25,6 +27,7 @@ static int laser_checktype_fd(int fd, const struct laser_magicnumber formats[])
 
     if (bytesRead < 0)
     {
+        lseek(fd, curr_pos, SEEK_SET);
         return CannotRead;
     }
 
@@ -34,10 +37,13 @@ static int laser_checktype_fd(int fd, const struct laser_magicnumber formats[])
     {
         if (bytesRead >= formats[i].magic_size &&
             memcmp(buffer, formats[i].magic, formats[i].magic_size) == 0)
+        {
+            lseek(fd, curr_pos, SEEK_SET);
             return Success;
+        }
         i++;
     }
-
+    lseek(fd, curr_pos, SEEK_SET);
     return Unknown;
 }
 

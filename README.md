@@ -15,6 +15,15 @@ It can even display the directory contents in a tree-like structure! :fire:
 
 ## Installation
 
+### From Homebrew
+
+[Homebrew](https://brew.sh/) (MacOS and Linux)
+
+```sh
+brew tap jmattaa/laser
+brew install --formula laser
+```
+
 ### Building from source
 
 Clone the repository:
@@ -78,6 +87,9 @@ you can directly pass in the flags.
 - `-S` or `--Symlinks` shows only symlinks
 - `-G` or `--Git` shows only the entries that are not named in `.gitignore` (works only if there exists a `.gitignore`)
 - `-r` or `--recursive` shows directory tree structure
+    - `-r` or `--recursive` has an optional value for max depth and  it can be 
+    used by using `-r2` or `--recursive=2` by default the depth is until last 
+    level
 
 
 The flags can be chained for example using:

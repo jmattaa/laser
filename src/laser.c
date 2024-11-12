@@ -198,9 +198,8 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
 void laser_list_directory(laser_opts opts, int depth, int max_depth)
 {
     if (max_depth >= 0 && depth > max_depth)
-    {
         return;
-    }
+
     const char *pipe = "│   ";
     size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
     char *indent = malloc(indent_len + 1);

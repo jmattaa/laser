@@ -32,7 +32,8 @@ int laser_checktype(const char *filename,
     while (formats[i].signature_size != 0)
     {
         if (bytesRead >= formats[i].signature_size &&
-            memcmp(buffer, formats[i].signature, formats[i].signature_size) == 0)
+            memcmp(buffer, formats[i].signature, formats[i].signature_size) ==
+                0)
             return 1;
         i++;
     }

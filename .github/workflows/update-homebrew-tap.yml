@@ -1,0 +1,51 @@
+name: Update Homebrew Tap
+
+on:
+  push:
+    tags:
+      - 'v*' 
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  update-tap:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set release version from tag
+        run: echo "RELEASE_VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Download release artifact
+        run: wget https://github.com/jmattaa/laser/archive/${RELEASE_VERSION}.tar.gz -O laser-${RELEASE_VERSION}.tar.gz
+
+      - name: Calculate SHA256 checksum
+        id: sha256
+        run: echo "SHA256=$(sha256sum laser-${RELEASE_VERSION}.tar.gz | awk '{print $1}')" >> $GITHUB_ENV
+
+      - name: Clone the Homebrew Tap repository
+        run: |
+          git clone https://github.com/jmattaa/homebrew-laser.git
+          cd homebrew-laser
+          git checkout main
+
+      - name: Update laser.rb formula
+        run: |
+          cd homebrew-laser
+          sed -i.bak "s|^  url .*|  url \"https://github.com/jmattaa/laser/archive/${RELEASE_VERSION}.tar.gz\"|" laser.rb
+          sed -i.bak "s|^  sha256 .*|  sha256 \"${SHA256}\"|" laser.rb
+          sed -i.bak "s|^  version .*|  version \"${RELEASE_VERSION}\"|" laser.rb
+
+      - name: Commit and push changes to the Homebrew Tap
+        run: |
+          cd homebrew-laser
+        
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/jmattaa/homebrew-laser.git
+
+          git add laser.rb
+          git commit -m "chore: update laser.rb for ${RELEASE_VERSION}"
+          git push origin main
+

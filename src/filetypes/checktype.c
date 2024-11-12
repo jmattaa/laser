@@ -5,6 +5,48 @@
 #include <string.h>
 #include <unistd.h>
 
+enum check_type_return
+{
+    Success = 0,
+    NotOpened,
+    CannotRead,
+    Unknown
+};
+static int laser_checktype_fd(int fd, const struct laser_magicnumber formats[])
+{
+    off_t curr_pos = lseek(fd, 0, SEEK_CUR);
+    if (fd == -1)
+    {
+        return NotOpened;
+    }
+    lseek(fd, 0, SEEK_SET); // seek to start
+    // should be updated if there is a magic number larger than 8 bits
+    unsigned char buffer[8];
+
+    ssize_t bytesRead = read(fd, buffer, sizeof(buffer));
+
+    if (bytesRead < 0)
+    {
+        lseek(fd, curr_pos, SEEK_SET);
+        return CannotRead;
+    }
+
+    size_t i = 0;
+
+    while (formats[i].magic_size != 0)
+    {
+        if (bytesRead >= formats[i].magic_size &&
+            memcmp(buffer, formats[i].magic, formats[i].magic_size) == 0)
+        {
+            lseek(fd, curr_pos, SEEK_SET);
+            return Success;
+        }
+        i++;
+    }
+    lseek(fd, curr_pos, SEEK_SET);
+    return Unknown;
+}
+
 int laser_checktype(const char *filename,
                     const struct laser_magicnumber formats[])
 {
@@ -14,28 +56,42 @@ int laser_checktype(const char *filename,
         perror("open");
         return 0;
     }
-
-    // should be updated if there is a magic number larger than 8 bits
-    unsigned char buffer[8];
-
-    ssize_t bytesRead = read(fd, buffer, sizeof(buffer));
-    close(fd);
-
-    if (bytesRead < 0)
+    int rv = laser_checktype_fd(fd, formats);
+    switch (rv)
     {
-        fprintf(stderr, "laser: cannot read %s", filename);
+        case NotOpened:
+            perror("open");
+            break;
+        case CannotRead:
+            fprintf(stderr, "laser: cannot read %s", filename);
+            break;
+        default:
+            break;
+    }
+    close(fd);
+    return rv == Success;
+}
+
+int laser_checktype_ex(int fd, const char *filename,
+                       const struct laser_magicnumber formats[])
+{
+
+    if (fd == -1)
+    {
+        perror("open");
         return 0;
     }
-
-    size_t i = 0;
-
-    while (formats[i].magic_size != 0)
+    int rv = laser_checktype_fd(fd, formats);
+    switch (rv)
     {
-        if (bytesRead >= formats[i].magic_size &&
-            memcmp(buffer, formats[i].magic, formats[i].magic_size) == 0)
-            return 1;
-        i++;
+        case NotOpened:
+            perror("open");
+            break;
+        case CannotRead:
+            fprintf(stderr, "laser: cannot read %s", filename);
+            break;
+        default:
+            break;
     }
-
-    return 0;
+    return rv == Success;
 }

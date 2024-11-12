@@ -4,6 +4,7 @@
 #include "git/lgit.h"
 #include "utils.h"
 #include <fcntl.h>
+
 #define BRANCH_SIZE 8
 
 char *strip_parent_dir(const char *full_path, const char *parent_dir)
@@ -21,29 +22,18 @@ char *strip_parent_dir(const char *full_path, const char *parent_dir)
 
 int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 {
-    const char *dir_path = (char *)arg;
-    struct dirent *dirent_a = *(struct dirent **)a;
-    struct dirent *dirent_b = *(struct dirent **)b;
-
-    char path_a[PATH_MAX];
-    char path_b[PATH_MAX];
-    snprintf(path_a, sizeof(path_a), "%s/%s", dir_path, dirent_a->d_name);
-    snprintf(path_b, sizeof(path_b), "%s/%s", dir_path, dirent_b->d_name);
-
-    struct stat stat_a, stat_b;
-
-    lstat(path_a, &stat_a);
-    lstat(path_b, &stat_b);
+    struct laser_dirent *dirent_a = *(struct laser_dirent **)a;
+    struct laser_dirent *dirent_b = *(struct laser_dirent **)b;
 
     // // add weight if is file so files go down, u see gravity (me big brain)
     int weight = 0; // idk what to call this
-    if (S_ISDIR(stat_a.st_mode) && !S_ISDIR(stat_b.st_mode))
+    if (S_ISDIR(dirent_a->s.st_mode) && !S_ISDIR(dirent_b->s.st_mode))
         weight = -1;
-    else if (!S_ISDIR(stat_a.st_mode) && S_ISDIR(stat_b.st_mode))
+    else if (!S_ISDIR(dirent_a->s.st_mode) && S_ISDIR(dirent_b->s.st_mode))
         weight = 1; // weigh more --> fall down
 
     if (weight == 0) // they weigh the same so compare the name
-        return laser_charcmp(dirent_a->d_name, dirent_b->d_name);
+        return laser_charcmp(dirent_a->d->d_name, dirent_b->d->d_name);
 
     return weight;
 }
@@ -71,65 +61,63 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
         return;
     }
 
-    struct dirent *entry;
-    struct dirent **entries = malloc(sizeof(struct dirent *));
+    struct laser_dirent *entry = malloc(sizeof(struct laser_dirent));
+    struct laser_dirent **entries = malloc(sizeof(struct laser_dirent *));
     int entry_count = 0;
 
     char full_path[PATH_MAX];
-    while ((entry = readdir(dir)) != NULL)
+    while ((entry->d = readdir(dir)) != NULL)
     {
         snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
-                 entry->d_name);
+                 entry->d->d_name);
 
-        struct stat file_stat;
-        if (lstat(full_path, &file_stat) == -1)
+        if (lstat(full_path, &entry->s) == -1)
         {
             fprintf(stderr, "lsr: %s\n", strerror(errno));
             continue;
         }
 
-        if (!opts.show_all && entry->d_name[0] == '.')
+        if (!opts.show_all && entry->d->d_name[0] == '.')
             continue;
 
         if (opts.show_git && (laser_string_in_sorted_array(
                                   strip_parent_dir(full_path, opts.parentDir),
                                   gitignore_patterns, gitignore_count) ||
-                              strcmp(entry->d_name, ".git") == 0))
+                              strcmp(entry->d->d_name, ".git") == 0))
             continue;
 
-        if ((S_ISDIR(file_stat.st_mode) && opts.show_directories) ||
-            (S_ISLNK(file_stat.st_mode) && opts.show_symlinks) ||
-            (S_ISREG(file_stat.st_mode) && opts.show_files))
+        if ((S_ISDIR(entry->s.st_mode) && opts.show_directories) ||
+            (S_ISLNK(entry->s.st_mode) && opts.show_symlinks) ||
+            (S_ISREG(entry->s.st_mode) && opts.show_files))
         {
-            if (opts.show_tree && S_ISDIR(file_stat.st_mode) &&
-                (strcmp(entry->d_name, ".") == 0 ||
-                 strcmp(entry->d_name, "..") == 0))
+            if (opts.show_tree && S_ISDIR(entry->s.st_mode) &&
+                (strcmp(entry->d->d_name, ".") == 0 ||
+                 strcmp(entry->d->d_name, "..") == 0))
                 continue;
 
-            entries =
-                realloc(entries, (entry_count + 1) * sizeof(struct dirent *));
+            entries = realloc(entries, (entry_count + 1) *
+                                           sizeof(struct laser_dirent *));
+            entries[entry_count] = malloc(sizeof(struct laser_dirent));
 
-            size_t entry_size =
-                offsetof(struct dirent, d_name) + strlen(entry->d_name) + 1;
-            entries[entry_count] = malloc(entry_size);
-            memcpy(entries[entry_count], entry, entry_size);
+            memcpy(entries[entry_count], entry, sizeof(struct laser_dirent));
+
             entry_count++;
         }
     }
+
     // sort and print stuff
-    laser_sort(entries, entry_count, sizeof(struct dirent *), laser_cmp_dirent,
-               opts.parentDir);
+    laser_sort(entries, entry_count, sizeof(struct laser_dirent *),
+               laser_cmp_dirent, NULL);
     for (int i = 0; i < entry_count; i++)
     {
         int is_last = (i == entry_count - 1);
-        struct stat file_stat;
-        snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
-                 entries[i]->d_name);
-        lstat(full_path, &file_stat);
 
-        if (S_ISDIR(file_stat.st_mode))
+        snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
+                 entries[i]->d->d_name);
+
+        if (S_ISDIR(entries[i]->s.st_mode))
         {
-            laser_print_entry(entries[i]->d_name,
+            laser_print_entry(entries[i]->d->d_name,
                               LASER_COLORS[LASER_COLOR_DIR].value, indent,
                               depth, is_last);
 
@@ -144,7 +132,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
         {
             int fd = open(full_path, O_RDONLY);
 
-            if (S_ISLNK(file_stat.st_mode) && opts.show_symlinks)
+            if (S_ISLNK(entries[i]->s.st_mode) && opts.show_symlinks)
             {
                 char symlink_target[PATH_MAX];
                 int len = readlink(full_path, symlink_target,
@@ -154,39 +142,39 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
                     symlink_target[len] = '\0';
                     char res_string[PATH_MAX * 2 + 4]; //4 is " -> "
                     snprintf(res_string, sizeof(res_string), "%s -> %s",
-                             entries[i]->d_name, symlink_target);
+                             entries[i]->d->d_name, symlink_target);
                     laser_print_entry(res_string,
                                       LASER_COLORS[LASER_COLOR_SYMLINK].value,
                                       indent, depth, is_last);
                 }
             }
-            else if (laser_is_filestat_exec(&file_stat))
-                laser_print_entry(entries[i]->d_name,
+            else if (laser_is_filestat_exec(&entries[i]->s))
+                laser_print_entry(entries[i]->d->d_name,
                                   LASER_COLORS[LASER_COLOR_EXEC].value, indent,
                                   depth, is_last);
 
             else if (laser_checktype_ex(fd, full_path, laser_archiveformats))
-                laser_print_entry(entries[i]->d_name,
+                laser_print_entry(entries[i]->d->d_name,
                                   LASER_COLORS[LASER_COLOR_ARCHIVE].value,
                                   indent, depth, is_last);
 
             else if (laser_checktype_ex(fd, full_path, laser_mediaformats))
-                laser_print_entry(entries[i]->d_name,
+                laser_print_entry(entries[i]->d->d_name,
                                   LASER_COLORS[LASER_COLOR_MEDIA].value, indent,
                                   depth, is_last);
 
             else if (laser_checktype_ex(fd, full_path, laser_documentformats))
-                laser_print_entry(entries[i]->d_name,
+                laser_print_entry(entries[i]->d->d_name,
                                   LASER_COLORS[LASER_COLOR_DOCUMENT].value,
                                   indent, depth, is_last);
 
-            else if (entries[i]->d_name[0] == '.')
-                laser_print_entry(entries[i]->d_name,
+            else if (entries[i]->d->d_name[0] == '.')
+                laser_print_entry(entries[i]->d->d_name,
                                   LASER_COLORS[LASER_COLOR_HIDDEN].value,
                                   indent, depth, is_last);
 
-            else if (S_ISREG(file_stat.st_mode))
-                laser_print_entry(entries[i]->d_name,
+            else if (S_ISREG(entries[i]->s.st_mode))
+                laser_print_entry(entries[i]->d->d_name,
                                   LASER_COLORS[LASER_COLOR_FILE].value, indent,
                                   depth, is_last);
             close(fd);

@@ -1,6 +1,6 @@
 #include "filetypes/checktypes.h"
 
-const struct laser_magicnumber laser_mediaformats[] = {
+const struct laser_format_token laser_mediaformats[] = {
     {(unsigned char[]){0xFF, 0xD8, 0xFF, 0xE0}, 4}, // JPEG
     {(unsigned char[]){0x89, 0x50, 0x4E, 0x47}, 4}, // PNG
     {(unsigned char[]){0x47, 0x49, 0x46, 0x38}, 4}, // GIF

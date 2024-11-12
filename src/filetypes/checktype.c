@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 int laser_checktype(const char *filename,
-                    const struct laser_magicnumber formats[])
+                    const struct laser_format_token formats[])
 {
     int fd = open(filename, O_RDONLY);
     if (fd == -1)
@@ -29,10 +29,10 @@ int laser_checktype(const char *filename,
 
     size_t i = 0;
 
-    while (formats[i].magic_size != 0)
+    while (formats[i].token_size != 0)
     {
-        if (bytesRead >= formats[i].magic_size &&
-            memcmp(buffer, formats[i].magic, formats[i].magic_size) == 0)
+        if (bytesRead >= formats[i].token_size &&
+            memcmp(buffer, formats[i].token, formats[i].token_size) == 0)
             return 1;
         i++;
     }

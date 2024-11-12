@@ -3,17 +3,17 @@
 
 #include <stddef.h>
 
-struct laser_magicnumber
+struct laser_format_token
 {
-    unsigned char *magic;
-    size_t magic_size;
+    unsigned char *token;
+    size_t token_size;
 };
 
 int laser_checktype(const char *filename,
-                    const struct laser_magicnumber formats[]);
+                    const struct laser_format_token formats[]);
 
-extern const struct laser_magicnumber laser_archiveformats[];
-extern const struct laser_magicnumber laser_mediaformats[];
-extern const struct laser_magicnumber laser_documentformats[];
+extern const struct laser_format_token laser_archiveformats[];
+extern const struct laser_format_token laser_mediaformats[];
+extern const struct laser_format_token laser_documentformats[];
 
 #endif

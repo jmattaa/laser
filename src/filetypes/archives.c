@@ -1,6 +1,6 @@
 #include "filetypes/checktypes.h"
 
-const struct laser_magicnumber laser_archiveformats[] = {
+const struct laser_format_token laser_archiveformats[] = {
     {(unsigned char[]){0x50, 0x4B, 0x03, 0x04}, 4}, // ZIP and stuff based on it
     {(unsigned char[]){0x1F, 0x8B}, 2},             // GZIP
     {(unsigned char[]){'u', 's', 't', 'a', 'r'}, 5},      // TAR

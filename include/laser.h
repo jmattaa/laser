@@ -13,9 +13,16 @@
 
 #define LASER_PATH_MAX 1024
 
+// dirent go brrrr 🔥
+struct laser_dirent
+{
+    struct dirent *d;
+    struct stat s;
+};
+
 void laser_list_directory(laser_opts opts, int depth, int max_depth);
-void laser_print_entry(const char *name, const char *color, char *indent,
-                       int depth, struct stat file_stat, laser_opts opts,
+void laser_print_entry(struct laser_dirent *entry, const char *color, char *indent,
+                       int depth, laser_opts opts,
                        int is_last);
 
 #endif

@@ -97,9 +97,20 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
             entries = realloc(entries, (entry_count + 1) *
                                            sizeof(struct laser_dirent *));
-            entries[entry_count] = malloc(sizeof(struct laser_dirent));
 
-            memcpy(entries[entry_count], entry, sizeof(struct laser_dirent));
+            size_t entry_size = sizeof(struct laser_dirent) +
+                                offsetof(struct dirent, d_name) +
+                                strlen(entry->d->d_name) + 1;
+
+            entries[entry_count] = malloc(entry_size);
+
+            entries[entry_count]->s = entry->s;
+            entries[entry_count]->d = malloc(offsetof(struct dirent, d_name) +
+                                             strlen(entry->d->d_name) + 1);
+
+            memcpy(entries[entry_count]->d, entry->d,
+                   offsetof(struct dirent, d_name) + strlen(entry->d->d_name) +
+                       1);
 
             entry_count++;
         }

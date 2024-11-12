@@ -18,24 +18,24 @@ void laser_colors_init(void)
     if (env_colors)
     {
         char *colors_copy = strdup(env_colors);
-        char *token = strtok(colors_copy, ":");
+        char *signature = strtok(colors_copy, ":");
 
-        while (token != NULL)
+        while (signature != NULL)
         {
-            laser_colors_parseToken(token);
-            token = strtok(NULL, ":");
+            laser_colors_parsesignature(signature);
+            signature = strtok(NULL, ":");
         }
     }
 }
 
-void laser_colors_parseToken(const char *token)
+void laser_colors_parsesignature(const char *signature)
 {
-    char *separator = strchr(token, '=');
+    char *separator = strchr(signature, '=');
 
     if (separator != NULL)
     {
         *separator = '\0';
-        const char *key = token;
+        const char *key = signature;
         const char *value = separator + 1;
 
         char *processed_value = malloc(strlen(value) + 1);

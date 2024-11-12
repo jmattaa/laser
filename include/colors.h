@@ -36,7 +36,7 @@ enum laser_color_type
 extern laser_color *LASER_COLORS;
 
 void laser_colors_init(void);
-void laser_colors_parseToken(const char *token);
+void laser_colors_parsesignature(const char *signature);
 void laser_colors_destroy(void);
 
 #endif

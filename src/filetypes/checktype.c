@@ -29,10 +29,10 @@ int laser_checktype(const char *filename,
 
     size_t i = 0;
 
-    while (formats[i].token_size != 0)
+    while (formats[i].signature_size != 0)
     {
-        if (bytesRead >= formats[i].token_size &&
-            memcmp(buffer, formats[i].token, formats[i].token_size) == 0)
+        if (bytesRead >= formats[i].signature_size &&
+            memcmp(buffer, formats[i].signature, formats[i].signature_size) == 0)
             return 1;
         i++;
     }

@@ -47,11 +47,11 @@ int laser_checktype_extension(const char *filename,
     int rv = Unknown;
     for (int i = 0; formats[i].extensions != NULL; i++)
     {
-        for (size_t j = 0; j < formats[i].extensions_count; j++) 
+        for (size_t j = 0; j < formats[i].extensions_count; j++)
         {
             char *ext = strrchr(filename, '.') + 1; // +1 skip .
             if (strcmp(ext, formats[i].extensions[j]) == 0)
-                rv = Success;                
+                rv = Success;
         }
     }
     return rv;

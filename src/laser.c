@@ -49,6 +49,20 @@ void laser_print_entry(const char *name, const char *color, char *indent,
            LASER_COLORS[LASER_COLOR_RESET].value);
 }
 
+static laser_color_type laser_color_for_format(const char *filename)
+{
+    int fd = open(filename, O_RDONLY);
+    laser_color_type type = LASER_COLOR_FILE;
+    if (laser_checktype_ex(fd, filename, laser_archiveformats))
+        type = LASER_COLOR_ARCHIVE;
+    else if (laser_checktype_ex(fd, filename, laser_mediaformats))
+        type = LASER_COLOR_MEDIA;
+    else if (laser_checktype_ex(fd, filename, laser_documentformats))
+        type = LASER_COLOR_DOCUMENT;
+    close(fd);
+    return type;
+}
+
 void laser_process_entries(laser_opts opts, int depth, int max_depth,
                            char *indent, char **gitignore_patterns,
                            int gitignore_count)
@@ -141,7 +155,6 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
         }
         else
         {
-            int fd = open(full_path, O_RDONLY);
 
             if (S_ISLNK(entries[i]->s.st_mode) && opts.show_symlinks)
             {
@@ -160,35 +173,33 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
                 }
             }
             else if (laser_is_filestat_exec(&entries[i]->s))
+            {
                 laser_print_entry(entries[i]->d->d_name,
                                   LASER_COLORS[LASER_COLOR_EXEC].value, indent,
                                   depth, is_last);
-
-            else if (laser_checktype_ex(fd, full_path, laser_archiveformats))
-                laser_print_entry(entries[i]->d->d_name,
-                                  LASER_COLORS[LASER_COLOR_ARCHIVE].value,
-                                  indent, depth, is_last);
-
-            else if (laser_checktype_ex(fd, full_path, laser_mediaformats))
-                laser_print_entry(entries[i]->d->d_name,
-                                  LASER_COLORS[LASER_COLOR_MEDIA].value, indent,
-                                  depth, is_last);
-
-            else if (laser_checktype_ex(fd, full_path, laser_documentformats))
-                laser_print_entry(entries[i]->d->d_name,
-                                  LASER_COLORS[LASER_COLOR_DOCUMENT].value,
-                                  indent, depth, is_last);
-
+            }
             else if (entries[i]->d->d_name[0] == '.')
+            {
                 laser_print_entry(entries[i]->d->d_name,
                                   LASER_COLORS[LASER_COLOR_HIDDEN].value,
                                   indent, depth, is_last);
+            }
 
-            else if (S_ISREG(entries[i]->s.st_mode))
-                laser_print_entry(entries[i]->d->d_name,
-                                  LASER_COLORS[LASER_COLOR_FILE].value, indent,
-                                  depth, is_last);
-            close(fd);
+            else
+            {
+                //coloring which depends on formats
+                laser_color_type color_type = laser_color_for_format(full_path);
+                if (color_type != LASER_COLOR_FILE)
+                {
+                    laser_print_entry(entries[i]->d->d_name,
+                                      LASER_COLORS[color_type].value, indent,
+                                      depth, is_last);
+                }
+                else if (S_ISREG(entries[i]->s.st_mode))
+                    laser_print_entry(entries[i]->d->d_name,
+                                      LASER_COLORS[LASER_COLOR_FILE].value,
+                                      indent, depth, is_last);
+            }
         }
 
         free(entries[i]);

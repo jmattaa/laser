@@ -3,18 +3,27 @@
 
 #include <stddef.h>
 
-struct laser_magicnumber
+// https://en.wikipedia.org/wiki/List_of_file_signatures
+// dis be good sometimes
+
+struct laser_filetype
 {
     unsigned char *magic;
     size_t magic_size;
+
+    const char **extensions;
+    size_t extensions_count;
 };
 
 int laser_checktype(const char *filename,
-                    const struct laser_magicnumber formats[]);
-int laser_checktype_ex(int fd, const char *filename,
-                       const struct laser_magicnumber formats[]);
-extern const struct laser_magicnumber laser_archiveformats[];
-extern const struct laser_magicnumber laser_mediaformats[];
-extern const struct laser_magicnumber laser_documentformats[];
+                    const struct laser_filetype formats[]);
+
+int laser_checktype_extension(const char *filename,
+                              const struct laser_filetype formats[]);
+int laser_checktype_magic(int fd, const struct laser_filetype formats[]);
+
+extern const struct laser_filetype laser_archiveformats[];
+extern const struct laser_filetype laser_mediaformats[];
+extern const struct laser_filetype laser_documentformats[];
 
 #endif

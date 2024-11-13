@@ -10,6 +10,7 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     int show_symlinks = -1;
     int show_git = 0;
     int show_tree = 0;
+    int show_long = 0;
     const char *dir = ".";
 
     int opt;
@@ -19,10 +20,11 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                                  {"Directories", 0, 0, 'D'},
                                  {"Symlinks", 0, 0, 'S'},
                                  {"Git", 0, 0, 'G'},
+                                 {"long", 0, 0, 'l'},
                                  {"recursive", optional_argument, 0, 'r'},
                                  {0, 0, 0, 0}};
 
-    while ((opt = getopt_long(argc, argv, "aFDSGr::", long_args, NULL)) != -1)
+    while ((opt = getopt_long(argc, argv, "aFDSGr::l", long_args, NULL)) != -1)
     {
         switch (opt)
         {
@@ -60,6 +62,9 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                 // recursive listing has to ovveride dir flag
                 show_directories = 1;
                 break;
+            case 'l':
+                show_long = 1;
+                break;
             default:
                 exit(1);
         }
@@ -68,16 +73,17 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
     if (optind < argc)
         dir = argv[optind];
 
-    return (laser_opts){show_all,        show_files, show_directories,
-                        show_symlinks,   show_git,   show_tree,
-                        recursive_depth, dir,        .parentDir = dir};
+    return (laser_opts){show_all,        show_files,      show_directories,
+                        show_symlinks,   show_git,        show_tree,
+                        show_long,       recursive_depth, dir,
+                        .parentDir = dir};
 }
 
-// void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)
-// {
-//     struct tm *tm_info = localtime(&time);
-//     strftime(buffer, buffer_size, "%d-%m-%Y", tm_info);
-// }
+void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)
+{
+    struct tm *tm_info = localtime(&time);
+    strftime(buffer, buffer_size, "%d-%m-%Y", tm_info);
+}
 
 int laser_cmp_string_for_gitignore(const void *a, const void *b)
 {

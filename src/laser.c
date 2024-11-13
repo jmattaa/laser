@@ -192,7 +192,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
                 if (color_type != LASER_COLOR_FILE)
                 {
                     laser_print_entry(entries[i]->d->d_name,
-                                      LASER_COLORS[LASER_COLOR_ARCHIVE].value,
+                                      LASER_COLORS[color_type].value,
                                       indent, depth, is_last);
                 }
                 else if (S_ISREG(entries[i]->s.st_mode))

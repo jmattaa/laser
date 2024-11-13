@@ -20,7 +20,7 @@ static const laser_color LASER_COLORS_DEFAULTS[COLOR_COUNT] = {
     {"ARCHIVE", "\x1b[31m"},   {"MEDIA", "\x1b[33m"},
     {"DOCUMENT", "\x1b[35;3m"}};
 
-enum laser_color_type
+typedef enum laser_color_type
 {
     LASER_COLOR_RESET,
     LASER_COLOR_DIR,
@@ -31,7 +31,7 @@ enum laser_color_type
     LASER_COLOR_ARCHIVE,
     LASER_COLOR_MEDIA,
     LASER_COLOR_DOCUMENT
-};
+} laser_color_type;
 
 extern laser_color *LASER_COLORS;
 

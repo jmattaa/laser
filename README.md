@@ -90,6 +90,7 @@ you can directly pass in the flags.
     - `-r` or `--recursive` has an optional value for max depth and  it can be 
     used by using `-r2` or `--recursive=2` by default the depth is until last 
     level
+- `-l` or `--long` displays in long format (permissions, last modified, size and owner)
 
 
 The flags can be chained for example using:

@@ -41,17 +41,25 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 void laser_print_long_entry(struct laser_dirent *entry, const char *color,
                             char *indent, const char *branch)
 {
-    char perms[10];
-    perms[0] = (entry->s.st_mode & S_IRUSR) ? 'r' : '-';
-    perms[1] = (entry->s.st_mode & S_IWUSR) ? 'w' : '-';
-    perms[2] = (entry->s.st_mode & S_IXUSR) ? 'x' : '-';
-    perms[3] = (entry->s.st_mode & S_IRGRP) ? 'r' : '-';
-    perms[4] = (entry->s.st_mode & S_IWGRP) ? 'w' : '-';
-    perms[5] = (entry->s.st_mode & S_IXGRP) ? 'x' : '-';
-    perms[6] = (entry->s.st_mode & S_IROTH) ? 'r' : '-';
-    perms[7] = (entry->s.st_mode & S_IWOTH) ? 'w' : '-';
-    perms[8] = (entry->s.st_mode & S_IXOTH) ? 'x' : '-';
-    perms[9] = '\0'; // Ensure null termination
+    char perms[11];
+    perms[0] = (S_ISDIR(entry->s.st_mode))    ? 'd'
+               : (S_ISLNK(entry->s.st_mode))  ? 'l'
+               : (S_ISCHR(entry->s.st_mode))  ? 'c'
+               : (S_ISBLK(entry->s.st_mode))  ? 'b'
+               : (S_ISFIFO(entry->s.st_mode)) ? 'p'
+               : (S_ISSOCK(entry->s.st_mode)) ? 's'
+                                              : '-'; // regular file
+
+    perms[1] = (entry->s.st_mode & S_IRUSR) ? 'r' : '-';
+    perms[2] = (entry->s.st_mode & S_IWUSR) ? 'w' : '-';
+    perms[3] = (entry->s.st_mode & S_IXUSR) ? 'x' : '-';
+    perms[4] = (entry->s.st_mode & S_IRGRP) ? 'r' : '-';
+    perms[5] = (entry->s.st_mode & S_IWGRP) ? 'w' : '-';
+    perms[6] = (entry->s.st_mode & S_IXGRP) ? 'x' : '-';
+    perms[7] = (entry->s.st_mode & S_IROTH) ? 'r' : '-';
+    perms[8] = (entry->s.st_mode & S_IWOTH) ? 'w' : '-';
+    perms[9] = (entry->s.st_mode & S_IXOTH) ? 'x' : '-';
+    perms[10] = '\0'; // Ensure null termination
 
     char mtime[20];
     struct tm *tm_info = localtime(&entry->s.st_mtime);

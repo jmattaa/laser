@@ -51,16 +51,17 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                 break;
             case 'r':
                 show_tree = 1;
-                char *end;
-                if (optarg != NULL)
-                {
-                    recursive_depth = strtol(optarg, &end, 10);
-                    if (end == optarg)
-                        recursive_depth = -1;
-                }
-
                 // recursive listing has to ovveride dir flag
                 show_directories = 1;
+
+                if (optarg == NULL)
+                    break;
+
+                char *end;
+                recursive_depth = strtol(optarg, &end, 10);
+                if (end == optarg)
+                    recursive_depth = -1;
+
                 break;
             case 'l':
                 show_long = 1;

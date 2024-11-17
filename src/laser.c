@@ -98,14 +98,14 @@ void laser_print_entry(struct laser_dirent *entry, const char *color,
 
 static laser_color_type laser_color_for_format(const char *filename)
 {
-    laser_color_type type = LASER_COLOR_FILE;
     if (laser_checktype(filename, laser_archiveformats))
-        type = LASER_COLOR_ARCHIVE;
+        return LASER_COLOR_ARCHIVE;
     else if (laser_checktype(filename, laser_mediaformats))
-        type = LASER_COLOR_MEDIA;
+        return LASER_COLOR_MEDIA;
     else if (laser_checktype(filename, laser_documentformats))
-        type = LASER_COLOR_DOCUMENT;
-    return type;
+        return LASER_COLOR_DOCUMENT;
+
+    return LASER_COLOR_FILE;
 }
 
 void laser_process_entries(laser_opts opts, int depth, int max_depth,

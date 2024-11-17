@@ -45,15 +45,22 @@ int laser_checktype_extension(const char *filename,
                               const struct laser_filetype *formats)
 {
     int rv = Unknown;
+
+    if (filename[0] == '.') // if a hidden file is hidden then it's hidden
+                            // u see my wisdom and my big brain
+        return rv;
+
+    char *ext = strrchr(filename, '.');
+    if (ext == NULL)
+        return rv;
+
+    ext++; // skip the .
+
     for (int i = 0; formats[i].extensions != NULL; i++)
-    {
         for (size_t j = 0; j < formats[i].extensions_count; j++)
-        {
-            char *ext = strrchr(filename, '.') + 1; // +1 skip .
             if (strcmp(ext, formats[i].extensions[j]) == 0)
-                rv = Success;
-        }
-    }
+                return Success;
+
     return rv;
 }
 

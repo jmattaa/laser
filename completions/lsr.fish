@@ -1,0 +1,7 @@
+complete -c lsr -l all -d "Include all entries"
+complete -c lsr -l Files -d "Show files only"
+complete -c lsr -l Directories -d "Show directories only"
+complete -c lsr -l Symlinks -d "Show symlinks only"
+complete -c lsr -l Git -d "Show Git-tracked files"
+complete -c lsr -l long -d "Use long format"
+complete -c lsr -l recursive -d "Recursively list files (accepts an optional depth)"

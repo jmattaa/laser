@@ -18,7 +18,7 @@ OBJS := $(SRCS:$(PROJECT_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 TARGET := $(BIN_DIR)/lsr
 
-.PHONY: all debug release clean format test install uninstall
+.PHONY: all debug release clean format test install uninstall completions
 
 all: debug
 
@@ -43,11 +43,22 @@ $(BIN_DIR) $(OBJ_DIR):
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -rf completions
 
 format:
 	clang-format -i $(SRCS) $(PROJECT_DIR)/include/**.h
 
-install: release 
+completions:
+	@mkdir -p completions
+	@mkdir -p completions/bash
+	@mkdir -p completions/zsh
+	@mkdir -p completions/fish
+
+	./$(TARGET) --completions bash > completions/bash/lsr
+	./$(TARGET) --completions zsh > completions/zsh/_lsr
+	./$(TARGET) --completions fish > completions/fish/lsr.fish
+
+install: release completions
 	install -m 755 $(TARGET) /usr/local/bin
 	make clean
 

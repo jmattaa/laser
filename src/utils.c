@@ -101,8 +101,7 @@ void laser_generate_completions(const char *shell, struct option long_args[])
 
     if (strcmp(shell, "bash") == 0)
     {
-        printf("# Bash completions for laser\n");
-        printf("_laser() {\n");
+        printf("_lsr() {\n");
         printf("    local cur prev opts\n");
         printf("    COMPREPLY=()\n");
         printf("    cur=\"${COMP_WORDS[COMP_CWORD]}\"\n");
@@ -110,40 +109,55 @@ void laser_generate_completions(const char *shell, struct option long_args[])
         printf("    opts=\"");
         for (int i = 0; long_args[i].name != NULL; i++)
         {
+            char short_flag = long_args[i].val ? long_args[i].val : '\0';
+            if (short_flag)
+            {
+                printf("-%c ", short_flag);
+            }
             printf("--%s ", long_args[i].name);
         }
         printf("\"\n");
 
-        printf("    COMPREPLY=( $(compgen -W \"${opts}\" -- ${cur}) )\n");
+        printf("    if [[ ${cur} == -* ]]; then\n");
+        printf("        COMPREPLY=( $(compgen -W \"${opts}\" -- ${cur}) )\n");
+        printf("    fi\n");
+
         printf("    return 0\n");
         printf("}\n");
-        printf("complete -F _laser laser\n");
+        printf("complete -F _lsr lsr\n");
     }
     else if (strcmp(shell, "zsh") == 0)
     {
-        printf("# Zsh completions for laser\n");
-        printf("compdef _laser laser\n");
-        printf("_laser() {\n");
-        printf("    local -a opts\n");
-        printf("    opts=(\n");
+        printf("compdef _lsr lsr\n");
+        printf("_lsr() {\n");
+        printf("    _arguments -s \\\n");
         for (int i = 0; long_args[i].name != NULL; i++)
         {
-            printf("        '--%s[%s]'\n", long_args[i].name, descriptions[i]);
+            char short_flag = long_args[i].val ? long_args[i].val : '\0';
+            if (short_flag)
+            {
+                printf("        '(-%c --%s)'{-%c,--%s}'[%s]' \\\n", short_flag,
+                       long_args[i].name, short_flag, long_args[i].name,
+                       descriptions[i]);
+            }
+            else
+            {
+                printf("        '--%s[%s]' \\\n", long_args[i].name,
+                       descriptions[i]);
+            }
         }
-        printf("    )\n");
-        printf("    _describe 'laser options' opts\n");
+        printf("        '*:file:_files'\n");
         printf("}\n");
     }
     else if (strcmp(shell, "fish") == 0)
     {
-        printf("# Fish completions for laser\n");
+        printf("# Fish completions for lsr\n");
         for (int i = 0; long_args[i].name != NULL; i++)
         {
-            char short_flag = long_args[i].val ? long_args[i].val : '\0';
-            printf("complete -c laser");
-            if (short_flag)
+            printf("complete -c lsr");
+            if (long_args[i].val)
             {
-                printf(" -s %c", short_flag);
+                printf(" -s %c", long_args[i].val);
             }
             printf(" -l %s -d '%s'\n", long_args[i].name, descriptions[i]);
         }

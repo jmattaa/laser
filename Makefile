@@ -47,9 +47,6 @@ clean:
 format:
 	clang-format -i $(SRCS) $(PROJECT_DIR)/include/**.h
 
-generate-completions:
-	@lua ./scripts/generate_completion.lua
-
 install: release 
 	install -m 755 $(TARGET) /usr/local/bin
 	make clean

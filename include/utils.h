@@ -25,6 +25,7 @@ typedef struct laser_opts
 } laser_opts;
 
 laser_opts laser_utils_parsecmd(int argc, char **argv);
+void laser_generate_completions(const char *shell, struct option long_args[]);
 //void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size);
 char **laser_utils_grow_strarray(char **array, size_t *alloc_size,
                                  size_t count);

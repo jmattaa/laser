@@ -105,15 +105,20 @@ void laser_print_entry(struct laser_dirent *entry, const char *color,
 }
 
 static laser_color_type laser_color_for_format(const char *filename)
-{
-    if (laser_checktype(filename, laser_archiveformats))
-        return LASER_COLOR_ARCHIVE;
-    else if (laser_checktype(filename, laser_mediaformats))
-        return LASER_COLOR_MEDIA;
-    else if (laser_checktype(filename, laser_documentformats))
-        return LASER_COLOR_DOCUMENT;
 
-    return LASER_COLOR_FILE;
+{ //create fd because we use lseek to return on Bof position each laser_checktype_magic call inside
+    // and we can keep fd while checking types, even if fd is not valid
+    int fd = open(filename, O_RDONLY);
+    laser_color_type type = LASER_COLOR_FILE;
+
+    if (laser_checktype_sniff(fd, filename, laser_archiveformats))
+        type = LASER_COLOR_ARCHIVE;
+    else if (laser_checktype_sniff(fd, filename, laser_mediaformats))
+        type = LASER_COLOR_MEDIA;
+    else if (laser_checktype_sniff(fd, filename, laser_documentformats))
+        type = LASER_COLOR_DOCUMENT;
+    close(fd);
+    return type;
 }
 
 void laser_process_entries(laser_opts opts, int depth, int max_depth,

@@ -14,7 +14,11 @@ struct laser_filetype
     const char **extensions;
     size_t extensions_count;
 };
+//main checktype function, can check content if valid fd provided
+int laser_checktype_sniff(int fd, const char *filename,
+                          const struct laser_filetype formats[]);
 
+//function with provided filename to create fd and pass it to laser_checktype_sniff
 int laser_checktype(const char *filename,
                     const struct laser_filetype formats[]);
 

@@ -24,6 +24,8 @@ brew tap jmattaa/laser
 brew install --formula laser
 ```
 
+By installing with Homebrew, you get the shell completions for the cli as well!
+
 ### Building from source
 
 Clone the repository:
@@ -44,6 +46,12 @@ To uninstall you can run
 ```sh
 sudo make uninstall
 ```
+
+> [!NOTE]
+> This dosen't install the shell completions for the cli but you can add them 
+> by placing the files from the `completions` directory in a directory that is in 
+> your `$PATH`. Or source the file from your `bashrc`, `zshrc` or `config.fish` 
+> file.
 
 ## Usage
 

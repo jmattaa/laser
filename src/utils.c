@@ -22,6 +22,7 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                                  {"Git", 0, 0, 'G'},
                                  {"long", 0, 0, 'l'},
                                  {"recursive", optional_argument, 0, 'r'},
+                                 {"completions", required_argument, 0, 0},
                                  {0, 0, 0, 0}};
 
     while ((opt = getopt_long(argc, argv, "aFDSGr::l", long_args, NULL)) != -1)
@@ -66,6 +67,12 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
             case 'l':
                 show_long = 1;
                 break;
+            case 0:
+                if (long_args[optind - 1].flag == 0)
+                {
+                    laser_generate_completions(argv[optind - 1], long_args);
+                    exit(0);
+                }
             default:
                 exit(1);
         }
@@ -78,6 +85,91 @@ laser_opts laser_utils_parsecmd(int argc, char **argv)
                         show_symlinks,   show_git,        show_tree,
                         show_long,       recursive_depth, dir,
                         .parentDir = dir};
+}
+
+void laser_generate_completions(const char *shell, struct option long_args[])
+{
+    // UPDATE THIS TO MATCH long_args!!
+    char *descriptions[] = {"Show all entries, including hidden",
+                            "Show files only",
+                            "Show directories only",
+                            "Show symlinks only",
+                            "Show entries that are not defined in .gitignore",
+                            "Use long format",
+                            "Show in tree format",
+                            "Generate shell completions"};
+
+    if (strcmp(shell, "bash") == 0)
+    {
+        printf("_lsr() {\n");
+        printf("    local cur prev opts\n");
+        printf("    COMPREPLY=()\n");
+        printf("    cur=\"${COMP_WORDS[COMP_CWORD]}\"\n");
+
+        printf("    opts=\"");
+        for (int i = 0; long_args[i].name != NULL; i++)
+        {
+            char short_flag = long_args[i].val ? long_args[i].val : '\0';
+            if (short_flag)
+            {
+                printf("-%c ", short_flag);
+            }
+            printf("--%s ", long_args[i].name);
+        }
+        printf("\"\n");
+
+        printf("    if [[ ${cur} == -* ]]; then\n");
+        printf("        COMPREPLY=( $(compgen -W \"${opts}\" -- ${cur}) )\n");
+        printf("    fi\n");
+
+        printf("    return 0\n");
+        printf("}\n");
+        printf("complete -F _lsr lsr\n");
+    }
+    else if (strcmp(shell, "zsh") == 0)
+    {
+        printf("compdef _lsr lsr\n");
+        printf("_lsr() {\n");
+        printf("    _arguments -s \\\n");
+        for (int i = 0; long_args[i].name != NULL; i++)
+        {
+            char short_flag = long_args[i].val ? long_args[i].val : '\0';
+            if (short_flag)
+            {
+                printf("        '(-%c --%s)'{-%c,--%s}'[%s]' \\\n", short_flag,
+                       long_args[i].name, short_flag, long_args[i].name,
+                       descriptions[i]);
+            }
+            else
+            {
+                printf("        '--%s[%s]' \\\n", long_args[i].name,
+                       descriptions[i]);
+            }
+        }
+        printf("        '*:file:_files'\n");
+        printf("}\n");
+    }
+    else if (strcmp(shell, "fish") == 0)
+    {
+        printf("# Fish completions for lsr\n");
+        for (int i = 0; long_args[i].name != NULL; i++)
+        {
+            printf("complete -c lsr");
+            if (long_args[i].val)
+            {
+                printf(" -s %c", long_args[i].val);
+            }
+            printf(" -l %s -d '%s'\n", long_args[i].name, descriptions[i]);
+        }
+    }
+    else
+    {
+        fprintf(stderr,
+                "lsr: unsupported shell '%s'. Supported shells are bash, "
+                "zsh, and fish.\n",
+                shell);
+        exit(1);
+    }
 }
 
 void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size)

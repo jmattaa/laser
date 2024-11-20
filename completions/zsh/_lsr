@@ -1,0 +1,13 @@
+compdef _lsr lsr
+_lsr() {
+    _arguments -s \
+        '(-a --all)'{-a,--all}'[Show all entries, including hidden]' \
+        '(-F --Files)'{-F,--Files}'[Show files only]' \
+        '(-D --Directories)'{-D,--Directories}'[Show directories only]' \
+        '(-S --Symlinks)'{-S,--Symlinks}'[Show symlinks only]' \
+        '(-G --Git)'{-G,--Git}'[Show entries that are not defined in .gitignore]' \
+        '(-l --long)'{-l,--long}'[Use long format]' \
+        '(-r --recursive)'{-r,--recursive}'[Show in tree format]' \
+        '--completions[Generate shell completions]' \
+        '*:file:_files'
+}

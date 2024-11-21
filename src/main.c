@@ -29,13 +29,13 @@ lua_State *initialize_lua(const char *script_path)
 
 int main(int argc, char **argv)
 {
-    const char *default_script = "lua/laser.lua";
+    const char *default_script = "/usr/local/share/lsr/lsr.lua";
     const char *user_script = getenv("HOME");
     char user_config_path[LASER_PATH_MAX];
 
     if (user_script)
         snprintf(user_config_path, sizeof(user_config_path),
-                 "%s/.config/laser/laser.lua", user_script);
+                 "%s/.config/lsr/lsr.lua", user_script);
     else
         user_config_path[0] = '\0';
 
@@ -56,4 +56,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-

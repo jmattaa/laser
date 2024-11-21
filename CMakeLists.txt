@@ -27,5 +27,24 @@ target_include_directories(lsr PRIVATE ${LUA_INCLUDE_DIR})
 target_link_libraries(lsr PRIVATE ${LUA_LIBRARIES})
 
 add_custom_target(format COMMAND clang-format -i ${SRCS})
-install(TARGETS lsr DESTINATION /usr/local/bin)
 
+set(LUA_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/lua/lsr.lua")
+set(LUA_INSTALL_PATH "/usr/local/share/lsr")
+
+add_custom_command(
+    TARGET lsr POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${LUA_INSTALL_PATH}"
+    COMMAND ${CMAKE_COMMAND} -E copy "${LUA_SCRIPT}" "${LUA_INSTALL_PATH}"
+    COMMENT "Copying lsr.lua to ${LUA_INSTALL_PATH}"
+)
+
+install(TARGETS lsr DESTINATION /usr/local/bin)
+install(FILES ${LUA_SCRIPT} DESTINATION ${LUA_INSTALL_PATH})
+
+if(EXISTS "${CMAKE_BINARY_DIR}/cmake_install.cmake")
+    set(CMAKE_INSTALL_PREFIX "/usr/local")
+endif()
+
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/cmake_uninstall.cmake
+)

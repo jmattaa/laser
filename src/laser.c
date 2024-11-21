@@ -2,10 +2,10 @@
 #include "colors.h"
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
+#include "main.h"
 #include "utils.h"
 #include <fcntl.h>
 #include <lua.h>
-#include "main.h"
 
 #define BRANCH_SIZE 8
 

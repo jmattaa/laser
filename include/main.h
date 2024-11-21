@@ -1,9 +1,9 @@
 #ifndef LASER_MAIN_H
 #define LASER_MAIN_H
 
-#include <lua/lua.h>
-#include <lua/lualib.h>
-#include <lua/lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
 
 extern lua_State *L;
 

@@ -4,7 +4,7 @@
 #include "git/lgit.h"
 #include "utils.h"
 #include <fcntl.h>
-#include <lua/lua.h>
+#include <lua.h>
 #include "main.h"
 
 #define BRANCH_SIZE 8

@@ -2,9 +2,9 @@
 #include "colors.h"
 #include "laser.h"
 #include "utils.h"
-#include <lua/lauxlib.h>
-#include <lua/lua.h>
-#include <lua/lualib.h>
+#include <lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
 
 lua_State *L;
 

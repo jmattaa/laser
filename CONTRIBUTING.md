@@ -154,7 +154,7 @@ Follow these guidelines for commit messages:
 
 3. **Guidelines**
    - Use present tense ("add feature" not "added feature") 
-   (so my english teacher is happy)
+   (so my English teacher is happy) 
    - First line should be 50 characters or less
    - Be descriptive but concise
 

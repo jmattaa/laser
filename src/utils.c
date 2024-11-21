@@ -128,7 +128,8 @@ void laser_generate_completions(const char *shell, struct option long_args[])
     }
     else if (strcmp(shell, "zsh") == 0)
     {
-        printf("compdef _lsr lsr\n");
+        printf("#compdef lsr\n");
+        printf("autoload -U is-at-least\n");
         printf("_lsr() {\n");
         printf("    _arguments -s \\\n");
         for (int i = 0; long_args[i].name != NULL; i++)
@@ -148,6 +149,8 @@ void laser_generate_completions(const char *shell, struct option long_args[])
         }
         printf("        '*:file:_files'\n");
         printf("}\n");
+
+        printf("compdef _lsr lsr\n");
     }
     else if (strcmp(shell, "fish") == 0)
     {

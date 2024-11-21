@@ -25,6 +25,8 @@ void laser_colors_init(void)
             laser_colors_parseToken(token);
             token = strtok(NULL, ":");
         }
+
+        free(colors_copy);
     }
 }
 

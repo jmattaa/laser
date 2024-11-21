@@ -4,6 +4,8 @@
 #include "git/lgit.h"
 #include "utils.h"
 #include <fcntl.h>
+#include <lua/lua.h>
+#include "main.h"
 
 #define BRANCH_SIZE 8
 
@@ -25,17 +27,24 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
     struct laser_dirent *dirent_a = *(struct laser_dirent **)a;
     struct laser_dirent *dirent_b = *(struct laser_dirent **)b;
 
-    // add weight if is file so files go down, u see gravity (me big brain)
-    int weight = 0; // idk what to call this
-    if (S_ISDIR(dirent_a->s.st_mode) && !S_ISDIR(dirent_b->s.st_mode))
-        weight = -1;
-    else if (!S_ISDIR(dirent_a->s.st_mode) && S_ISDIR(dirent_b->s.st_mode))
-        weight = 1; // weigh more --> fall down
+    lua_getglobal(L, "L_compare_entries");
 
-    if (weight == 0) // they weigh the same so compare the name
-        return laser_charcmp(dirent_a->d->d_name, dirent_b->d->d_name);
+    lua_pushstring(L, dirent_a->d->d_name);
+    lua_pushstring(L, dirent_b->d->d_name);
+    lua_pushboolean(L, S_ISDIR(dirent_a->s.st_mode));
+    lua_pushboolean(L, S_ISDIR(dirent_b->s.st_mode));
 
-    return weight;
+    if (lua_pcall(L, 4, 1, 0) != LUA_OK)
+    {
+        fprintf(stderr, "Error in compare_entries: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return 0;
+    }
+
+    int result = (int)lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    return result;
 }
 
 void laser_print_long_entry(struct laser_dirent *entry, const char *color,

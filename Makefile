@@ -4,12 +4,12 @@ CFLAGS :=
 CFLAGS_DEBUG := $(CFLAGS) -g -DDEBUG -fsanitize=address -Wall -Wextra -pedantic
 CFLAGS_RELEASE := $(CFLAGS) -O2 -DNDEBUG
 
-LDFLAGS :=
+LDFLAGS := -L/opt/homebrew/lib -llua
 LDFLAGS_DEBUG := $(LDFLAGS) -fsanitize=address
 LDFLAGS_RELEASE := $(LDFLAGS)
 
 PROJECT_DIR := .
-INC=-I./include
+INC=-I./include -I/opt/homebrew/include
 BIN_DIR := bin
 OBJ_DIR := $(BIN_DIR)/obj
 

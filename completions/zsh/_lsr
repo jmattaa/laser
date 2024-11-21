@@ -1,4 +1,5 @@
-compdef _lsr lsr
+#compdef lsr
+autoload -U is-at-least
 _lsr() {
     _arguments -s \
         '(-a --all)'{-a,--all}'[Show all entries, including hidden]' \
@@ -11,3 +12,4 @@ _lsr() {
         '--completions[Generate shell completions]' \
         '*:file:_files'
 }
+compdef _lsr lsr

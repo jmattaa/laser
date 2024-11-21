@@ -13,30 +13,37 @@ typedef struct
     const char *value;
 } laser_color;
 
+#define LASER_COLORS_ITER(_X)                                             \
+    _X(RESET, "\x1b[0m")                                                       \
+    _X(DIR, "\x1b[34m")                                                        \
+    _X(SYMLINK, "\x1b[36m")                                                    \
+    _X(FILE, "\x1b[0m")                                                        \
+    _X(HIDDEN, "\x1b[90m")                                                     \
+    _X(EXEC, "\x1b[32;4m")                                                     \
+    _X(ARCHIVE, "\x1b[31m")                                                    \
+    _X(MEDIA, "\x1b[33m")                                                      \
+    _X(DOCUMENT, "\x1b[35;3m")
+
+#define _X(name, value) {#name, value},
+
 static const laser_color LASER_COLORS_DEFAULTS[COLOR_COUNT] = {
-    {"RESET", "\x1b[0m"},      {"DIR", "\x1b[34m"},
-    {"SYMLINK", "\x1b[36m"},   {"FILE", "\x1b[0m"},
-    {"HIDDEN", "\x1b[90m"},    {"EXEC", "\x1b[32;4m"},
-    {"ARCHIVE", "\x1b[31m"},   {"MEDIA", "\x1b[33m"},
-    {"DOCUMENT", "\x1b[35;3m"}};
+    LASER_COLORS_ITER(_X)
+};
+
+#undef _X
+#define _X(name, value) LASER_COLOR_##name,
 
 typedef enum laser_color_type
 {
-    LASER_COLOR_RESET,
-    LASER_COLOR_DIR,
-    LASER_COLOR_SYMLINK,
-    LASER_COLOR_FILE,
-    LASER_COLOR_HIDDEN,
-    LASER_COLOR_EXEC,
-    LASER_COLOR_ARCHIVE,
-    LASER_COLOR_MEDIA,
-    LASER_COLOR_DOCUMENT
+    LASER_COLORS_ITER(_X)
 } laser_color_type;
 
 extern laser_color *LASER_COLORS;
 
 void laser_colors_init(void);
 void laser_colors_parseToken(const char *token);
-void laser_colors_destroy(void);
+void laser_colors_free(void);
 
+#undef _X
+#undef LASER_COLORS_ITER
 #endif

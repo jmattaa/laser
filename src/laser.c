@@ -191,6 +191,8 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             entry_count++;
         }
     }
+    free(entry); // entry is no longer needed it's been copied to entries
+                 // u see my dumbass created mem leaks
 
     // sort and print stuff
     laser_sort(entries, entry_count, sizeof(struct laser_dirent *),
@@ -231,20 +233,21 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
                     snprintf(res_string, sizeof(res_string), "%s -> %s",
                              entries[i]->d->d_name, symlink_target);
 
-                    struct laser_dirent *entry =
+                    struct laser_dirent *ent =
                         malloc(sizeof(struct laser_dirent));
 
-                    entry->s = entries[i]->s;
-                    entry->d = malloc(offsetof(struct dirent, d_name) +
-                                      strlen(res_string) + 1);
+                    ent->s = entries[i]->s;
+                    ent->d = malloc(offsetof(struct dirent, d_name) +
+                                    strlen(res_string) + 1);
 
-                    strcpy(entry->d->d_name, res_string);
+                    strcpy(ent->d->d_name, res_string);
 
-                    laser_print_entry(entry,
+                    laser_print_entry(ent,
                                       LASER_COLORS[LASER_COLOR_SYMLINK].value,
                                       indent, depth, opts, is_last);
-                    free(entry->d);
-                    free(entry);
+
+                    free(ent->d);
+                    free(ent);
                 }
             }
             else if (laser_is_filestat_exec(&entries[i]->s))
@@ -277,6 +280,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             }
         }
 
+        free(entries[i]->d);
         free(entries[i]);
     }
     free(entries);

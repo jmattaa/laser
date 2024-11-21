@@ -54,20 +54,20 @@ void laser_colors_parseToken(const char *token)
                 *dest++ = *value++;
         }
         *dest = '\0';
-        value = processed_value;
 
         for (int i = 0; i < COLOR_COUNT; i++)
         {
             if (strcmp(key, LASER_COLORS[i].key) == 0)
             {
-                LASER_COLORS[i].value = value;
+                free((void *)LASER_COLORS[i].value); // free old default val
+                LASER_COLORS[i].value = processed_value;
                 break;
             }
         }
     }
 }
 
-void laser_colors_destroy(void)
+void laser_colors_free(void)
 {
     for (int i = 0; i < COLOR_COUNT; i++)
     {

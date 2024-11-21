@@ -13,7 +13,7 @@ typedef struct
     const char *value;
 } laser_color;
 
-#define LASER_COLORS_ITER(_X)                                             \
+#define LASER_COLORS_ITER(_X)                                                  \
     _X(RESET, "\x1b[0m")                                                       \
     _X(DIR, "\x1b[34m")                                                        \
     _X(SYMLINK, "\x1b[36m")                                                    \
@@ -27,8 +27,7 @@ typedef struct
 #define _X(name, value) {#name, value},
 
 static const laser_color LASER_COLORS_DEFAULTS[COLOR_COUNT] = {
-    LASER_COLORS_ITER(_X)
-};
+    LASER_COLORS_ITER(_X)};
 
 #undef _X
 #define _X(name, value) LASER_COLOR_##name,

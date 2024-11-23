@@ -1,7 +1,4 @@
 {
-    "diagnostics.disable": [
-        "unused-function"
-    ],
     "diagnostics.globals": [
         "L_colors"
     ]

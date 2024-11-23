@@ -17,13 +17,17 @@ lua_State *L;
     lua_pushstring(L, LASER_COLORS[LASER_COLOR_##name].value);                 \
     lua_setfield(L, -2, #name);
 
-lua_State *initialize_lua(const char *script_path)
+lua_State *initialize_lua()
 {
     L = luaL_newstate();
     luaL_openlibs(L);
 
-    char script_dir[LASER_PATH_MAX];
+    return L;
+}
 
+void lua_load_script(const char *script_path)
+{
+    char script_dir[LASER_PATH_MAX];
     // set the package.path so that user can do relative requires
     const char *last_slash = strrchr(script_path, '/');
     if (last_slash != NULL)
@@ -39,7 +43,7 @@ lua_State *initialize_lua(const char *script_path)
         char new_path[LASER_PATH_MAX];
         snprintf(new_path, sizeof(new_path), "%s;%s/?.lua", current_path,
                  script_dir);
-        lua_pop(L, 1); 
+        lua_pop(L, 1);
 
         lua_pushstring(L, new_path);
         lua_setfield(L, -2, "path");
@@ -55,18 +59,23 @@ lua_State *initialize_lua(const char *script_path)
     {
         fprintf(stderr, "lsr: error loading Lua script: %s\n",
                 lua_tostring(L, -1));
-        lua_pop(L, 1); 
-        return NULL;
+        lua_pop(L, 1);
     }
-
-    return L;
 }
+
 int main(int argc, char **argv)
 {
     laser_colors_init(); // colors need to be initialized before lua
                          // cuz lua uses them
+    if (!initialize_lua())
+        return 1;
 
     const char *default_script = "/usr/local/share/lsr/lsr.lua";
+    lua_load_script(default_script); // by loading the default script before
+                                     // the eventual user script we are able to
+                                     // use default functions and so on without
+                                     // having to redifine
+
     const char *user_script = getenv("HOME");
     char user_config_path[LASER_PATH_MAX];
 
@@ -81,8 +90,8 @@ int main(int argc, char **argv)
     if (user_config_path[0] != '\0' && access(user_config_path, R_OK) == 0)
         script_to_load = user_config_path;
 
-    if (!initialize_lua(script_to_load))
-        return 1;
+    if (script_to_load != default_script)
+        lua_load_script(script_to_load);
 
     laser_opts opts = laser_cli_parsecmd(argc, argv);
     laser_list_directory(opts, 0, opts.recursive_depth);

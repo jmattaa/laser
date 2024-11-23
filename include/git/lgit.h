@@ -2,8 +2,8 @@
 #define LASER_GIT_LGIT_H
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 typedef struct

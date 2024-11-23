@@ -1,5 +1,4 @@
-#include "utils.h"
-#include <stdint.h>
+#include "git/lgit_utils.h"
 
 uint32_t lgit_utils_hexToUint32(const char *hex)
 {

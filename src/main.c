@@ -1,4 +1,5 @@
 #include "main.h"
+#include "cli.h"
 #include "colors.h"
 #include "laser.h"
 #include "utils.h"
@@ -11,24 +12,60 @@
 
 lua_State *L;
 
+// macro stuff be 🔥
+#define _X(name, _)                                                            \
+    lua_pushstring(L, LASER_COLORS[LASER_COLOR_##name].value);                 \
+    lua_setfield(L, -2, #name);
+
 lua_State *initialize_lua(const char *script_path)
 {
     L = luaL_newstate();
     luaL_openlibs(L);
 
+    char script_dir[LASER_PATH_MAX];
+
+    // set the package.path so that user can do relative requires
+    const char *last_slash = strrchr(script_path, '/');
+    if (last_slash != NULL)
+    {
+        size_t len = last_slash - script_path;
+        strncpy(script_dir, script_path, len);
+        script_dir[len] = '\0';
+
+        lua_getglobal(L, "package");
+        lua_getfield(L, -1, "path");
+        const char *current_path = lua_tostring(L, -1);
+
+        char new_path[LASER_PATH_MAX];
+        snprintf(new_path, sizeof(new_path), "%s;%s/?.lua", current_path,
+                 script_dir);
+        lua_pop(L, 1); 
+
+        lua_pushstring(L, new_path);
+        lua_setfield(L, -2, "path");
+        lua_pop(L, 1);
+    }
+
+    // set the global colors table
+    lua_newtable(L);
+    LASER_COLORS_ITER(_X)
+    lua_setglobal(L, "L_colors");
+
     if (luaL_dofile(L, script_path) != LUA_OK)
     {
         fprintf(stderr, "lsr: error loading Lua script: %s\n",
                 lua_tostring(L, -1));
-        lua_pop(L, 1);
+        lua_pop(L, 1); 
         return NULL;
     }
 
     return L;
 }
-
 int main(int argc, char **argv)
 {
+    laser_colors_init(); // colors need to be initialized before lua
+                         // cuz lua uses them
+
     const char *default_script = "/usr/local/share/lsr/lsr.lua";
     const char *user_script = getenv("HOME");
     char user_config_path[LASER_PATH_MAX];
@@ -47,9 +84,7 @@ int main(int argc, char **argv)
     if (!initialize_lua(script_to_load))
         return 1;
 
-    laser_colors_init();
-
-    laser_opts opts = laser_utils_parsecmd(argc, argv);
+    laser_opts opts = laser_cli_parsecmd(argc, argv);
     laser_list_directory(opts, 0, opts.recursive_depth);
 
     laser_colors_free();

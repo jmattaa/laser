@@ -39,10 +39,10 @@ typedef enum laser_color_type
 
 extern laser_color *LASER_COLORS;
 
+// TODO: get the colors from lua instead of ENV var
 void laser_colors_init(void);
 void laser_colors_parseToken(const char *token);
 void laser_colors_free(void);
 
 #undef _X
-#undef LASER_COLORS_ITER
 #endif

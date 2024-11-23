@@ -6,10 +6,13 @@
 #include "utils.h"
 #include <fcntl.h>
 #include <lua.h>
+#include <pwd.h>
+#include <sys/_types/_s_ifmt.h>
+#include <sys/stat.h>
 
 #define BRANCH_SIZE 8
 
-char *strip_parent_dir(const char *full_path, const char *parent_dir)
+static char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
     size_t parent_len = strlen(parent_dir);
 
@@ -50,53 +53,47 @@ int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 void laser_print_long_entry(struct laser_dirent *entry, const char *color,
                             char *indent, const char *branch)
 {
-    char perms[11];
-    perms[0] = (S_ISDIR(entry->s.st_mode))    ? 'd'
-               : (S_ISLNK(entry->s.st_mode))  ? 'l'
-               : (S_ISCHR(entry->s.st_mode))  ? 'c'
-               : (S_ISBLK(entry->s.st_mode))  ? 'b'
-               : (S_ISFIFO(entry->s.st_mode)) ? 'p'
-               : (S_ISSOCK(entry->s.st_mode)) ? 's'
-                                              : '-'; // regular file
+    lua_getglobal(L, "L_long_format");
 
-    perms[1] = (entry->s.st_mode & S_IRUSR) ? 'r' : '-';
-    perms[2] = (entry->s.st_mode & S_IWUSR) ? 'w' : '-';
-    perms[3] = (entry->s.st_mode & S_IXUSR) ? 'x' : '-';
-    perms[4] = (entry->s.st_mode & S_IRGRP) ? 'r' : '-';
-    perms[5] = (entry->s.st_mode & S_IWGRP) ? 'w' : '-';
-    perms[6] = (entry->s.st_mode & S_IXGRP) ? 'x' : '-';
-    perms[7] = (entry->s.st_mode & S_IROTH) ? 'r' : '-';
-    perms[8] = (entry->s.st_mode & S_IWOTH) ? 'w' : '-';
-    perms[9] = (entry->s.st_mode & S_IXOTH) ? 'x' : '-';
-    perms[10] = '\0'; // Ensure null termination
+    lua_newtable(L);
 
-    char mtime[20];
-    struct tm *tm_info = localtime(&entry->s.st_mtime);
-    strftime(mtime, sizeof(mtime), "%b %e %H:%M", tm_info);
+    lua_pushstring(L, entry->d->d_name);
+    lua_setfield(L, -2, "name");
 
-    char size[6];
-    if (S_ISDIR(entry->s.st_mode) || S_ISLNK(entry->s.st_mode))
-        snprintf(size, sizeof(size), "%5s", "-");
-    else if (entry->s.st_size < 1000)
-        snprintf(size, sizeof(size), "%5d", (int)entry->s.st_size);
-    else if (entry->s.st_size < 1000000)
-        snprintf(size, sizeof(size), "%4dK", (int)(entry->s.st_size / 1000));
-    else if (entry->s.st_size < 1000000000)
-        snprintf(size, sizeof(size), "%4dM", (int)(entry->s.st_size / 1000000));
-    else
-        snprintf(size, sizeof(size), "%4dG",
-                 (int)(entry->s.st_size / 1000000000));
+    lua_pushinteger(L, entry->s.st_mode);
+    lua_setfield(L, -2, "mode");
 
-    char *user = getpwuid(entry->s.st_uid)->pw_name;
+    off_t size = (S_ISDIR(entry->s.st_mode)) ? -1 : entry->s.st_size;
+    lua_pushinteger(L, size);
+    lua_setfield(L, -2, "size");
 
-    printf("%s  %s%s%s %s%s%s %s%s%s  %s%s%s%s%s\n", perms,
-           LASER_COLORS_DEFAULTS[LASER_COLOR_SYMLINK].value, mtime,
-           LASER_COLORS_DEFAULTS[LASER_COLOR_RESET].value,
-           LASER_COLORS_DEFAULTS[LASER_COLOR_MEDIA].value, size,
-           LASER_COLORS_DEFAULTS[LASER_COLOR_RESET].value,
-           LASER_COLORS_DEFAULTS[LASER_COLOR_SYMLINK].value, user,
-           LASER_COLORS_DEFAULTS[LASER_COLOR_RESET].value, indent, branch,
-           color, entry->d->d_name, LASER_COLORS[LASER_COLOR_RESET].value);
+    lua_pushinteger(L, entry->s.st_mtime);
+    lua_setfield(L, -2, "mtime");
+
+    lua_pushstring(L, getpwuid(entry->s.st_uid)->pw_name);
+    lua_setfield(L, -2, "owner");
+    lua_pushstring(L, S_ISDIR(entry->s.st_mode)    ? "d"
+                      : S_ISLNK(entry->s.st_mode)  ? "l"
+                      : S_ISCHR(entry->s.st_mode)  ? "c"
+                      : S_ISBLK(entry->s.st_mode)  ? "b"
+                      : S_ISFIFO(entry->s.st_mode) ? "p"
+                      : S_ISSOCK(entry->s.st_mode) ? "s"
+                                                   : "-");
+    lua_setfield(L, -2, "type");
+
+    if (lua_pcall(L, 1, 1, 0) != LUA_OK)
+    {
+        fprintf(stderr, "Error in long_format: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return;
+    }
+
+    const char *result = lua_tostring(L, -1);
+    lua_pop(L, 1);
+
+    printf("%s%s%s%s%s%s%s\n", result, LASER_COLORS[LASER_COLOR_RESET].value,
+           indent, branch, color, entry->d->d_name,
+           LASER_COLORS[LASER_COLOR_RESET].value);
 }
 
 void laser_print_entry(struct laser_dirent *entry, const char *color,

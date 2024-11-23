@@ -7,12 +7,12 @@ function L_compare_entries(name_a, name_b, is_dir_a, is_dir_b)
     return name_a < name_b and -1 or (name_a > name_b and 1 or 0)
 end
 
-function L_long_format(entry)
+function L_long_format(entry, longest_name)
     local perms = string.format("%s%s", entry.type, utils.getPerms(entry.mode))
 
     local last_modified = os.date("%b %d %H:%M", entry.mtime)
     local size = utils.formatSize(entry.size)
-    local owner = entry.owner
+    local owner = string.format("%-" .. longest_name .. "s ", entry.owner)
 
     return string.format("%s %s%s %s%s %s%s ",
         perms,

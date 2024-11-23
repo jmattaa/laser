@@ -12,6 +12,8 @@
 
 #define BRANCH_SIZE 8
 
+static ssize_t longest_ownername = 0;
+
 static char *strip_parent_dir(const char *full_path, const char *parent_dir)
 {
     size_t parent_len = strlen(parent_dir);
@@ -81,7 +83,9 @@ void laser_print_long_entry(struct laser_dirent *entry, const char *color,
                                                    : "-");
     lua_setfield(L, -2, "type");
 
-    if (lua_pcall(L, 1, 1, 0) != LUA_OK)
+    lua_pushinteger(L, longest_ownername);
+
+    if (lua_pcall(L, 2, 1, 0) != LUA_OK)
     {
         fprintf(stderr, "Error in long_format: %s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
@@ -187,6 +191,11 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
             entry_count++;
         }
+
+        char *ownername = getpwuid(entry->s.st_uid)->pw_name;
+        ssize_t ownername_len = strlen(ownername);
+        if (ownername_len > longest_ownername)
+            longest_ownername = ownername_len;
     }
     free(entry); // entry is no longer needed it's been copied to entries
                  // u see my dumbass created mem leaks

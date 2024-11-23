@@ -29,6 +29,7 @@ target_link_libraries(lsr PRIVATE ${LUA_LIBRARIES})
 add_custom_target(format COMMAND clang-format -i ${SRCS})
 
 set(LUA_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/lua/*.lua")
+
 set(LUA_INSTALL_PATH "/usr/local/share/lsr")
 
 add_custom_command(TARGET lsr POST_BUILD
@@ -38,5 +39,18 @@ add_custom_command(TARGET lsr POST_BUILD
 )
 
 install(TARGETS lsr DESTINATION /usr/local/bin)
-install(FILES ${LUA_SCRIPTS} DESTINATION ${LUA_INSTALL_PATH})
+
+if(NOT TARGET uninstall)
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
+
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "${LUA_INSTALL_PATH}"
+        COMMENT "Removing Lua scripts from ${LUA_INSTALL_PATH}"
+    )
+endif()
 

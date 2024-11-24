@@ -40,10 +40,13 @@ cd laser
 Install system-wide:
 
 ```sh
+mkdir build
+cd build
+cmake ..
 sudo make install
 ```
 
-To uninstall you can run
+To uninstall you can run the following while being in the build directory:
 
 ```sh
 sudo make uninstall

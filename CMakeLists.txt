@@ -28,6 +28,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 add_executable(lsr ${SRCS})
 
+target_compile_definitions(lsr PRIVATE DEFAULT_SCRIPT_PATH="${CMAKE_INSTALL_PREFIX}/share/lsr/lsr.lua")
 target_include_directories(lsr PRIVATE ${LUA_INCLUDE_DIR})
 target_link_libraries(lsr PRIVATE ${LUA_LIBRARIES})
 

@@ -10,6 +10,11 @@
 #include <string.h>
 #include <unistd.h>
 
+
+#ifndef DEFAULT_SCRIPT_PATH
+#define DEFAULT_SCRIPT_PATH "/usr/local/share/lsr/lsr.lua"
+#endif
+
 lua_State *L;
 
 lua_State *initialize_lua(void)
@@ -59,7 +64,7 @@ int main(int argc, char **argv)
     if (!initialize_lua())
         return 1;
 
-    const char *default_script = "/usr/local/share/lsr/lsr.lua";
+    const char *default_script = DEFAULT_SCRIPT_PATH;
 
     const char *user_script = getenv("HOME");
     char user_config_path[LASER_PATH_MAX];

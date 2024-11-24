@@ -8,6 +8,16 @@
 
 </div>
 
+## Table of contents
+   1. [Installation](#installation)
+      1. [From Homebrew](#from-homebrew)
+      2. [Building from source](#building-from-source)
+   2. [Usage](#usage)
+      1. [Configure](#configure)
+      2. [Command-line options](#command-line-options)
+1. [Contributing](#contributing)
+2. [Authors](#authors)
+
 **lsr** basically `ls` but with colorization and sorting for better readability.
 It offers filtering options, making it easy to
 locate specific files and folders (with grep you'll find exactly what you need)

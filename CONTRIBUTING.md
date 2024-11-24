@@ -7,16 +7,22 @@ See the [Table of Contents](#table-of-contents) for different ways to help and
 details about how this project handles them. Please make sure to read the 
 relevant section before making your contribution.
 
-## Table of Contents
-
-- [I Have a Question](#i-have-a-question)
-- [I Want To Contribute](#i-want-to-contribute)
-- [Reporting Bugs](#reporting-bugs)
-- [Suggesting Enhancements](#suggesting-enhancements)
-- [Your First Code Contribution](#your-first-code-contribution)
-- [Improving The Documentation](#improving-the-documentation)
-- [Styleguides](#styleguides)
-- [Commit Messages](#commit-messages)
+## Table of contents
+1. [I Have a Question](#i-have-a-question)
+2. [I Want To Contribute](#i-want-to-contribute)
+  1. [Reporting Bugs](#reporting-bugs)
+     1. [Before Submitting a Bug Report](#before-submitting-a-bug-report)
+  2. [Suggesting Enhancements](#suggesting-enhancements)
+     1. [Before Submitting an
+        Enhancement](#before-submitting-an-enhancement)
+     2. [How Do I Submit a Good Enhancement
+        Suggestion?](#how-do-i-submit-a-good-enhancement-suggestion?)
+  3. [Your First Code Contribution](#your-first-code-contribution)
+     1. [Development Environment Setup](#development-environment-setup)
+     2. [Code formatting](#code-formatting)
+  4. [Improving The Documentation](#improving-the-documentation)
+3. [Styleguides](#styleguides)
+  1. [Commit Messages](#commit-messages)
 
 ## I Have a Question
 

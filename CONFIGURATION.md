@@ -4,6 +4,16 @@
 
 </div>
 
+# Table of contents
+   1. [Creating Your Own Configuration File](#creating-your-own-configuration-file)
+   2. [Writing Your Own Configuration](#writing-your-own-configuration)
+      1. [Constants](#constants)
+         1. [`L_colors`](#`l_colors`)
+      2. [Functions](#functions)
+         1. [`L_compare_entries()`](#`l_compare_entries()`)
+         2. [`L_long_format()`](#`l_long_format()`)
+      3. [Using Defaults](#using-defaults)
+
 Laser is highly customizable through Lua scripts. The default configuration
 file is located at `/usr/local/share/lsr/lsr.lua`. This file is loaded by the
 program and sets the default behavior for laser. You can modify this file or

@@ -19,8 +19,8 @@ void laser_colors_set(const char *key, const char *value)
 }
 
 // macro stuff be 🔥
-#define _X(name, vaule) \
-    LASER_COLORS[LASER_COLOR_##name].key = strdup(#name); \
+#define _X(name, vaule)                                                        \
+    LASER_COLORS[LASER_COLOR_##name].key = strdup(#name);                      \
     LASER_COLORS[LASER_COLOR_##name].value = strdup(vaule);
 
 void laser_colors_init(void)

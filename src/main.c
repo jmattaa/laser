@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
     if (script_to_load != default_script)
         lua_load_script(script_to_load);
-    lua_load_script(default_script); // load the default script cuz user may 
+    lua_load_script(default_script); // load the default script cuz user may
                                      // not be defining everything
 
     laser_colors_init();

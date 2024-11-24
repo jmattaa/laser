@@ -50,16 +50,15 @@ cd laser
 Install system-wide:
 
 ```sh
-mkdir build
-cd build
-cmake ..
-sudo make install
+cmake -S . -B build
+cmake --build build
+sudo cmake --install build
 ```
 
-To uninstall you can run the following while being in the build directory:
+To uninstall you can run the following while being in the `laser` directory:
 
 ```sh
-sudo make uninstall
+cmake --build build --target uninstall
 ```
 
 > [!NOTE]

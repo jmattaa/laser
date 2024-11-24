@@ -1,11 +1,11 @@
 require "colors"
 local utils = require "utils"
 
-function L_compare_entries(name_a, name_b, is_dir_a, is_dir_b)
-    if is_dir_a and not is_dir_b then return -1 end
-    if not is_dir_a and is_dir_b then return 1 end
+function L_compare_entries(entry1, entry2, entry1_is_dir, entry2_is_dir)
+    if entry1_is_dir and not entry2_is_dir then return -1 end
+    if not entry1_is_dir and entry2_is_dir then return 1 end
 
-    return name_a < name_b and -1 or (name_a > name_b and 1 or 0)
+    return entry1 < entry2 and -1 or (entry1 > entry2 and 1 or 0)
 end
 
 function L_long_format(entry, longest_name)

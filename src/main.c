@@ -12,7 +12,7 @@
 
 lua_State *L;
 
-lua_State *initialize_lua()
+lua_State *initialize_lua(void)
 {
     L = luaL_newstate();
     luaL_openlibs(L);

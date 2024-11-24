@@ -1,5 +1,32 @@
 #include "cli.h"
 
+static const struct option long_args[] = {
+    {"all", 0, 0, 'a'},
+    {"Files", 0, 0, 'F'},
+    {"Directories", 0, 0, 'D'},
+    {"Symlinks", 0, 0, 'S'},
+    {"Git", 0, 0, 'G'},
+    {"long", 0, 0, 'l'},
+    {"recursive", optional_argument, 0, 'r'},
+    {"version", 0, 0, 'v'},
+    {"help", 0, 0, 'h'},
+    {"completions", required_argument, 0, 0},
+    {0, 0, 0, 0}};
+
+// UPDATE THIS TO MATCH long_args!!
+static const char *descriptions[] = {
+    "Show all entries, including hidden",
+    "Show files only",
+    "Show directories only",
+    "Show symlinks only",
+    "Show entries that are not defined in .gitignore",
+    "Use long format",
+    "Show in tree format",
+    "Print the current version",
+    "Print help message",
+    "Generate shell completions",
+};
+
 laser_opts laser_cli_parsecmd(int argc, char **argv)
 {
     int show_all = 0;
@@ -14,18 +41,8 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
 
     int opt;
 
-    struct option long_args[] = {{"all", 0, 0, 'a'},
-                                 {"Files", 0, 0, 'F'},
-                                 {"Directories", 0, 0, 'D'},
-                                 {"Symlinks", 0, 0, 'S'},
-                                 {"Git", 0, 0, 'G'},
-                                 {"long", 0, 0, 'l'},
-                                 {"recursive", optional_argument, 0, 'r'},
-                                 {"completions", required_argument, 0, 0},
-                                 {"version", no_argument, 0, 'v'},
-                                 {0, 0, 0, 0}};
-
-    while ((opt = getopt_long(argc, argv, "aFDSGr::lv", long_args, NULL)) != -1)
+    while ((opt = getopt_long(argc, argv, "aFDSGr::lvh", long_args, NULL)) !=
+           -1)
     {
         switch (opt)
         {
@@ -67,15 +84,18 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
             case 'l':
                 show_long = 1;
                 break;
-            case 0:
-                if (long_args[optind - 1].flag == 0)
-                {
-                    laser_cli_generate_completions(argv[optind - 1], long_args);
-                    exit(0);
-                }
             case 'v':
                 printf("laser %s\n", LASER_VERSION);
                 exit(0);
+            case 'h':
+                laser_cli_print_help();
+            case 0:
+                if (strcmp(long_args[optind - 1].name, "completions") == 0)
+                {
+                    laser_cli_generate_completions(argv[optind - 1]);
+                    exit(0);
+                }
+                break;
             default:
                 exit(1);
         }
@@ -90,19 +110,8 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                         .parentDir = dir};
 }
 
-void laser_cli_generate_completions(const char *shell,
-                                    struct option long_args[])
+void laser_cli_generate_completions(const char *shell)
 {
-    // UPDATE THIS TO MATCH long_args!!
-    char *descriptions[] = {"Show all entries, including hidden",
-                            "Show files only",
-                            "Show directories only",
-                            "Show symlinks only",
-                            "Show entries that are not defined in .gitignore",
-                            "Use long format",
-                            "Show in tree format",
-                            "Generate shell completions"};
-
     if (strcmp(shell, "bash") == 0)
     {
         printf("_lsr() {\n");
@@ -176,5 +185,20 @@ void laser_cli_generate_completions(const char *shell,
                 "zsh, and fish.\n",
                 shell);
         exit(1);
+    }
+}
+
+void laser_cli_print_help(void)
+{
+    printf("Usage: lsr [options] [directory]\n");
+    printf("Options:\n");
+    for (int i = 0; long_args[i].name != NULL; i++)
+    {
+        char short_flag = long_args[i].val ? long_args[i].val : '\0';
+        if (short_flag)
+            printf("  -%c, --%-28s %s\n", short_flag, long_args[i].name,
+                   descriptions[i]);
+        else
+            printf("      --%-28s %s\n", long_args[i].name, descriptions[i]);
     }
 }

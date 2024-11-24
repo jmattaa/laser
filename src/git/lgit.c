@@ -1,7 +1,4 @@
 #include "git/lgit.h"
-#include "utils.h"
-#include <stdio.h>
-#include <string.h>
 
 #define MAX_LINE_LENGTH 1024
 #define INITIAL_CAPACITY 10

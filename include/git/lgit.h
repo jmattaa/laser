@@ -1,10 +1,10 @@
 #ifndef LASER_GIT_LGIT_H
 #define LASER_GIT_LGIT_H
 
-#include "../../include/utils.h"
-
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct
 {

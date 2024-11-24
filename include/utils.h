@@ -1,8 +1,9 @@
 #ifndef LASER_UTILS_H
 #define LASER_UTILS_H
 
+#include <dirent.h>
+#include <errno.h>
 #include <getopt.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -21,12 +22,9 @@ typedef struct laser_opts
     int recursive_depth;
 
     const char *dir;
-    const char *parentDir; // TODO: maybe this static?
+    const char *parentDir;
 } laser_opts;
 
-laser_opts laser_utils_parsecmd(int argc, char **argv);
-void laser_generate_completions(const char *shell, struct option long_args[]);
-//void laser_utils_format_date(time_t time, char *buffer, size_t buffer_size);
 char **laser_utils_grow_strarray(char **array, size_t *alloc_size,
                                  size_t count);
 int laser_string_in_sorted_array(char *target, char **array, int size);

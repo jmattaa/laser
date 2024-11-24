@@ -1,18 +1,23 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.18)
 
 project(lsr LANGUAGES C)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG -fsanitize=address -Wall -Wextra -pedantic")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 find_package(Lua51 REQUIRED)
 
-if(LUA_INCLUDE_DIR)
-    message(STATUS "Lua include directory: ${LUA_INCLUDE_DIR}")
+if (NOT LUA51_FOUND)
+    message(FATAL_ERROR "Lua5.1 libraries not found")
 else()
+    message(STATUS "Lua include directory: ${LUA_INCLUDE_DIR}")
+    message(STATUS "Lua libraries: ${LUA_LIBRARIES}")
+endif()
+
+if(NOT LUA_INCLUDE_DIR)
     message(FATAL_ERROR "Lua headers not found")
+else()
+    message(STATUS "Lua include directory: ${LUA_INCLUDE_DIR}")
 endif()
 
 include_directories("${LUA_INCLUDE_DIR}")

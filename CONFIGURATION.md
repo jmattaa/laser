@@ -4,7 +4,7 @@
 
 </div>
 
-# Table of contents
+## Table of contents
    1. [Creating Your Own Configuration File](#creating-your-own-configuration-file)
    2. [Writing Your Own Configuration](#writing-your-own-configuration)
       1. [Constants](#constants)

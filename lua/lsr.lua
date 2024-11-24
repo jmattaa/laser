@@ -1,3 +1,4 @@
+require "colors"
 local utils = require "utils"
 
 function L_compare_entries(name_a, name_b, is_dir_a, is_dir_b)

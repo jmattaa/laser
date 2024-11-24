@@ -33,17 +33,17 @@ target_link_libraries(lsr PRIVATE ${LUA_LIBRARIES})
 
 add_custom_target(format COMMAND clang-format -i ${SRCS})
 
-set(LUA_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/lua/*.lua")
+set(LUA_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/share/lsr")
 
-set(LUA_INSTALL_PATH "/usr/local/share/lsr")
-
+file(GLOB LUA_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/lua/*.lua")
 add_custom_command(TARGET lsr POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${LUA_INSTALL_PATH}"
     COMMAND ${CMAKE_COMMAND} -E copy ${LUA_SCRIPTS} "${LUA_INSTALL_PATH}"
-    COMMENT "Copying ${LUA_SCRIPTS} to ${LUA_INSTALL_PATH}"
+    COMMENT "Copying Lua scripts to ${LUA_INSTALL_PATH}"
 )
 
-install(TARGETS lsr DESTINATION /usr/local/bin)
+install(TARGETS lsr DESTINATION bin)
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lua/" DESTINATION share/lsr)
 
 if(NOT TARGET uninstall)
     configure_file(

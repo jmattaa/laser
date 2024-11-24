@@ -10,7 +10,6 @@
 #include <string.h>
 #include <unistd.h>
 
-
 #ifndef DEFAULT_SCRIPT_PATH
 #define DEFAULT_SCRIPT_PATH "/usr/local/share/lsr/lsr.lua"
 #endif

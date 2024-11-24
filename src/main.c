@@ -36,7 +36,7 @@ void lua_load_script(const char *script_path)
         lua_getfield(L, -1, "path");
         const char *current_path = lua_tostring(L, -1);
 
-        char new_path[LASER_PATH_MAX];
+        char new_path[2 * LASER_PATH_MAX];
         snprintf(new_path, sizeof(new_path), "%s;%s/?.lua", current_path,
                  script_dir);
         lua_pop(L, 1);

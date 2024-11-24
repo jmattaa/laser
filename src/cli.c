@@ -89,6 +89,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 exit(0);
             case 'h':
                 laser_cli_print_help();
+                exit(0);
             case 0:
                 if (strcmp(long_args[optind - 1].name, "completions") == 0)
                 {

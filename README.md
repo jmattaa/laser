@@ -12,6 +12,8 @@
 It offers filtering options, making it easy to
 locate specific files and folders (with grep you'll find exactly what you need)
 It can even display the directory contents in a tree-like structure! :fire:
+If that wasn't enough you can even extend the program with lua! 
+(I'm too proud of that )
 
 ## Installation
 
@@ -63,25 +65,17 @@ lsr
 lsr some-directory
 ```
 
-### Change colors or add icons
+### Configure
 
-If you want to change the colors of the output you can set an environment 
-variable called `LSR_COLORS` for example if you want to add nerd font icons to
-the existing colors you can use:
+If you'd like to configure the program's behavior, or change the default colors,
+add icons and more. You can configure the program with lua :fire:. A default 
+configuration will be installed at `/usr/local/share/lsr/`. But if you want to 
+write some own configuration you can place it in `~/.config/lsr/lsr.lua`.
 
-```sh
-export LSR_COLORS="DIR=\x1b[34m :\
-SYMLINK=\x1b[36m :\
-FILE=\x1b[0m :\
-HIDDEN=\x1b[90m :\
-EXEC=\x1b[32;4m :\
-ARCHIVE=\x1b[31m :\
-MEDIA=\x1b[33m :\
-DOCUMENT=\x1b[35;3m :"
-```
+Copy the files from `/usr/local/share/lsr/` to `~/.config/lsr/` and you can edit 
+them now.
 
-You don't have to change all of these if there is only one you want to change
-you can do that, to leave the rest on default
+Check out the [configuration guide](/CONFIGURATION.md)
 
 ### Command-line options
 

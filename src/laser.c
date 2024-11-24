@@ -7,7 +7,6 @@
 #include <fcntl.h>
 #include <lua.h>
 #include <pwd.h>
-#include <sys/_types/_s_ifmt.h>
 #include <sys/stat.h>
 
 #define BRANCH_SIZE 8

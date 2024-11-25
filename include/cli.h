@@ -4,7 +4,7 @@
 #include "utils.h"
 #include <stdio.h>
 
-#define LASER_VERSION "1.0.0"
+#define LASER_VERSION "1.0.2"
 
 laser_opts laser_cli_parsecmd(int argc, char **argv);
 void laser_cli_generate_completions(const char *shell);

@@ -1,5 +1,5 @@
 #include "colors.h"
-#include "main.h"
+#include "init_lua.h"
 #include <stdio.h>
 
 laser_color *LASER_COLORS;

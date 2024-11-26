@@ -2,7 +2,7 @@
 #include "colors.h"
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
-#include "main.h"
+#include "init_lua.h"
 #include "utils.h"
 #include <fcntl.h>
 #include <lua.h>

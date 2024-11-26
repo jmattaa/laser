@@ -35,10 +35,16 @@ int main(int argc, char **argv)
     if (user_config_path[0] != '\0' && access(user_config_path, R_OK) == 0)
         script_to_load = user_config_path;
 
+    // set the package path of user first, to get priority
+    // TODO: THIS IS A VERY HACKY SOLUTION FIND SOMETHING ELSE
     if (script_to_load != default_script)
-        laser_lua_load_script(script_to_load);
+        laser_lua_set_package_path(script_to_load);
+    laser_lua_set_package_path(default_script);
+
     laser_lua_load_script(default_script); // load the default script cuz user
                                            // may not be defining everything
+    if (script_to_load != default_script)
+        laser_lua_load_script(script_to_load);
 
     laser_colors_init();
 

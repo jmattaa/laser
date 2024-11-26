@@ -21,3 +21,7 @@ function L_long_format(entry, longest_name)
         last_modified, L_colors.MEDIA, size,
         L_colors.SYMLINK, owner)
 end
+
+function L_pre_print_entries()
+    print("this is default pre_print")
+end

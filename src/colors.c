@@ -29,11 +29,6 @@ void laser_colors_init(void)
     LASER_COLORS_ITER(_X)
 
     lua_getglobal(L, "L_colors");
-    if (!lua_istable(L, -1))
-    {
-        lua_pop(L, 1);
-        return; // there is no L_colors use the default c colors
-    }
 
     lua_pushnil(L);
     while (lua_next(L, -2))

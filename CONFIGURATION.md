@@ -106,10 +106,10 @@ Where `entry` is a table with the following keys:
 
 - `name`: The name of the entry
 - `mode`: The c stat mode of the entry (this can be used to get the permissions
-  and do much more, there is a default util function called
-  `utils.getPerms(mode)`)
-- `size`: The size of the entry (there is a default util function called
-  `utils.formatSize(size)` to make it human readable)
+  and do much more, there is a default util function called `getPerms(mode)`
+  that can be found in the lua directory of this repo, under `utils.lua`)
+- `size`: The size of the entry (there is a util function called
+  `formatSize(size)` to make it human readable)
 - `mtime`: The last modified time of the entry you can pass it through
   `os.date` to format it
 - `owner`: The name of the owner of the entry

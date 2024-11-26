@@ -14,6 +14,16 @@ lua_State *laser_init_lua(void)
 
 void laser_lua_load_script(const char *script_path)
 {
+    if (luaL_dofile(L, script_path) != LUA_OK)
+    {
+        fprintf(stderr, "lsr: error loading Lua script: %s\n",
+                lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
+}
+
+void laser_lua_set_package_path(const char *script_path)
+{
     char script_dir[LASER_PATH_MAX];
 
     // set the package.path so that user can do relative requires
@@ -35,13 +45,6 @@ void laser_lua_load_script(const char *script_path)
 
         lua_pushstring(L, new_path);
         lua_setfield(L, -2, "path");
-        lua_pop(L, 1);
-    }
-
-    if (luaL_dofile(L, script_path) != LUA_OK)
-    {
-        fprintf(stderr, "lsr: error loading Lua script: %s\n",
-                lua_tostring(L, -1));
         lua_pop(L, 1);
     }
 }

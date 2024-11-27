@@ -23,5 +23,4 @@ function L_long_format(entry, longest_name)
 end
 
 function L_pre_print_entries()
-    print("this is default pre_print")
 end

@@ -26,19 +26,6 @@ static char *strip_parent_dir(const char *full_path, const char *parent_dir)
     return (char *)full_path;
 }
 
-// static void laser_pre_print_entry(void)
-// {
-//     lua_getglobal(L, "L_pre_print_entries");
-//
-//     if (lua_pcall(L, 0, 0, 0) != LUA_OK)
-//     {
-//         fprintf(stderr, "lsr: error in L_pre_entries: %s\n",
-//                 lua_tostring(L, -1));
-//         lua_pop(L, 1);
-//         return;
-//     }
-// }
-
 int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 {
     struct laser_dirent *dirent_a = *(struct laser_dirent **)a;
@@ -213,7 +200,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
     free(entry); // entry is no longer needed it's been copied to entries
                  // u see my dumbass created mem leaks
 
-    //     laser_pre_print_entry();
+    laser_lua_CALL_NOARGS_NORET("L_pre_print_entries");
 
     // sort and print stuff
     laser_sort(entries, entry_count, sizeof(struct laser_dirent *),

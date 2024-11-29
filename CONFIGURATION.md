@@ -8,11 +8,11 @@
    1. [Creating Your Own Configuration File](#creating-your-own-configuration-file)
    2. [Writing Your Own Configuration](#writing-your-own-configuration)
       1. [Constants](#constants)
-         1. [`L_colors`](#`l_colors`)
-         2. [`L_recursive_max_depth`](#`l_recursive_max_depth`)
+         1. [`L_colors`](#l_colors)
+         2. [`L_recursive_max_depth`](#l_recursive_max_depth)
       2. [Functions](#functions)
-         1. [`L_compare_entries()`](#`l_compare_entries()`)
-         2. [`L_long_format()`](#`l_long_format()`)
+         1. [`L_compare_entries()`](#l_compare_entries())
+         2. [`L_long_format()`](#l_long_format())
       3. [Using Defaults](#using-defaults)
 
 Laser is highly customizable through Lua scripts. The default configuration

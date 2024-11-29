@@ -9,6 +9,7 @@
    2. [Writing Your Own Configuration](#writing-your-own-configuration)
       1. [Constants](#constants)
          1. [`L_colors`](#`l_colors`)
+         2. [`L_recursive_max_depth`](#`l_recursive_max_depth`)
       2. [Functions](#functions)
          1. [`L_compare_entries()`](#`l_compare_entries()`)
          2. [`L_long_format()`](#`l_long_format()`)

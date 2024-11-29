@@ -1,4 +1,5 @@
 #include "cli.h"
+#include "init_lua.h"
 
 static const struct option long_args[] = {
     {"all", 0, 0, 'a'},
@@ -38,6 +39,12 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     int show_tree = 0;
     int show_long = 0;
     const char *dir = ".";
+
+    // set default recursive_depth from lua
+    lua_getglobal(L, "L_recursive_max_depth");
+    if (lua_isnumber(L, -1))
+        recursive_depth = (int)lua_tointeger(L, -1);
+    lua_pop(L, 1);
 
     int opt;
 

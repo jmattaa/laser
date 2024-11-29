@@ -1,6 +1,8 @@
 require "colors"
 local utils = require "utils"
 
+L_recursive_max_depth = -1
+
 function L_compare_entries(entry1, entry2, entry1_is_dir, entry2_is_dir)
     if entry1_is_dir and not entry2_is_dir then return -1 end
     if not entry1_is_dir and entry2_is_dir then return 1 end

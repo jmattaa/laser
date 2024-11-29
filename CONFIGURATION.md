@@ -64,6 +64,17 @@ L_colors = {
 }
 ```
 
+#### `L_recursive_max_depth`
+
+You can configure the maximum depth of the directory tree by modifying the
+global `L_recursive_max_depth` variable. It defaults to -1 (which means
+infinite). This is the default value that will be used when run `-r`. By doing
+a `-rN` you can set the maximum depth to `N` and override the default value.
+
+```lua
+L_recursive_max_depth = -1
+```
+
 ### Functions
 
 There are a few functions you can use to modify the behavior of the program.
@@ -140,6 +151,21 @@ function L_long_format(entry, longest_name)
         L_colors.SYMLINK,
         last_modified, L_colors.MEDIA, size,
         L_colors.SYMLINK, owner)
+end
+```
+
+#### `L_pre_print_entries()`
+
+This function is called before the entries are printed. It can be used to add
+anything before the entries are printed. The function takes no arguments, and it
+should not return anything.
+
+The default implementation is that it does nothing. But an idea to use this 
+could be running a command like `clear` before printing the entries.
+
+```lua
+function L_pre_print_entries()
+    os.execute("clear")
 end
 ```
 

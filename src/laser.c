@@ -155,7 +155,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             continue;
         }
 
-        if(!lua_filters_apply(opts, entry))
+        if (!lua_filters_apply(opts, entry))
             continue;
 
         if (!opts.show_all && entry->d->d_name[0] == '.')

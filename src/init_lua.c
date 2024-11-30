@@ -48,4 +48,3 @@ void laser_lua_set_package_path(const char *script_path)
         lua_pop(L, 1);
     }
 }
-

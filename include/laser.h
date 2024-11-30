@@ -1,6 +1,7 @@
 #ifndef LASER_LASER_H
 #define LASER_LASER_H
 
+#include "cli.h"
 #include "colors.h"
 #include "sort.h"
 #include "utils.h"

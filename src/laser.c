@@ -3,6 +3,7 @@
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "init_lua.h"
+#include "lua_filters.h"
 #include "utils.h"
 #include <fcntl.h>
 #include <lua.h>
@@ -26,7 +27,7 @@ static char *strip_parent_dir(const char *full_path, const char *parent_dir)
     return (char *)full_path;
 }
 
-int laser_cmp_dirent(const void *a, const void *b, const void *arg)
+static int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 {
     struct laser_dirent *dirent_a = *(struct laser_dirent **)a;
     struct laser_dirent *dirent_b = *(struct laser_dirent **)b;
@@ -154,6 +155,9 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             continue;
         }
 
+        if(!lua_filters_apply(opts, entry))
+            continue;
+
         if (!opts.show_all && entry->d->d_name[0] == '.')
             continue;
 
@@ -226,7 +230,6 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
         }
         else
         {
-
             if (S_ISLNK(entries[i]->s.st_mode) && opts.show_symlinks)
             {
                 char symlink_target[LASER_PATH_MAX];
@@ -270,7 +273,6 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
                                   LASER_COLORS[LASER_COLOR_HIDDEN].value,
                                   indent, depth, opts, is_last);
             }
-
             else
             {
                 // coloring which depends on formats

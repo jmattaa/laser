@@ -47,10 +47,11 @@ int main(int argc, char **argv)
         laser_lua_load_script(script_to_load);
 
     laser_colors_init();
-
     laser_opts opts = laser_cli_parsecmd(argc, argv);
+
     laser_list_directory(opts, 0, opts.recursive_depth);
 
+    laser_cli_destroy_opts(opts);
     laser_colors_free();
 
     return 0;

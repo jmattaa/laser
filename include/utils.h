@@ -10,21 +10,6 @@
 #include <time.h>
 #include <unistd.h>
 
-typedef struct laser_opts
-{
-    int show_all;
-    int show_files;
-    int show_directories;
-    int show_symlinks;
-    int show_git;
-    int show_tree;
-    int show_long;
-    int recursive_depth;
-
-    const char *dir;
-    const char *parentDir;
-} laser_opts;
-
 char **laser_utils_grow_strarray(char **array, size_t *alloc_size,
                                  size_t count);
 int laser_string_in_sorted_array(char *target, char **array, int size);

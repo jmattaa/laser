@@ -8,10 +8,12 @@
    1. [Creating Your Own Configuration File](#creating-your-own-configuration-file)
    2. [Writing Your Own Configuration](#writing-your-own-configuration)
       1. [Constants](#constants)
-         1. [`L_colors`](#`l_colors`)
+         1. [`L_colors`](#l_colors)
+         2. [`L_recursive_max_depth`](#l_recursive_max_depth)
+         3. [`L_filters`](#l_filters)
       2. [Functions](#functions)
-         1. [`L_compare_entries()`](#`l_compare_entries()`)
-         2. [`L_long_format()`](#`l_long_format()`)
+         1. [`L_compare_entries()`](#l_compare_entries())
+         2. [`L_long_format()`](#l_long_format())
       3. [Using Defaults](#using-defaults)
 
 Laser is highly customizable through Lua scripts. The default configuration
@@ -63,6 +65,40 @@ L_colors = {
     DOCUMENT = "\x1b[35;3m",
 }
 ```
+#### `L_recursive_max_depth`
+
+You can configure the maximum depth of the directory tree by modifying the
+global `L_recursive_max_depth` variable. It defaults to -1 (which means
+infinite). This is the default value that will be used when run `-r`. By doing
+a `-rN` you can set the maximum depth to `N` and override the default value.
+
+```lua
+L_recursive_max_depth = -1
+```
+
+#### `L_filters`
+
+You can configure the default filters by modifying the global table named
+`L_filters`. You can create your own filters by adding a key with the filter name
+that will be accesed by the `-f` flag. (eg. `-fmyfilter`).
+
+The default table looks like this:
+
+```lua
+L_filters = {
+    recent = function(entry) return os.time() - entry.mtime < 24 * 60 * 60 end,
+    large = function(entry) return entry.size > 1024 * 1024 end,
+    small = function(entry) return entry.size < 1024 * 1024 end,
+}
+```
+
+The function of the filter gets a entry table as an argument check the
+definition of the entry table at the [`L_long_format`](#l_long_format)
+function. Every filter must return a boolean.
+
+> [!NOTE]
+> If you add your own filters all the default filters will be overridden. You
+> can still use the default filters by adding them to the `L_filters` table.
 
 ### Functions
 
@@ -140,6 +176,21 @@ function L_long_format(entry, longest_name)
         L_colors.SYMLINK,
         last_modified, L_colors.MEDIA, size,
         L_colors.SYMLINK, owner)
+end
+```
+
+#### `L_pre_print_entries()`
+
+This function is called before the entries are printed. It can be used to add
+anything before the entries are printed. The function takes no arguments, and it
+should not return anything.
+
+The default implementation is that it does nothing. But an idea to use this 
+could be running a command like `clear` before printing the entries.
+
+```lua
+function L_pre_print_entries()
+    os.execute("clear")
 end
 ```
 

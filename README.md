@@ -58,14 +58,14 @@ sudo cmake --install build
 To uninstall you can run the following while being in the `laser` directory:
 
 ```sh
-cmake --build build --target uninstall
+sudo cmake --build build --target uninstall
 ```
 
-> [!NOTE]
-> This dosen't install the shell completions for the cli but you can add them 
-> by placing the files from the `completions` directory in a directory that is in 
-> your `$PATH`. Or source the file from your `bashrc`, `zshrc` or `config.fish` 
-> file.
+> [!NOTE] 
+> This dosen't install the shell completions for the cli but you can add them
+> by placing the files from the `completions` directory in a directory that is
+> in your `$PATH`. Or source the file from your `bashrc`, `zshrc` or
+> `config.fish` file.
 
 ## Usage
 
@@ -81,11 +81,12 @@ lsr some-directory
 
 If you'd like to configure the program's behavior, or change the default colors,
 add icons and more. You can configure the program with lua :fire:. A default 
-configuration will be installed at `/usr/local/share/lsr/`. But if you want to 
+configuration will be installed at `$HOME/.lsr/`. But if you want to 
 write some own configuration you can place it in `~/.config/lsr/lsr.lua`.
 
-Copy the files from `/usr/local/share/lsr/` to `~/.config/lsr/` and you can edit 
-them now.
+Copy the files from `$HOME/.lsr` to `~/.config/lsr/` and you can edit them (do
+not change in the files in the `$HOME/.lsr` directory because they will be used
+as default if there are missing values in the `.config`).
 
 Check out the [configuration guide](/CONFIGURATION.md)
 
@@ -99,13 +100,16 @@ you can directly pass in the flags.
 - `-D` or `--Directories` shows only directories
 - `-F` or `--Files` shows only files
 - `-S` or `--Symlinks` shows only symlinks
-- `-G` or `--Git` shows only the entries that are not named in `.gitignore` (works only if there exists a `.gitignore`)
+- `-G` or `--Git` shows only the entries that are not named in `.gitignore`
+  (works only if there exists a `.gitignore`)
 - `-r` or `--recursive` shows directory tree structure
-    - `-r` or `--recursive` has an optional value for max depth and  it can be 
-    used by using `-r2` or `--recursive=2` by default the depth is until last 
-    level
-- `-l` or `--long` displays in long format (permissions, last modified, size and owner)
-
+    - `-r` or `--recursive` has an optional value for max depth and  it can be
+      used by using `-r2` or `--recursive=2` by default the depth is until last
+      level
+- `-l` or `--long` displays in long format (permissions, last modified, size
+  and owner)
+- `-fmyfilter` or `--filter=myfilter` applies a user defined filter from lua
+  check the [CONFIGURATION.md](/CONFIGURATION.md)
 
 The flags can be chained for example using:
 ```sh

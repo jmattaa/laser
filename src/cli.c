@@ -1,4 +1,5 @@
 #include "cli.h"
+#include "init_lua.h"
 
 static const struct option long_args[] = {
     {"all", 0, 0, 'a'},
@@ -8,6 +9,7 @@ static const struct option long_args[] = {
     {"Git", 0, 0, 'G'},
     {"long", 0, 0, 'l'},
     {"recursive", optional_argument, 0, 'r'},
+    {"filter", required_argument, 0, 'f'},
     {"version", 0, 0, 'v'},
     {"help", 0, 0, 'h'},
     {"completions", required_argument, 0, 0},
@@ -22,6 +24,7 @@ static const char *descriptions[] = {
     "Show entries that are not defined in .gitignore",
     "Use long format",
     "Show in tree format",
+    "Filter out files using lua filters (`L_filters` in lsr.lua)",
     "Print the current version",
     "Print help message",
     "Generate shell completions",
@@ -39,9 +42,18 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     int show_long = 0;
     const char *dir = ".";
 
+    // set default recursive_depth from lua
+    lua_getglobal(L, "L_recursive_max_depth");
+    if (lua_isnumber(L, -1))
+        recursive_depth = (int)lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    int filter_count = 0;
+    const char **filters = NULL;
+
     int opt;
 
-    while ((opt = getopt_long(argc, argv, "aFDSGr::lvh", long_args, NULL)) !=
+    while ((opt = getopt_long(argc, argv, "aFDSGr::lvhf::", long_args, NULL)) !=
            -1)
     {
         switch (opt)
@@ -90,6 +102,21 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
             case 'h':
                 laser_cli_print_help();
                 exit(0);
+            case 'f':
+                if (optarg == NULL)
+                {
+                    fprintf(stderr,
+                            "lsr: couldn't filter files, filter not passed or "
+                            "not formatted correctly\nlsr: filter usage "
+                            "`-fmyfilter` or `--filter=myfilter\n");
+                    exit(1);
+                }
+
+                filters = realloc(filters, sizeof(char *) * (filter_count + 1));
+                filters[filter_count] = strdup(optarg);
+                filter_count++;
+
+                break;
             case 0:
                 if (strcmp(long_args[optind - 1].name, "completions") == 0)
                 {
@@ -105,10 +132,10 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     if (optind < argc)
         dir = argv[optind];
 
-    return (laser_opts){show_all,        show_files,      show_directories,
-                        show_symlinks,   show_git,        show_tree,
-                        show_long,       recursive_depth, dir,
-                        .parentDir = dir};
+    return (laser_opts){
+        show_all,  show_files,      show_directories, show_symlinks, show_git,
+        show_tree, show_long,       recursive_depth,  filter_count,  filters,
+        dir,       .parentDir = dir};
 }
 
 void laser_cli_generate_completions(const char *shell)
@@ -202,4 +229,11 @@ void laser_cli_print_help(void)
         else
             printf("      --%-28s %s\n", long_args[i].name, descriptions[i]);
     }
+}
+
+void laser_cli_destroy_opts(laser_opts opts)
+{
+    for (int i = 0; i < opts.filter_count; i++)
+        free((void *)opts.filters[i]);
+    free(opts.filters);
 }

@@ -81,8 +81,7 @@ You can configure the default filters by modifying the global table named
 `L_filters`. You can create your own filters by adding a key with the filter name
 that will be accesed by the `-f` flag. (eg. `-fmyfilter`).
 
-There is a default table that will be overridden if you decide to define your
-own `L_filters`. The default table looks like this:
+The default table looks like this:
 
 ```lua
 L_filters = {
@@ -94,10 +93,11 @@ L_filters = {
 
 The function of the filter gets a entry table as an argument check the
 definition of the entry table at the [`L_long_format`](#l_long_format)
-function.
+function. Every filter must return a boolean.
 
 > [!NOTE]
-> Every filter must return a boolean.
+> If you add your own filters all the default filters will be overridden. You
+> can still use the default filters by adding them to the `L_filters` table.
 
 ### Functions
 

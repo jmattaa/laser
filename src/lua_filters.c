@@ -37,14 +37,15 @@ int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
 
         if (lua_pcall(L, 1, 1, 0) != LUA_OK)
         {
-            fprintf(stderr, "lsr: error calling filter %s: %s\n",
+            fprintf(stderr, "lsr: error calling filter with name '%s': %s\n",
                     opts.filters[i], lua_tostring(L, -1));
             lua_pop(L, 1);
             exit(1);
         }
         if (!lua_isboolean(L, -1))
         {
-            fprintf(stderr, "lsr: filter %s did not return a boolean!\n",
+            fprintf(stderr,
+                    "lsr: filter with name '%s' did not return a boolean!\n",
                     opts.filters[i]);
             lua_pop(L, 1);
             exit(1);
@@ -52,8 +53,8 @@ int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
 
         if (lua_toboolean(L, -1))
         {
-            continue; // check the next filter
             lua_pop(L, 1);
+            continue; // check the next filter
         }
 
         lua_pop(L, 1);
@@ -62,4 +63,3 @@ int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
 
     return 1;
 }
-

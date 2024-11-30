@@ -103,7 +103,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 laser_cli_print_help();
                 exit(0);
             case 'f':
-                filters = realloc(filters, sizeof(char *) * (filter_count));
+                filters = realloc(filters, sizeof(char *) * (filter_count + 1));
                 filters[filter_count] = strdup(optarg);
                 filter_count++;
 

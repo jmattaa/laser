@@ -26,7 +26,7 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-set(DEFAULT_SCRIPT_PATH "$ENV{HOME}/.lsr/lsr.lua")
+set(DEFAULT_SCRIPT_PATH "${CMAKE_INSTALL_PREFIX}/.lsr/lsr.lua")
 
 add_executable(lsr ${SRCS})
 
@@ -36,7 +36,7 @@ target_link_libraries(lsr PRIVATE ${LUA_LIBRARIES})
 
 add_custom_target(format COMMAND clang-format -i ${SRCS})
 
-set(LUA_INSTALL_PATH "$ENV{HOME}/.lsr")
+set(LUA_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/.lsr")
 
 file(GLOB LUA_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/lua/*.lua")
 file(MAKE_DIRECTORY "${LUA_INSTALL_PATH}")

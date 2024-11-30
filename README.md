@@ -51,7 +51,7 @@ Install system-wide:
 
 ```sh
 cmake -S . -B build
-cmake --build build
+sudo cmake --build build
 sudo cmake --install build
 ```
 
@@ -81,11 +81,12 @@ lsr some-directory
 
 If you'd like to configure the program's behavior, or change the default colors,
 add icons and more. You can configure the program with lua :fire:. A default 
-configuration will be installed at `$HOME/.lsr/`. But if you want to 
+configuration will be installed at `/usr/local/lsr`. But if you want to 
 write some own configuration you can place it in `~/.config/lsr/lsr.lua`.
 
-Copy the files from `$HOME/.lsr` to `~/.config/lsr/` and you can edit them (do
-not change in the files in the `$HOME/.lsr` directory because they will be used
+Copy the files from `/usr/local/lsr` to `~/.config/lsr/` and you can edit
+them (do not change in the files in the `/usr/local/lsr` directory
+because they will be used
 as default if there are missing values in the `.config`).
 
 Check out the [configuration guide](/CONFIGURATION.md)

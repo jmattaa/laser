@@ -24,7 +24,7 @@ create your own configuration file to change the behavior of laser.
 ## Creating Your Own Configuration File
 
 To create your own configuration all that you need to do is to create a lua
-file at `~/.config/lsr/lsr.lua`. This will be the default file where laser will
+file at `/usr/local/share/lsr/`. This will be the default file where laser will
 look for your configuration. You can of course add more files to this directory
 (check the `lua` directory in the repo). Other files in this directory will not
 be loaded by laser but you can do a `require` to them to load them into the

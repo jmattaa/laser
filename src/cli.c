@@ -24,7 +24,7 @@ static const char *descriptions[] = {
     "Show entries that are not defined in .gitignore",
     "Use long format",
     "Show in tree format",
-    "Use user defined filters",
+    "Filter out files using lua filters (`L_filters` in lsr.lua)",
     "Print the current version",
     "Print help message",
     "Generate shell completions",
@@ -103,6 +103,15 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 laser_cli_print_help();
                 exit(0);
             case 'f':
+                if (optarg == NULL)
+                {
+                    fprintf(stderr,
+                            "lsr: couldn't filter files, filter not passed or "
+                            "not formatted correctly\nlsr: filter usage "
+                            "`-fmyfilter` or `--filter=myfilter\n");
+                    exit(1);
+                }
+
                 filters = realloc(filters, sizeof(char *) * (filter_count + 1));
                 filters[filter_count] = strdup(optarg);
                 filter_count++;

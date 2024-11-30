@@ -10,6 +10,7 @@
       1. [Constants](#constants)
          1. [`L_colors`](#l_colors)
          2. [`L_recursive_max_depth`](#l_recursive_max_depth)
+         3. [`L_filters`](#l_filters)
       2. [Functions](#functions)
          1. [`L_compare_entries()`](#l_compare_entries())
          2. [`L_long_format()`](#l_long_format())

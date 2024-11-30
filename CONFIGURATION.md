@@ -64,7 +64,6 @@ L_colors = {
     DOCUMENT = "\x1b[35;3m",
 }
 ```
-
 #### `L_recursive_max_depth`
 
 You can configure the maximum depth of the directory tree by modifying the
@@ -75,6 +74,30 @@ a `-rN` you can set the maximum depth to `N` and override the default value.
 ```lua
 L_recursive_max_depth = -1
 ```
+
+#### `L_filters`
+
+You can configure the default filters by modifying the global table named
+`L_filters`. You can create your own filters by adding a key with the filter name
+that will be accesed by the `-f` flag. (eg. `-fmyfilter`).
+
+There is a default table that will be overridden if you decide to define your
+own `L_filters`. The default table looks like this:
+
+```lua
+L_filters = {
+    recent = function(entry) return os.time() - entry.mtime < 24 * 60 * 60 end,
+    large = function(entry) return entry.size > 1024 * 1024 end,
+    small = function(entry) return entry.size < 1024 * 1024 end,
+}
+```
+
+The function of the filter gets a entry table as an argument check the
+definition of the entry table at the [`L_long_format`](#l_long_format)
+function.
+
+> [!NOTE]
+> Every filter must return a boolean.
 
 ### Functions
 

@@ -100,13 +100,16 @@ you can directly pass in the flags.
 - `-D` or `--Directories` shows only directories
 - `-F` or `--Files` shows only files
 - `-S` or `--Symlinks` shows only symlinks
-- `-G` or `--Git` shows only the entries that are not named in `.gitignore` (works only if there exists a `.gitignore`)
+- `-G` or `--Git` shows only the entries that are not named in `.gitignore`
+  (works only if there exists a `.gitignore`)
 - `-r` or `--recursive` shows directory tree structure
-    - `-r` or `--recursive` has an optional value for max depth and  it can be 
-    used by using `-r2` or `--recursive=2` by default the depth is until last 
-    level
-- `-l` or `--long` displays in long format (permissions, last modified, size and owner)
-
+    - `-r` or `--recursive` has an optional value for max depth and  it can be
+      used by using `-r2` or `--recursive=2` by default the depth is until last
+      level
+- `-l` or `--long` displays in long format (permissions, last modified, size
+  and owner)
+- `-fmyfilter` or `--filter=myfilter` applies a user defined filter from lua
+  check the [CONFIGURATION.md](/CONFIGURATION.md)
 
 The flags can be chained for example using:
 ```sh

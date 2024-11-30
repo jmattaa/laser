@@ -5,9 +5,9 @@ project(lsr LANGUAGES C)
 set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG -fsanitize=address -Wall -Wextra -pedantic")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 
-find_package(Lua51 REQUIRED)
+find_package(Lua 5.1 REQUIRED)
 
-if (NOT LUA51_FOUND)
+if (NOT LUA_FOUND)
     message(FATAL_ERROR "Lua5.1 libraries not found")
 else()
     message(STATUS "Lua include directory: ${LUA_INCLUDE_DIR}")

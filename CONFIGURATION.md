@@ -100,6 +100,14 @@ function. Every filter must return a boolean.
 > If you add your own filters all the default filters will be overridden. You
 > can still use the default filters by adding them to the `L_filters` table.
 
+If you want to add your on filters but do not want to override the default values
+you could define them like this:
+
+```lua
+L_filters.myfilter = function(entry) return true end
+L_filters.myotherfilter = function(entry) return false end
+```
+
 ### Functions
 
 There are a few functions you can use to modify the behavior of the program.

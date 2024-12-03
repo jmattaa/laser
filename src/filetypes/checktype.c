@@ -13,17 +13,11 @@ enum check_type_return
     Unknown
 };
 
-int laser_checktype(const char *filename, const struct laser_filetype formats[])
+int laser_checktype_sniff(int fd, const char *filename,
+                          const struct laser_filetype formats[])
 {
     if (laser_checktype_extension(filename, formats) == Success)
         return 1;
-
-    int fd = open(filename, O_RDONLY);
-    if (fd == -1)
-    {
-        perror("open");
-        return 0;
-    }
 
     int rv = laser_checktype_magic(fd, formats);
     switch (rv)
@@ -39,6 +33,19 @@ int laser_checktype(const char *filename, const struct laser_filetype formats[])
     }
     close(fd);
     return rv == Success;
+}
+
+int laser_checktype(const char *filename, const struct laser_filetype formats[])
+{
+    int fd = open(filename, O_RDONLY);
+    if (fd == -1)
+    {
+        perror("open");
+        return 0;
+    }
+    int rv = laser_checktype_sniff(fd, filename, formats);
+    close(fd);
+    return rv;
 }
 
 int laser_checktype_extension(const char *filename,

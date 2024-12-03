@@ -206,5 +206,6 @@ end
 
 If you do not define these functions in your configuration file, the default
 functions from the default configuration file will be used automatically. If
-there is a missing constant or function the default configuration file will be
+there is a missing constant or function the default configuration values will
+be
 used.

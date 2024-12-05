@@ -61,7 +61,7 @@ int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
         return 0; // filtered out
     }
 
-    lua_settop(L, 0); 
+    lua_settop(L, 0);
 
     return 1;
 }

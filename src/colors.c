@@ -1,6 +1,6 @@
 #include "colors.h"
 #include "init_lua.h"
-#include <stdio.h>
+#include <lua.h>
 
 laser_color *LASER_COLORS;
 
@@ -40,7 +40,7 @@ void laser_colors_init(void)
         lua_pop(L, 1);
     }
 
-    lua_pop(L, 1);
+    lua_settop(L, 0);
 }
 #undef _X
 

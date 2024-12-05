@@ -204,7 +204,14 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
     free(entry); // entry is no longer needed it's been copied to entries
                  // u see my dumbass created mem leaks
 
-    laser_lua_CALL_NOARGS_NORET("L_pre_print_entries");
+    lua_getglobal(L, "L_pre_print_entries");
+    if (lua_pcall(L, 0, 0, 0) != LUA_OK)
+    {
+        fprintf(stderr, "lsr: lua error (L_pre_print_entries): %s\n",
+                lua_tostring(L, -1));
+        lua_pop(L, 1); // pop error message
+        exit(1);
+    }
 
     // sort and print stuff
     laser_sort(entries, entry_count, sizeof(struct laser_dirent *),

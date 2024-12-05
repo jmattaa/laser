@@ -46,7 +46,6 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     lua_getglobal(L, "L_recursive_max_depth");
     if (lua_isnumber(L, -1))
         recursive_depth = (int)lua_tointeger(L, -1);
-    lua_pop(L, 1);
 
     int filter_count = 0;
     const char **filters = NULL;
@@ -90,7 +89,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 char *end;
                 recursive_depth = strtol(optarg, &end, 10);
                 if (end == optarg)
-                    recursive_depth = -1;
+                    break;
 
                 break;
             case 'l':

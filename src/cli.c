@@ -1,5 +1,6 @@
 #include "cli.h"
 #include "init_lua.h"
+#include <git2/repository.h>
 
 static const struct option long_args[] = {
     {"all", 0, 0, 'a'},
@@ -38,6 +39,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     int recursive_depth = -1;
     int show_symlinks = -1;
     int show_git = 0;
+    git_repository *git_repo = NULL;
     int show_tree = 0;
     int show_long = 0;
     const char *dir = ".";
@@ -76,6 +78,13 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 show_symlinks = 1;
                 break;
             case 'G':
+                if (git_repository_open(&git_repo, dir) != 0)
+                {
+                    fprintf(stderr, "lsr: couldn't open git repo at '%s'\n",
+                            dir);
+                    exit(1);
+                }
+
                 show_git = 1;
                 break;
             case 'r':
@@ -132,9 +141,9 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
         dir = argv[optind];
 
     return (laser_opts){
-        show_all,  show_files,      show_directories, show_symlinks, show_git,
-        show_tree, show_long,       recursive_depth,  filter_count,  filters,
-        dir,       .parentDir = dir};
+        show_all, show_files, show_directories, show_symlinks,   show_git,
+        git_repo, show_tree,  show_long,        recursive_depth, filter_count,
+        filters,  dir,        .parentDir = dir};
 }
 
 void laser_cli_generate_completions(const char *shell)

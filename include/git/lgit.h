@@ -1,28 +1,13 @@
 #ifndef LASER_GIT_LGIT_H
 #define LASER_GIT_LGIT_H
 
+#include "cli.h"
+#include "laser.h"
+#include <git2.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-typedef struct
-{
-    char *name;
-    unsigned tracked : 1;
-
-    mode_t mode;
-} lgit_entry;
-
-typedef struct
-{
-    char **lgit_entry;
-} lgit_entries;
 
 char **lgit_parseGitignore(const char *dir, int *count);
-
-// lgit_entries *lgit_getGitEntries(laser_opts opts);
-// void lgit_parseGit(char *dir);
-// void lgit_entries_free(lgit_entries *lgit);
+void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
+                       const char *full_path);
 
 #endif

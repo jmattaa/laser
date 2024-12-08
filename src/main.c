@@ -3,6 +3,7 @@
 #include "init_lua.h"
 #include "laser.h"
 #include "utils.h"
+#include <git2.h>
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
@@ -11,7 +12,7 @@
 #include <unistd.h>
 
 #ifndef DEFAULT_SCRIPT_PATH
-#define DEFAULT_SCRIPT_PATH "/usr/local/share/lsr/lsr.lua"
+#define DEFAULT_SCRIPT_PATH "/usr/local/.lsr"
 #endif
 
 int main(int argc, char **argv)
@@ -46,6 +47,7 @@ int main(int argc, char **argv)
     if (script_to_load != default_script)
         laser_lua_load_script(script_to_load);
 
+    git_libgit2_init();
     laser_colors_init();
     laser_opts opts = laser_cli_parsecmd(argc, argv);
 
@@ -53,6 +55,7 @@ int main(int argc, char **argv)
 
     laser_cli_destroy_opts(opts);
     laser_colors_free();
+    git_libgit2_shutdown();
 
     return 0;
 }

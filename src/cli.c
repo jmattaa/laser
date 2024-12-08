@@ -78,7 +78,9 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 show_symlinks = 1;
                 break;
             case 'G':
-                if (git_repository_open(&git_repo, dir) != 0)
+            {
+                int err = git_repository_open(&git_repo, dir);
+                if (err != 0)
                 {
                     fprintf(stderr, "lsr: couldn't open git repo at '%s'\n",
                             dir);
@@ -87,6 +89,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
 
                 show_git = 1;
                 break;
+            }
             case 'r':
                 show_tree = 1;
                 // recursive listing has to ovveride dir flag

@@ -67,24 +67,28 @@ void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
     if (!opts.show_git)
         return;
 
+    // skip the leading "./" cuz libgit dosen't like it
+    if (strncmp(full_path, "./", 2) == 0)
+        full_path += 2;
+
     unsigned int status;
     if (git_status_file(&status, opts.git_repo, full_path) != 0)
     {
         fprintf(stderr, "lsr: failed to get status for %s\n", full_path);
         fprintf(stderr, "lsr: %s\n", git_error_last()->message);
-        exit(1);
+        return;
     }
 
     char status_char = ' ';
-    if (status & GIT_STATUS_INDEX_NEW)
+    if (status & GIT_STATUS_WT_NEW)
         status_char = 'A';
-    else if (status & GIT_STATUS_INDEX_MODIFIED)
+    else if (status & GIT_STATUS_WT_MODIFIED)
         status_char = 'M';
-    else if (status & GIT_STATUS_INDEX_DELETED)
+    else if (status & GIT_STATUS_WT_DELETED)
         status_char = 'D';
-    else if (status & GIT_STATUS_INDEX_RENAMED)
+    else if (status & GIT_STATUS_WT_RENAMED)
         status_char = 'R';
-    else if (status & GIT_STATUS_INDEX_TYPECHANGE)
+    else if (status & GIT_STATUS_WT_TYPECHANGE)
         status_char = 'T';
 
     entry->git_status = status_char;

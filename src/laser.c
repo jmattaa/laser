@@ -53,8 +53,8 @@ static int laser_cmp_dirent(const void *a, const void *b, const void *arg)
     return result;
 }
 
-void laser_print_long_entry(struct laser_dirent *entry, char *entry_name,
-                            const char *color, char *indent, const char *branch)
+void laser_print_long_entry(struct laser_dirent *entry, const char *color,
+                            char *indent, const char *branch)
 {
     lua_getglobal(L, "L_long_format");
 
@@ -96,9 +96,12 @@ void laser_print_long_entry(struct laser_dirent *entry, char *entry_name,
     const char *result = lua_tostring(L, -1);
     lua_pop(L, 1);
 
-    printf("%s%s%s%s%s%s%s\n", result, LASER_COLORS[LASER_COLOR_RESET].value,
-           indent, branch, color, entry_name,
+    printf("%s%s%s%s%s%s%s", result, LASER_COLORS[LASER_COLOR_RESET].value,
+           indent, branch, color, entry->d->d_name,
            LASER_COLORS[LASER_COLOR_RESET].value);
+    if (entry->git_status && entry->git_status != ' ')
+        printf("\x1b[33m [%c]\x1b[0m", entry->git_status);
+    printf("\n");
 }
 
 void laser_print_entry(struct laser_dirent *entry, const char *color,
@@ -108,17 +111,17 @@ void laser_print_entry(struct laser_dirent *entry, const char *color,
     if (depth > 0)
         strcpy(branch, is_last ? "└─ " : "├─ ");
 
-    char *entry_name = malloc(strlen(entry->d->d_name) + 2);
-    snprintf(entry_name, strlen(entry->d->d_name) + 2, "%c%s",
-             entry->git_status, entry->d->d_name);
-
     if (opts.show_long)
-        laser_print_long_entry(entry, entry_name, color, indent, branch);
-    else
-        printf("%s%s%s%s%s\n", indent, branch, color, entry_name,
-               LASER_COLORS[LASER_COLOR_RESET].value);
+    {
+        laser_print_long_entry(entry, color, indent, branch);
+        return;
+    }
 
-    free(entry_name);
+    printf("%s%s%s%s%s", indent, branch, color, entry->d->d_name,
+           LASER_COLORS[LASER_COLOR_RESET].value);
+    if (entry->git_status && entry->git_status != ' ')
+        printf("\x1b[33m [%c]\x1b[0m", entry->git_status);
+    printf("\n");
 }
 
 static laser_color_type laser_color_for_format(const char *filename)
@@ -168,15 +171,11 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             continue;
 
         if (opts.show_git)
-        {
             if (laser_string_in_sorted_array(
                     strip_parent_dir(full_path, opts.parentDir),
                     gitignore_patterns, gitignore_count) ||
                 strcmp(entry->d->d_name, ".git") == 0)
                 continue;
-            else
-                lgit_getGitStatus(opts, entry, full_path);
-        }
 
         if ((S_ISDIR(entry->s.st_mode) && opts.show_directories) ||
             (S_ISLNK(entry->s.st_mode) && opts.show_symlinks) ||
@@ -200,7 +199,9 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             entries[entry_count]->d = malloc(offsetof(struct dirent, d_name) +
                                              strlen(entry->d->d_name) + 1);
 
-            entries[entry_count]->git_status = ' ';
+            // so... git dosent track dirs only files
+            if (!S_ISDIR(entry->s.st_mode) && opts.show_git)
+                lgit_getGitStatus(opts, entries[entry_count], full_path);
 
             memcpy(entries[entry_count]->d, entry->d,
                    offsetof(struct dirent, d_name) + strlen(entry->d->d_name) +

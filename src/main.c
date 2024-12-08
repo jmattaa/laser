@@ -48,6 +48,7 @@ int main(int argc, char **argv)
         laser_lua_load_script(script_to_load);
 
     git_libgit2_init();
+
     laser_colors_init();
     laser_opts opts = laser_cli_parsecmd(argc, argv);
 

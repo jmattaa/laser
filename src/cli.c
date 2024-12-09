@@ -1,5 +1,6 @@
 #include "cli.h"
 #include "init_lua.h"
+#include <git2.h>
 #include <git2/repository.h>
 
 static const struct option long_args[] = {
@@ -31,6 +32,7 @@ static const char *descriptions[] = {
     "Generate shell completions",
 };
 
+// TODO: ADD G{path to git directory} so that we cam maybe do `lsr -G. src`
 laser_opts laser_cli_parsecmd(int argc, char **argv)
 {
     int show_all = 0;
@@ -42,6 +44,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     git_repository *git_repo = NULL;
     int show_tree = 0;
     int show_long = 0;
+
     const char *dir = ".";
 
     // set default recursive_depth from lua
@@ -78,18 +81,8 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 show_symlinks = 1;
                 break;
             case 'G':
-            {
-                int err = git_repository_open(&git_repo, dir);
-                if (err != 0)
-                {
-                    fprintf(stderr, "lsr: couldn't open git repo at '%s'\n",
-                            dir);
-                    exit(1);
-                }
-
                 show_git = 1;
                 break;
-            }
             case 'r':
                 show_tree = 1;
                 // recursive listing has to ovveride dir flag
@@ -142,6 +135,16 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
 
     if (optind < argc)
         dir = argv[optind];
+
+    if (show_git)
+    {
+        int err = git_repository_open(&git_repo, dir);
+        if (err != 0)
+        {
+            fprintf(stderr, "lsr: couldn't open git repo at '%s'\n", dir);
+            show_git = 0;
+        }
+    }
 
     return (laser_opts){
         show_all, show_files, show_directories, show_symlinks,   show_git,

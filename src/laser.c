@@ -137,8 +137,8 @@ static laser_color_type laser_color_for_format(const char *filename)
 }
 
 void laser_process_entries(laser_opts opts, int depth, int max_depth,
-                           char *indent,
-                           lgit_ignorePatterns *gitignore_patterns)
+                           char *indent)
+
 {
     DIR *dir = opendir(opts.dir);
     if (dir == NULL)
@@ -152,8 +152,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
     struct laser_dirent **entries = malloc(sizeof(struct laser_dirent *));
     int entry_count = 0;
 
-    unsigned char entry_ignored = 0;
-    unsigned char entry_negated = 0;
+    int entry_ignored = 0;
 
     char full_path[LASER_PATH_MAX];
     while ((entry->d = readdir(dir)) != NULL)
@@ -167,31 +166,40 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             continue;
         }
 
-        if (!lua_filters_apply(opts, entry))
-            continue;
-
-        if (!opts.show_all && entry->d->d_name[0] == '.')
-            continue;
-
         if (opts.show_git)
         {
             // always ignore .git
             if (strcmp(entry->d->d_name, ".git") == 0)
                 continue;
 
-            entry_ignored = laser_string_in_sorted_array(
-                strip_parent_dir(full_path, opts.parentDir),
-                gitignore_patterns->ignore, gitignore_patterns->ignore_count);
+            // skip the leading "./" cuz libgit dosen't like it
+            if (strncmp(full_path, "./", 2) == 0)
+            {
+                if (git_ignore_path_is_ignored(&entry_ignored, opts.git_repo,
+                                               &full_path[2]) < 0)
+                {
+                    fprintf(stderr, "lsr: %s\n", git_error_last()->message);
+                    continue;
+                }
+                goto check_ignore;
+            }
+            if (git_ignore_path_is_ignored(&entry_ignored, opts.git_repo,
+                                           full_path) < 0)
+            {
+                fprintf(stderr, "lsr: %s\n", git_error_last()->message);
+                continue;
+            }
 
-            if (entry_ignored)
-                entry_negated = laser_string_in_sorted_array(
-                    strip_parent_dir(full_path, opts.parentDir),
-                    gitignore_patterns->negated,
-                    gitignore_patterns->negated_count);
-
-            if (entry_ignored && !entry_negated)
+        check_ignore:
+            if (entry_ignored == 1)
                 continue;
         }
+
+        if (!lua_filters_apply(opts, entry))
+            continue;
+
+        if (!opts.show_all && entry->d->d_name[0] == '.')
+            continue;
 
         if ((S_ISDIR(entry->s.st_mode) && opts.show_directories) ||
             (S_ISLNK(entry->s.st_mode) && opts.show_symlinks) ||
@@ -347,25 +355,6 @@ void laser_list_directory(laser_opts opts, int depth, int max_depth)
         for (int i = 1; i < depth; i++)
             strcat(indent, pipe);
 
-    lgit_ignorePatterns *gitignore_patterns = NULL;
-    if (opts.show_git)
-    {
-        gitignore_patterns = lgit_parseGitignore(opts.parentDir, depth);
-
-        if (gitignore_patterns->ignore_count > 0)
-            laser_sort(gitignore_patterns->ignore,
-                       gitignore_patterns->ignore_count, sizeof(char *),
-                       laser_cmp_string, NULL);
-
-        if (gitignore_patterns->negated_count > 0)
-            laser_sort(gitignore_patterns->negated,
-                       gitignore_patterns->negated_count, sizeof(char *),
-                       laser_cmp_string, NULL);
-    }
-
-    laser_process_entries(opts, depth, max_depth, indent, gitignore_patterns);
+    laser_process_entries(opts, depth, max_depth, indent);
     free(indent);
-
-    if (gitignore_patterns)
-        lgit_destroyIgnorePatterns(gitignore_patterns);
 }

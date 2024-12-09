@@ -2,7 +2,6 @@
 #include "colors.h"
 #include "init_lua.h"
 #include "laser.h"
-#include "utils.h"
 #include <git2.h>
 #include <lauxlib.h>
 #include <lua.h>

@@ -30,6 +30,7 @@ static const char *descriptions[] = {
     "Generate shell completions",
 };
 
+// TODO: add filters to L_default_args!!!!!11
 laser_opts laser_cli_parsecmd(int argc, char **argv)
 {
     int show_all = 0;
@@ -47,11 +48,53 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     if (lua_isnumber(L, -1))
         recursive_depth = (int)lua_tointeger(L, -1);
 
+    lua_getglobal(L, "L_default_args");
+
     int filter_count = 0;
     const char **filters = NULL;
 
     int opt;
 
+    if (!lua_istable(L, -1))
+        goto skip_L_default_args;
+
+    lua_pushstring(L, "all");
+    lua_gettable(L, -2);
+    if (lua_isboolean(L, -1))
+        show_all = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "files");
+    lua_gettable(L, -2);
+    if (lua_isnumber(L, -1))
+        show_files = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "directories");
+    lua_gettable(L, -2);
+    if (lua_isnumber(L, -1))
+        show_directories = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "symlinks");
+    lua_gettable(L, -2);
+    if (lua_isnumber(L, -1))
+        show_symlinks = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "git");
+    lua_gettable(L, -2);
+    if (lua_isboolean(L, -1))
+        show_git = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "long");
+    lua_gettable(L, -2);
+    if (lua_isboolean(L, -1))
+        show_long = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+skip_L_default_args:
     while ((opt = getopt_long(argc, argv, "aFDSGr::lvhf::", long_args, NULL)) !=
            -1)
     {

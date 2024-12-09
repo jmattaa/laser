@@ -30,7 +30,6 @@ static const char *descriptions[] = {
     "Generate shell completions",
 };
 
-// TODO: add filters to L_default_args!!!!!11
 laser_opts laser_cli_parsecmd(int argc, char **argv)
 {
     int show_all = 0;
@@ -92,6 +91,21 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     lua_gettable(L, -2);
     if (lua_isboolean(L, -1))
         show_long = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "filters");
+    lua_gettable(L, -2);
+    if (lua_istable(L, -1))
+    {
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0)
+        {
+            filters = realloc(filters, sizeof(char *) * (filter_count + 1));
+            filters[filter_count] = strdup(lua_tostring(L, -1));
+            filter_count++;
+            lua_pop(L, 1);
+        }
+    }
     lua_pop(L, 1);
 
 skip_L_default_args:

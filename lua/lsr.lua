@@ -35,5 +35,5 @@ L_default_args = {
     symlinks = -1,
     git = true,
     long = true,
-    -- filters = { "recent" },
+    filters = {},
 }

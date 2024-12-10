@@ -28,8 +28,6 @@ void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
         status_char = 'A';
     else if (status & GIT_STATUS_WT_MODIFIED)
         status_char = 'M';
-    else if (status & GIT_STATUS_WT_DELETED)
-        status_char = 'D';
     else if (status & GIT_STATUS_WT_RENAMED)
         status_char = 'R';
     else if (status & GIT_STATUS_WT_TYPECHANGE)

@@ -101,8 +101,10 @@ you can directly pass in the flags.
 - `-D` or `--Directories` shows only directories
 - `-F` or `--Files` shows only files
 - `-S` or `--Symlinks` shows only symlinks
-- `-G` or `--Git` shows only the entries that are not named in `.gitignore`
-  (works only if there exists a `.gitignore`)
+- `-G` or `--Git` shows the entries which are tracked by git and gives a status
+  for modified, added and renamed files (accepts an optional value for the git
+      repository path) by default the current directory is used.
+      `-G/path/to/git/repo` or `--Git=/path/to/git/repo`
 - `-r` or `--recursive` shows directory tree structure
     - `-r` or `--recursive` has an optional value for max depth and  it can be
       used by using `-r2` or `--recursive=2` by default the depth is until last
@@ -111,12 +113,6 @@ you can directly pass in the flags.
   and owner)
 - `-fmyfilter` or `--filter=myfilter` applies a user defined filter from lua
   check the [CONFIGURATION.md](/CONFIGURATION.md)
-
-The flags can be chained for example using:
-```sh
-lsr -Dar # this will show all directories including hidden ones recursivly
-lsr -GDS # this will only show directories (not hidden) and symlinks that are not mentioned in .gitignore
-```
 
 # Contributing
 

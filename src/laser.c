@@ -14,19 +14,6 @@
 
 static ssize_t longest_ownername = 0;
 
-static char *strip_parent_dir(const char *full_path, const char *parent_dir)
-{
-    size_t parent_len = strlen(parent_dir);
-
-    if (strncmp(full_path, parent_dir, parent_len) == 0 &&
-        full_path[parent_len] == '/')
-    {
-        return (char *)(full_path + parent_len + 1);
-    }
-
-    return (char *)full_path;
-}
-
 static int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 {
     struct laser_dirent *dirent_a = *(struct laser_dirent **)a;
@@ -223,6 +210,8 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             entries[entry_count]->d = malloc(offsetof(struct dirent, d_name) +
                                              strlen(entry->d->d_name) + 1);
 
+            // default status to ' '
+            entries[entry_count]->git_status = ' ';
             // so... git dosent track dirs only files
             if (!S_ISDIR(entry->s.st_mode) && opts.show_git)
                 lgit_getGitStatus(opts, entries[entry_count], full_path);

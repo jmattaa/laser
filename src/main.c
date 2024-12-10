@@ -3,11 +3,11 @@
 #include "init_lua.h"
 #include "laser.h"
 #include <git2.h>
+#include <git2/global.h>
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #ifndef DEFAULT_SCRIPT_PATH
@@ -16,6 +16,8 @@
 
 int main(int argc, char **argv)
 {
+    git_libgit2_init();
+
     if (!laser_init_lua())
         return 1;
 
@@ -46,15 +48,29 @@ int main(int argc, char **argv)
     if (script_to_load != default_script)
         laser_lua_load_script(script_to_load);
 
-    git_libgit2_init();
-
     laser_colors_init();
     laser_opts opts = laser_cli_parsecmd(argc, argv);
+
+    // why is this here, well... so that we can free it while seing it
+    if (opts.show_git)
+    {
+        int err = git_repository_open(&opts.git_repo, opts.dir);
+        if (err != 0)
+        {
+            fprintf(stderr, "lsr: couldn't open git repo at '%s'\n", opts.dir);
+            opts.show_git = 0;
+        }
+    }
 
     laser_list_directory(opts, 0, opts.recursive_depth);
 
     laser_cli_destroy_opts(opts);
     laser_colors_free();
+
+    laser_lua_destroy();
+
+    if (opts.git_repo)
+        git_repository_free(opts.git_repo);
     git_libgit2_shutdown();
 
     return 0;

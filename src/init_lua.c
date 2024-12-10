@@ -48,3 +48,9 @@ void laser_lua_set_package_path(const char *script_path)
         lua_pop(L, 1);
     }
 }
+
+void laser_lua_destroy(void)
+{
+    lua_settop(L, 0);
+    lua_close(L);
+}

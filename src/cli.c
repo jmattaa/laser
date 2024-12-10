@@ -136,16 +136,6 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     if (optind < argc)
         dir = argv[optind];
 
-    if (show_git)
-    {
-        int err = git_repository_open(&git_repo, dir);
-        if (err != 0)
-        {
-            fprintf(stderr, "lsr: couldn't open git repo at '%s'\n", dir);
-            show_git = 0;
-        }
-    }
-
     return (laser_opts){
         show_all, show_files, show_directories, show_symlinks,   show_git,
         git_repo, show_tree,  show_long,        recursive_depth, filter_count,

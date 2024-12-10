@@ -2,7 +2,15 @@ cmake_minimum_required(VERSION 3.18)
 
 project(lsr LANGUAGES C)
 
-set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG -fsanitize=address -Wall -Wextra -pedantic")
+option(ENABLE_SANITIZER "Enable AddressSanitizer for debug builds" ON)
+
+if(ENABLE_SANITIZER)
+    set(SANITIZER_FLAGS "-fsanitize=address")
+else()
+    set(SANITIZER_FLAGS "")
+endif()
+
+set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG ${SANITIZER_FLAGS} -Wall -Wextra -pedantic")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})

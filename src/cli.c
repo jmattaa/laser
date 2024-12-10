@@ -99,7 +99,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     L_DEFAULT_ARG_TYPES(_X)
 #undef _X
 
-#define _X(name) &name,
+#define _X(name) &default_##name,
     lua_get_L_default_args(&show_all, L_DEFAULT_ARG_TYPES(_X)(&show_git),
                            &show_long, &filters, &filter_count);
 #undef _X

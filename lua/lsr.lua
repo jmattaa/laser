@@ -29,11 +29,11 @@ function L_pre_print_entries()
 end
 
 L_default_args = {
-    all = true,
-    files = -1,
-    directories = -1,
-    symlinks = -1,
-    git = true,
-    long = true,
+    all = false,
+    files = true,
+    directories = true,
+    symlinks = true,
+    git = false,
+    long = false,
     filters = {},
 }

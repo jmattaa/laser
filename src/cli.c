@@ -30,68 +30,31 @@ static const char *descriptions[] = {
     "Generate shell completions",
 };
 
-laser_opts laser_cli_parsecmd(int argc, char **argv)
+#define L_DEFAULT_SIMPLE_ARGS(_X)                                              \
+    _X(all, boolean)                                                           \
+    _X(files, boolean)                                                         \
+    _X(directories, boolean)                                                   \
+    _X(symlinks, boolean)                                                      \
+    _X(git, boolean)                                                           \
+    _X(long, boolean)
+
+#define L_DEFAULT_SIMPLE_ARGS_GET(arg, type)                                   \
+    lua_pushstring(L, #arg);                                                   \
+    lua_gettable(L, -2);                                                       \
+    if (lua_is##type(L, -1))                                                   \
+        *show_##arg = lua_toboolean(L, -1);                                    \
+    lua_pop(L, 1);
+
+static void lua_get_L_default_args(int *show_all, int *show_files,
+                                   int *show_directories, int *show_symlinks,
+                                   int *show_git, int *show_long,
+                                   const char ***filters, int *filter_count)
 {
-    int show_all = 0;
-    int show_files = -1;
-    int show_directories = -1;
-    int recursive_depth = -1;
-    int show_symlinks = -1;
-    int show_git = 0;
-    int show_tree = 0;
-    int show_long = 0;
-    const char *dir = ".";
-
-    // set default recursive_depth from lua
-    lua_getglobal(L, "L_recursive_max_depth");
-    if (lua_isnumber(L, -1))
-        recursive_depth = (int)lua_tointeger(L, -1);
-
     lua_getglobal(L, "L_default_args");
-
-    int filter_count = 0;
-    const char **filters = NULL;
-
-    int opt;
-
     if (!lua_istable(L, -1))
-        goto skip_L_default_args;
+        return;
 
-    lua_pushstring(L, "all");
-    lua_gettable(L, -2);
-    if (lua_isboolean(L, -1))
-        show_all = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-
-    lua_pushstring(L, "files");
-    lua_gettable(L, -2);
-    if (lua_isnumber(L, -1))
-        show_files = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_pushstring(L, "directories");
-    lua_gettable(L, -2);
-    if (lua_isnumber(L, -1))
-        show_directories = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_pushstring(L, "symlinks");
-    lua_gettable(L, -2);
-    if (lua_isnumber(L, -1))
-        show_symlinks = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_pushstring(L, "git");
-    lua_gettable(L, -2);
-    if (lua_isboolean(L, -1))
-        show_git = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-
-    lua_pushstring(L, "long");
-    lua_gettable(L, -2);
-    if (lua_isboolean(L, -1))
-        show_long = lua_toboolean(L, -1);
-    lua_pop(L, 1);
+    L_DEFAULT_SIMPLE_ARGS(L_DEFAULT_SIMPLE_ARGS_GET)
 
     lua_pushstring(L, "filters");
     lua_gettable(L, -2);
@@ -100,15 +63,52 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
         lua_pushnil(L);
         while (lua_next(L, -2) != 0)
         {
-            filters = realloc(filters, sizeof(char *) * (filter_count + 1));
-            filters[filter_count] = strdup(lua_tostring(L, -1));
-            filter_count++;
+            (*filters) =
+                realloc(*filters, sizeof(char *) * ((*filter_count) + 1));
+            (*filters)[*filter_count] = strdup(lua_tostring(L, -1));
+            (*filter_count)++;
             lua_pop(L, 1);
         }
     }
     lua_pop(L, 1);
+}
 
-skip_L_default_args:
+#define L_DEFAULT_ARG_TYPES(_X)                                                \
+    _X(show_files)                                                             \
+    _X(show_directories)                                                       \
+    _X(show_symlinks)
+
+laser_opts laser_cli_parsecmd(int argc, char **argv)
+{
+    int show_all = 0;
+    int show_files = -1;
+    int show_directories = -1;
+    int show_symlinks = -1;
+    int recursive_depth = -1;
+    int show_git = 0;
+    int show_tree = 0;
+    int show_long = 0;
+    const char *dir = ".";
+
+    int filter_count = 0;
+    const char **filters = NULL;
+
+    int opt;
+
+#define _X(name) int default_##name;
+    L_DEFAULT_ARG_TYPES(_X)
+#undef _X
+
+#define _X(name) &name,
+    lua_get_L_default_args(&show_all, L_DEFAULT_ARG_TYPES(_X)(&show_git),
+                           &show_long, &filters, &filter_count);
+#undef _X
+
+    // set default recursive_depth from lua
+    lua_getglobal(L, "L_recursive_max_depth");
+    if (lua_isnumber(L, -1))
+        recursive_depth = (int)lua_tointeger(L, -1);
+
     while ((opt = getopt_long(argc, argv, "aFDSGr::lvhf::", long_args, NULL)) !=
            -1)
     {
@@ -187,6 +187,17 @@ skip_L_default_args:
 
     if (optind < argc)
         dir = argv[optind];
+
+    // check if default lua values have been overriden by cli
+    // if not then use them if yes then use cli values
+#define _X(name) name == -1 &&
+    if (L_DEFAULT_ARG_TYPES(_X) 1) // there is prolly a better way than to put 1
+#undef _X
+    {
+#define _X(name) name = default_##name;
+        L_DEFAULT_ARG_TYPES(_X)
+#undef _X
+    }
 
     return (laser_opts){
         show_all,  show_files,      show_directories, show_symlinks, show_git,

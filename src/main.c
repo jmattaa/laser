@@ -51,17 +51,6 @@ int main(int argc, char **argv)
     laser_colors_init();
     laser_opts opts = laser_cli_parsecmd(argc, argv);
 
-    // why is this here, well... so that we can free it while seing it
-    if (opts.show_git)
-    {
-        int err = git_repository_open(&opts.git_repo, opts.dir);
-        if (err != 0)
-        {
-            fprintf(stderr, "lsr: couldn't open git repo at '%s'\n", opts.dir);
-            opts.show_git = 0;
-        }
-    }
-
     laser_list_directory(opts, 0, opts.recursive_depth);
 
     laser_cli_destroy_opts(opts);

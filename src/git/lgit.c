@@ -8,7 +8,8 @@
 void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
                        const char *full_path)
 {
-    if (!opts.show_git)
+    // so... git dosent track dirs, only files
+    if (S_ISDIR(entry->s.st_mode))
         return;
 
     // skip the leading "./" cuz libgit dosen't like it

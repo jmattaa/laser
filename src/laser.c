@@ -212,8 +212,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
             // default status to ' '
             entries[entry_count]->git_status = ' ';
-            // so... git dosent track dirs only files
-            if (!S_ISDIR(entry->s.st_mode) && opts.show_git)
+            if (opts.show_git)
                 lgit_getGitStatus(opts, entries[entry_count], full_path);
 
             memcpy(entries[entry_count]->d, entry->d,

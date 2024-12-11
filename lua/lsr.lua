@@ -27,3 +27,13 @@ end
 
 function L_pre_print_entries()
 end
+
+L_default_args = {
+    all = false,
+    files = true,
+    directories = true,
+    symlinks = true,
+    git = false,
+    long = false,
+    filters = {},
+}

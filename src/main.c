@@ -54,5 +54,7 @@ int main(int argc, char **argv)
     laser_cli_destroy_opts(opts);
     laser_colors_free();
 
+    laser_lua_destroy();
+
     return 0;
 }

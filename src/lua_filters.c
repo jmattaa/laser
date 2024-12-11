@@ -54,12 +54,12 @@ int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
         if (lua_toboolean(L, -1))
         {
             lua_pop(L, 1); // pop the boolean
-            continue; // check the next filter
+            continue;      // check the next filter
         }
 
         lua_pop(L, 1); // pop the boolean
         lua_pop(L, 1); // pop the table
-        return 0; // filtered out
+        return 0;      // filtered out
     }
 
     lua_pop(L, 1); // pop the boolean

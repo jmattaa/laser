@@ -10,7 +10,8 @@
       1. [Constants](#constants)
          1. [`L_colors`](#l_colors)
          2. [`L_recursive_max_depth`](#l_recursive_max_depth)
-         3. [`L_filters`](#l_filters)
+         3. [`L_default_args`](#l_default_args)
+         4. [`L_filters`](#l_filters)
       2. [Functions](#functions)
          1. [`L_compare_entries()`](#l_compare_entries())
          2. [`L_long_format()`](#l_long_format())
@@ -74,6 +75,27 @@ a `-rN` you can set the maximum depth to `N` and override the default value.
 
 ```lua
 L_recursive_max_depth = -1
+```
+
+#### `L_default_args`
+
+You can configure the default arguments that should be used when running `lsr`
+by creating the global `L_default_args` table. 
+
+The default configuration of `L_default_args` is:
+```lua
+L_default_args = {
+    all = false, -- show hidden files
+    files = true, -- show files
+    directories = true, -- show directories
+    symlinks = true, -- show symlinks
+    git = false, -- show git status and entries tracked by git
+    long = false, -- show long format
+
+    filters = {}, -- apply filters defined in `L_filters` 
+                    -- (NOTE: the name should be a string)
+}
+
 ```
 
 #### `L_filters`

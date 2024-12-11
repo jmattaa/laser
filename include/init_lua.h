@@ -10,5 +10,6 @@ extern lua_State *L;
 lua_State *laser_init_lua(void);
 void laser_lua_load_script(const char *script_path);
 void laser_lua_set_package_path(const char *script_path);
+void laser_lua_destroy(void);
 
 #endif

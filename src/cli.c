@@ -188,8 +188,8 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     if (optind < argc)
         dir = argv[optind];
 
-    // check if default lua values have been overriden by cli
-    // if not then use them if yes then use cli values
+        // check if default lua values have been overriden by cli
+        // if not then use them if yes then use cli values
 #define _X(name) name == -1 &&
     if (L_DEFAULT_ARG_TYPES(_X) 1) // there is prolly a better way than to put 1
 #undef _X

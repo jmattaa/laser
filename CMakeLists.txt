@@ -28,6 +28,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(USER_HOME "$ENV{HOME}")
 set(LUA_SCRIPTS_INSTALL_PATH "${USER_HOME}/.lsr")
 set(DEFAULT_SCRIPT_PATH "${LUA_SCRIPTS_INSTALL_PATH}/lsr.lua")
+file(MAKE_DIRECTORY "${LUA_SCRIPTS_INSTALL_PATH}")
 
 add_executable(lsr ${SRCS})
 

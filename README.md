@@ -51,7 +51,7 @@ Install system-wide:
 
 ```sh
 cmake -S . -B build
-sudo cmake --build build
+cmake --build build
 sudo cmake --install build
 ```
 

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.18)
 
 project(lsr LANGUAGES C)
 
-option(HOMEBREW_INSTALLATION "Is this a Homebrew installation" OFF)
 option(ENABLE_SANITIZER "Enable AddressSanitizer for debug builds" ON)
 
 if(ENABLE_SANITIZER)
@@ -38,13 +37,11 @@ target_link_libraries(lsr PRIVATE ${LUA_LIBRARIES})
 
 file(GLOB LUA_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/lua/*.lua")
 
-if (NOT HOMEBREW_INSTALLATION)
-    add_custom_command(TARGET lsr POST_BUILD
-        COMMENT "Copying Lua scripts to ${LUA_SCRIPTS_INSTALL_PATH}"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${LUA_SCRIPTS_INSTALL_PATH}"
-        COMMAND ${CMAKE_COMMAND} -E copy ${LUA_SCRIPTS} "${LUA_SCRIPTS_INSTALL_PATH}"
-    )
-endif()
+add_custom_command(TARGET lsr POST_BUILD
+    COMMENT "Copying Lua scripts to ${LUA_SCRIPTS_INSTALL_PATH}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${LUA_SCRIPTS_INSTALL_PATH}"
+    COMMAND ${CMAKE_COMMAND} -E copy ${LUA_SCRIPTS} "${LUA_SCRIPTS_INSTALL_PATH}"
+)
 
 install(TARGETS lsr DESTINATION bin)
 

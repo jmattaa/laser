@@ -18,14 +18,15 @@
       3. [Using Defaults](#using-defaults)
 
 Laser is highly customizable through Lua scripts. The default configuration
-file is located at `/usr/local/share/lsr/lsr.lua`. This file is loaded by the
-program and sets the default behavior for laser. You can modify this file or
-create your own configuration file to change the behavior of laser.
+file is located at `~/.lsr/lsr.lua`. This file is loaded by the
+program and sets the default behavior for laser. Do not modify this file unless
+you know what you are doing. (cuz the program will break if you do) So it's  
+recommended that you create your own configuration file.
 
 ## Creating Your Own Configuration File
 
 To create your own configuration all that you need to do is to create a lua
-file at `/usr/local/share/lsr/`. This will be the default file where laser will
+file at `~/.config/lsr`. This will be the default file where laser will
 look for your configuration. You can of course add more files to this directory
 (check the `lua` directory in the repo). Other files in this directory will not
 be loaded by laser but you can do a `require` to them to load them into the
@@ -33,9 +34,9 @@ be loaded by laser but you can do a `require` to them to load them into the
 
 ## Writing Your Own Configuration
 
-The default configuration file is located at `/usr/local/share/lsr/lsr.lua`.
-You can copy these files and edit them to your liking. But here comes a small
-guide on what you can do with a blank `lsr.lua` file.
+The default configuration file is located at `~/.lsr/lsr.lua`. You can copy
+these files and edit them to your liking. But here comes a small guide on what
+you can do with a blank `lsr.lua` file.
 
 > [!NOTE] 
 > All laser-specific functions and constants are prefixed with `L_`.

@@ -11,7 +11,8 @@
 ## Table of contents
    1. [Installation](#installation)
       1. [From Homebrew](#from-homebrew)
-      2. [Building from source](#building-from-source)
+      2. [From AUR](#from-aur)
+      3. [Building from source](#building-from-source)
    2. [Usage](#usage)
       1. [Configure](#configure)
       2. [Command-line options](#command-line-options)
@@ -37,6 +38,14 @@ brew install --formula laser
 ```
 
 By installing with Homebrew, you get the shell completions for the cli as well!
+
+### From AUR
+
+[AUR](https://aur.archlinux.org/packages/laser-git) (Arch Linux)
+
+```sh
+yay -S laser-git
+```
 
 ### Building from source
 

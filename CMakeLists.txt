@@ -31,8 +31,6 @@ if (NOT LUA_SCRIPTS_INSTALL_PATH)
 endif()
 set(DEFAULT_SCRIPT_PATH "${LUA_SCRIPTS_INSTALL_PATH}/lsr.lua")
 
-file(MAKE_DIRECTORY "${LUA_SCRIPTS_INSTALL_PATH}")
-
 add_executable(lsr ${SRCS})
 
 target_compile_definitions(lsr PRIVATE DEFAULT_SCRIPT_PATH="${DEFAULT_SCRIPT_PATH}")

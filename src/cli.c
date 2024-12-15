@@ -9,6 +9,8 @@ static const struct option long_args[] = {
     {"Directories", 0, 0, 'D'},
     {"Symlinks", 0, 0, 'S'},
     {"Git", optional_argument, 0, 'G'},
+    {"git-status", optional_argument, 0, 'g'},
+    {"git-ignored", optional_argument, 0, 'i'},
     {"long", 0, 0, 'l'},
     {"recursive", optional_argument, 0, 'r'},
     {"filter", required_argument, 0, 'f'},
@@ -23,7 +25,9 @@ static const char *descriptions[] = {
     "Show files only",
     "Show directories only",
     "Show symlinks only",
-    "Show entries that are not defined in .gitignore",
+    "Do not show ignored git files and show git status",
+    "Show git status for entries",
+    "Ignore git ignored files",
     "Use long format",
     "Show in tree format",
     "Filter out files using lua filters (`L_filters` in lsr.lua)",
@@ -37,7 +41,6 @@ static const char *descriptions[] = {
     _X(files, boolean)                                                         \
     _X(directories, boolean)                                                   \
     _X(symlinks, boolean)                                                      \
-    _X(git, boolean)                                                           \
     _X(long, boolean)
 
 #define L_DEFAULT_SIMPLE_ARGS_GET(arg, type)                                   \
@@ -49,7 +52,8 @@ static const char *descriptions[] = {
 
 static void lua_get_L_default_args(int *show_all, int *show_files,
                                    int *show_directories, int *show_symlinks,
-                                   int *show_git, int *show_long,
+                                   int *show_long,
+                                   struct lgit_show_git *show_git,
                                    const char ***filters, int *filter_count)
 {
     lua_getglobal(L, "L_default_args");
@@ -57,6 +61,23 @@ static void lua_get_L_default_args(int *show_all, int *show_files,
         return;
 
     L_DEFAULT_SIMPLE_ARGS(L_DEFAULT_SIMPLE_ARGS_GET)
+
+    lua_pushstring(L, "git");
+    lua_gettable(L, -2);
+    if (lua_istable(L, -1))
+    {
+        lua_pushstring(L, "status");
+        lua_gettable(L, -2);
+        if (lua_isboolean(L, -1))
+            show_git->show_git_status = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+        lua_pushstring(L, "ignored");
+        lua_gettable(L, -2);
+        if (lua_isboolean(L, -1))
+            show_git->hide_git_ignored = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
 
     lua_pushstring(L, "filters");
     lua_gettable(L, -2);
@@ -87,7 +108,11 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     int show_directories = -1;
     int show_symlinks = -1;
     int recursive_depth = -1;
-    int show_git = 0;
+
+    struct lgit_show_git *show_git = malloc(sizeof(struct lgit_show_git));
+    show_git->show_git_status = 0;
+    show_git->hide_git_ignored = 0;
+
     git_repository *git_repo = NULL;
     int show_tree = 0;
     int show_long = 0;
@@ -105,8 +130,8 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
 #undef _X
 
 #define _X(name) &default_##name,
-    lua_get_L_default_args(&show_all, L_DEFAULT_ARG_TYPES(_X)(&show_git),
-                           &show_long, &filters, &filter_count);
+    lua_get_L_default_args(&show_all, L_DEFAULT_ARG_TYPES(_X)(&show_long),
+                           show_git, &filters, &filter_count);
 #undef _X
 
     // set default recursive_depth from lua
@@ -114,7 +139,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     if (lua_isnumber(L, -1))
         recursive_depth = (int)lua_tointeger(L, -1);
 
-    while ((opt = getopt_long(argc, argv, "aFDSG::r::lvhf::", long_args,
+    while ((opt = getopt_long(argc, argv, "aFDSG::g::i::r::lvhf::", long_args,
                               NULL)) != -1)
     {
         switch (opt)
@@ -138,7 +163,18 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 show_symlinks = 1;
                 break;
             case 'G':
-                show_git = 1;
+                show_git->show_git_status = 1;
+                show_git->hide_git_ignored = 1;
+                if (optarg != NULL)
+                    gitDir = optarg;
+                break;
+            case 'g':
+                show_git->show_git_status = 1;
+                if (optarg != NULL)
+                    gitDir = optarg;
+                break;
+            case 'i':
+                show_git->hide_git_ignored = 1;
                 if (optarg != NULL)
                     gitDir = optarg;
                 break;
@@ -208,7 +244,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
 #undef _X
     }
 
-    if (show_git)
+    if (show_git->show_git_status || show_git->hide_git_ignored)
     {
         int err = git_repository_open(&git_repo, gitDir);
         if (err != 0)
@@ -319,6 +355,11 @@ void laser_cli_print_help(void)
 
 void laser_cli_destroy_opts(laser_opts opts)
 {
+    if (opts.git_repo)
+        git_repository_free(opts.git_repo);
+
+    free(opts.show_git);
+
     for (int i = 0; i < opts.filter_count; i++)
         free((void *)opts.filters[i]);
     free(opts.filters);

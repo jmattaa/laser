@@ -58,8 +58,6 @@ int main(int argc, char **argv)
 
     laser_lua_destroy();
 
-    if (opts.git_repo)
-        git_repository_free(opts.git_repo);
     git_libgit2_shutdown();
 
     return 0;

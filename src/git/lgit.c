@@ -8,6 +8,7 @@
 void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
                        const char *full_path)
 {
+    entry->git_status = ' ';
     // so... git dosent track dirs, only files
     if (S_ISDIR(entry->s.st_mode))
         return;
@@ -24,15 +25,12 @@ void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
         return;
     }
 
-    char status_char = ' ';
     if (status & GIT_STATUS_WT_NEW)
-        status_char = 'A';
+        entry->git_status = 'A';
     else if (status & GIT_STATUS_WT_MODIFIED)
-        status_char = 'M';
+        entry->git_status = 'M';
     else if (status & GIT_STATUS_WT_RENAMED)
-        status_char = 'R';
+        entry->git_status = 'R';
     else if (status & GIT_STATUS_WT_TYPECHANGE)
-        status_char = 'T';
-
-    entry->git_status = status_char;
+        entry->git_status = 'T';
 }

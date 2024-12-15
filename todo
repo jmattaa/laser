@@ -1,3 +1,3 @@
  - [ ] show that files inside directory are changed in git through [M] on dir
- - [ ] split the `--Git` flag into `--git-status` and `--git-ignore`, also keep the
+ - [x] split the `--Git` flag into `--git-status` and `--git-ignore`, also keep the
          `--Git` flag as a shortcut for `--git-status --git-ignore`

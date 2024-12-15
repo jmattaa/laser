@@ -153,31 +153,22 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             continue;
         }
 
-        if (opts.show_git)
+        if (opts.show_git->hide_git_ignored)
         {
             // always ignore .git
             if (strcmp(entry->d->d_name, ".git") == 0)
                 continue;
 
             // skip the leading "./" cuz libgit dosen't like it
-            if (strncmp(full_path, "./", 2) == 0)
-            {
-                if (git_ignore_path_is_ignored(&entry_ignored, opts.git_repo,
-                                               &full_path[2]) < 0)
-                {
-                    fprintf(stderr, "lsr: %s\n", git_error_last()->message);
-                    continue;
-                }
-                goto check_ignore;
-            }
             if (git_ignore_path_is_ignored(&entry_ignored, opts.git_repo,
-                                           full_path) < 0)
+                                           strncmp(full_path, "./", 2) == 0
+                                               ? &full_path[2]
+                                               : full_path) < 0)
             {
                 fprintf(stderr, "lsr: %s\n", git_error_last()->message);
                 continue;
             }
 
-        check_ignore:
             if (entry_ignored == 1)
                 continue;
         }
@@ -212,7 +203,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
             // default status to ' '
             entries[entry_count]->git_status = ' ';
-            if (opts.show_git)
+            if (opts.show_git->show_git_status)
                 lgit_getGitStatus(opts, entries[entry_count], full_path);
 
             memcpy(entries[entry_count]->d, entry->d,

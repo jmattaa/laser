@@ -105,23 +105,39 @@ The command-line options can be added by passing flags. These flags can be put
 before or after the directory you want to search, if there is no directory
 you can directly pass in the flags.
 
-- `-a` or `--all` shows hidden files
-- `-D` or `--Directories` shows only directories
-- `-F` or `--Files` shows only files
-- `-S` or `--Symlinks` shows only symlinks
-- `-G` or `--Git` shows the entries which are tracked by git and gives a status
-  for modified, added and renamed files (accepts an optional value for the git
-      repository path) by default the current directory is used.
-      `-G/path/to/git/repo` or `--Git=/path/to/git/repo`
-- `-r` or `--recursive` shows directory tree structure
-    - `-r` or `--recursive` has an optional value for max depth and  it can be
-      used by using `-r2` or `--recursive=2` by default the depth is until last
-      level
-- `-l` or `--long` displays in long format (permissions, last modified, size
-  and owner)
-- `-fmyfilter` or `--filter=myfilter` applies a user defined filter from lua
-  check the [CONFIGURATION.md](/CONFIGURATION.md#L_filters) for more
-  information
+- `-a` / `--all`  Displays hidden files.
+
+- `-D` / `--Directories`  Displays only directories.
+
+- `-F` / `--Files`  Displays only files.
+
+- `-S` / `--Symlinks`  Displays only symbolic links.
+
+- `-G` / `--Git`  Combines the `--git-status` and `--git-ignore` flags.  
+  - Defaults to use the current directory as git repo.
+  - To specify a Git repository: `-G/path/to/git/repo` or
+    `--Git=/path/to/git/repo`.
+
+- `-g` / `--git-status`  Displays the Git status of files.  
+  - Defaults to use the current directory as git repo.
+  - To specify a Git repository: `-g/path/to/git/repo` or
+    `--git-status=/path/to/git/repo`.
+
+- `-i` / `--git-ignore`  Displays Git-ignored files.  
+  - Defaults to use the current directory as git repo.
+  - To specify a Git repository: `-i/path/to/git/repo` or
+    `--git-ignore=/path/to/git/repo`.
+
+- `-r` / `--recursive`  Displays the directory tree structure.  
+  - Optional depth: Specify a maximum depth with `-r2` or `--recursive=2`.  
+  - Default: Expands to the last level.
+
+- `-l` / `--long`  Displays detailed file information, including permissions,
+  last modified date, size, and owner.
+
+- `-fmyfilter` / `--filter=myfilter`  Applies a user-defined filter written in
+  Lua.  
+  - For more information, see [CONFIGURATION.md](CONFIGURATION.md#L_filters).
 
 # Contributing
 

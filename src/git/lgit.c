@@ -26,11 +26,26 @@ void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
     }
 
     if (status & GIT_STATUS_WT_NEW)
-        entry->git_status = 'A';
+        entry->git_status = 'a';
     else if (status & GIT_STATUS_WT_MODIFIED)
-        entry->git_status = 'M';
+        entry->git_status = 'm';
     else if (status & GIT_STATUS_WT_RENAMED)
-        entry->git_status = 'R';
+        entry->git_status = 'r';
     else if (status & GIT_STATUS_WT_TYPECHANGE)
+        entry->git_status = 't';
+
+    // staged
+    else if (status & GIT_STATUS_INDEX_NEW)
+        entry->git_status = 'A';
+    else if (status & GIT_STATUS_INDEX_MODIFIED)
+        entry->git_status = 'M';
+    else if (status & GIT_STATUS_INDEX_RENAMED)
+        entry->git_status = 'R';
+    else if (status & GIT_STATUS_INDEX_TYPECHANGE)
         entry->git_status = 'T';
+}
+
+void lgit_getDirStatus(laser_opts opts, struct laser_dirent *entry,
+                       const char *full_path)
+{
 }

@@ -122,6 +122,13 @@ you can directly pass in the flags.
   - Defaults to use the current directory as git repo.
   - To specify a Git repository: `-g/path/to/git/repo` or
     `--git-status=/path/to/git/repo`.
+  - Lowercase letters as a status means that the file is not staged. And 
+    uppercase letters mean that the file is staged.
+  - Status letters:  
+    - `A` = added  
+    - `M` = modified  
+    - `R` = renamed  
+    - `T` = type changed
 
 - `-i` / `--git-ignore`  Displays Git-ignored files.  
   - Defaults to use the current directory as git repo.

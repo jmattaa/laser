@@ -22,7 +22,7 @@ if(NOT LUA_FOUND)
 endif()
 include_directories("${LUA_INCLUDE_DIR}")
 
-find_package(Libgit2 REQUIRED)
+find_package(libgit2 REQUIRED)
 if (NOT LIBGIT2_FOUND)
     message(FATAL_ERROR "Libgit2 libraries not found")
 else()

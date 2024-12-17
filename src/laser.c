@@ -183,7 +183,7 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
             (S_ISLNK(entry->s.st_mode) && opts.show_symlinks) ||
             (S_ISREG(entry->s.st_mode) && opts.show_files))
         {
-            if (opts.show_tree && S_ISDIR(entry->s.st_mode) &&
+            if ((S_ISDIR(entry->s.st_mode) && opts.show_tree) &&
                 (strcmp(entry->d->d_name, ".") == 0 ||
                  strcmp(entry->d->d_name, "..") == 0))
                 continue;

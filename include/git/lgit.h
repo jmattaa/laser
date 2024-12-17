@@ -8,5 +8,7 @@
 
 void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
                        const char *full_path);
+void lgit_getDirStatus(laser_opts opts, struct laser_dirent *entry,
+                       const char *full_path);
 
 #endif

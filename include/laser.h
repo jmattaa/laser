@@ -19,6 +19,8 @@ struct laser_dirent
 {
     struct dirent *d;
     struct stat s;
+
+    char git_status;
 };
 
 void laser_list_directory(laser_opts opts, int depth, int max_depth);

@@ -2,9 +2,10 @@
 #define LASER_CLI_H
 
 #include "utils.h"
+#include <git2/types.h>
 #include <stdio.h>
 
-#define LASER_VERSION "1.3.1"
+#define LASER_VERSION "1.4.0"
 
 typedef struct laser_opts
 {
@@ -12,7 +13,14 @@ typedef struct laser_opts
     int show_files;
     int show_directories;
     int show_symlinks;
-    int show_git;
+
+    struct lgit_show_git
+    {
+        int show_git_status;
+        int hide_git_ignored;
+    } *show_git;
+    git_repository *git_repo;
+
     int show_tree;
     int show_long;
     int recursive_depth;

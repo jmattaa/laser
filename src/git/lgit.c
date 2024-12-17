@@ -1,113 +1,99 @@
 #include "git/lgit.h"
+#include <git2/errors.h>
+#include <git2/global.h>
+#include <git2/status.h>
 
-#define MAX_LINE_LENGTH 1024
-#define INITIAL_CAPACITY 10
-
-char **lgit_parseGitignore(const char *dir, int *count)
+static void lgit_getDirsStatus(laser_opts opts, struct laser_dirent *entry,
+                               const char *full_path)
 {
-    size_t filename_len = strlen(dir) + strlen("/.gitignore") + 1;
-    char *filename = malloc(filename_len);
+    entry->git_status = ' ';
 
-    snprintf(filename, filename_len, "%s/.gitignore", dir);
-    FILE *file = fopen(filename, "r");
-    if (!file)
+    git_status_options status_opts = GIT_STATUS_OPTIONS_INIT;
+    status_opts.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
+    status_opts.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED |
+                        GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS;
+
+    git_status_list *status_list;
+    if (git_status_list_new(&status_list, opts.git_repo, &status_opts) != 0)
     {
-        perror("Could not open .gitignore");
-        free(filename);
-        return NULL;
+        fprintf(stderr, "lsr: failed to get status list for directory %s\n",
+                full_path);
+        fprintf(stderr, "lsr: %s\n", git_error_last()->message);
+        return;
     }
 
-    char **ignored_patterns = malloc(INITIAL_CAPACITY * sizeof(char *));
-    if (!ignored_patterns)
+    size_t status_count = git_status_list_entrycount(status_list);
+    for (size_t i = 0; i < status_count; i++)
     {
-        perror("Could not allocate memory for ignored patterns");
-        fclose(file);
-        free(filename);
-        return NULL;
-    }
+        const git_status_entry *status_entry =
+            git_status_byindex(status_list, i);
 
-    size_t capacity = INITIAL_CAPACITY;
-    *count = 0;
+        const char *path = status_entry->head_to_index
+                               ? status_entry->head_to_index->new_file.path
+                               : status_entry->index_to_workdir->new_file.path;
 
-    char line[MAX_LINE_LENGTH];
-    while (fgets(line, sizeof(line), file))
-    {
-        char *trimmed = strtok(line, "\n");
-        if (trimmed && trimmed[0] != '#' && trimmed[0] != '\0')
+        if (strncmp(path, full_path, strlen(full_path)) == 0)
         {
-            if (*count >= capacity)
-            {
-                capacity *= 2;
-                ignored_patterns =
-                    realloc(ignored_patterns, capacity * sizeof(char *));
-                if (!ignored_patterns)
-                {
-                    perror("Could not reallocate memory for ignored patterns");
-                    fclose(file);
-                    free(filename);
-                    return NULL;
-                }
-            }
-            ignored_patterns[*count] = strdup(trimmed);
-            (*count)++;
+            entry->git_status = 'M';
+            break;
         }
     }
 
-    free(filename);
-    fclose(file);
-    return ignored_patterns;
+    git_status_list_free(status_list);
 }
 
-// NO NEED FOR THESE NOW
-// --------------------------------------------------
-// lgit_entries *lgit_getGitEntries(laser_opts opts)
-// {
-//     lgit_entries *entries = malloc(sizeof(lgit_entries));
-//
-//     lgit_parseGit(opts.parentDir);
-//
-//     return entries;
-// }
-//
-// void lgit_parseGit(char *dir)
-// {
-//     // TODO: check if git dir exists!!
-//     char *index_file = malloc(strlen(dir) + strlen("/.git/index") + 1);
-//
-//     snprintf(index_file, strlen(dir) + strlen("/.git/index") + 1,
-//              "%s/.git/index", dir);
-//
-//     size_t idxfsize;
-//     char *idx_bincontent = lgit_utils_readbin(index_file, &idxfsize);
-//     char *idx_file_as_hex = lgit_utils_binToHex(idx_bincontent, idxfsize);
-//
-//     // https://git-scm.com/docs/index-format
-//     // HEADER
-//     // first 4 bytes DIRC
-//     char HEADER_SIGNATURE[4] = {'D', 'I', 'R', 'C'};
-//
-//     if (strcmp(lgit_utils_getChars(idx_bincontent, 0, 4 * 8),
-//                HEADER_SIGNATURE) != 0)
-//     {
-//         fprintf(stderr, "lsr: %s: file is not formatted right!!\n", index_file);
-//         return;
-//     }
-//
-//     // next 4 bytes: version
-//     // 4 bytes = 8 hex nums
-//     uint32_t version =
-//         lgit_utils_hexToUint32(lgit_utils_getChars(idx_file_as_hex, 8, 8));
-//
-//     // then 32 bit num for index entries
-//     // 32 bit 4 byte
-//     uint32_t entries_num =
-//         lgit_utils_hexToUint32(lgit_utils_getChars(idx_file_as_hex, 16, 8));
-//
-//     printf("version: %u, entries_count: %u\n", version, entries_num);
-// }
-//
-// void lgit_entries_free(lgit_entries *lgit)
-// {
-//     free(lgit);
-// }
-//
+#define INITIAL_CAPACITY 10
+void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
+                       const char *full_path)
+{
+    entry->git_status = ' ';
+
+    // skip the leading "./" cuz libgit dosen't like it
+    if (strncmp(full_path, "./", 2) == 0)
+        full_path += 2;
+
+    // so... git dosent track dirs, only files
+    if (S_ISDIR(entry->s.st_mode))
+    {
+        lgit_getDirsStatus(opts, entry, full_path);
+        return;
+    }
+
+    unsigned int status;
+    if (git_status_file(&status, opts.git_repo, full_path) != 0)
+    {
+        fprintf(stderr, "lsr: failed to get status for %s\n", full_path);
+        fprintf(stderr, "lsr: %s\n", git_error_last()->message);
+        return;
+    }
+
+    switch (status)
+    {
+        case GIT_STATUS_WT_NEW:
+            entry->git_status = 'a';
+            break;
+        case GIT_STATUS_WT_MODIFIED:
+            entry->git_status = 'm';
+            break;
+        case GIT_STATUS_WT_RENAMED:
+            entry->git_status = 'r';
+            break;
+        case GIT_STATUS_WT_TYPECHANGE:
+            entry->git_status = 't';
+            break;
+
+            // staged changes
+        case GIT_STATUS_INDEX_NEW:
+            entry->git_status = 'A';
+            break;
+        case GIT_STATUS_INDEX_MODIFIED:
+            entry->git_status = 'M';
+            break;
+        case GIT_STATUS_INDEX_RENAMED:
+            entry->git_status = 'R';
+            break;
+        case GIT_STATUS_INDEX_TYPECHANGE:
+            entry->git_status = 'T';
+            break;
+    }
+}

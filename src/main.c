@@ -2,20 +2,22 @@
 #include "colors.h"
 #include "init_lua.h"
 #include "laser.h"
-#include "utils.h"
+#include <git2.h>
+#include <git2/global.h>
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #ifndef DEFAULT_SCRIPT_PATH
-#define DEFAULT_SCRIPT_PATH "/usr/local/share/lsr/lsr.lua"
+#define DEFAULT_SCRIPT_PATH "/usr/local/.lsr"
 #endif
 
 int main(int argc, char **argv)
 {
+    git_libgit2_init();
+
     if (!laser_init_lua())
         return 1;
 
@@ -55,6 +57,8 @@ int main(int argc, char **argv)
     laser_colors_free();
 
     laser_lua_destroy();
+
+    git_libgit2_shutdown();
 
     return 0;
 }

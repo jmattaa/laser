@@ -16,7 +16,7 @@ static const struct option long_args[] = {
     {"filter", required_argument, 0, 'f'},
     {"version", 0, 0, 'v'},
     {"help", 0, 0, 'h'},
-    {"completions", required_argument, 0, 0},
+    {"completions", required_argument, 0, 'C'},
     {0, 0, 0, 0}};
 
 // UPDATE THIS TO MATCH long_args!!
@@ -139,6 +139,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     if (lua_isnumber(L, -1))
         recursive_depth = (int)lua_tointeger(L, -1);
 
+    // 'C' is not defined in this string because it is only long val
     while ((opt = getopt_long(argc, argv, "aFDSG::g::i::r::lvhf::", long_args,
                               NULL)) != -1)
     {
@@ -216,13 +217,9 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 filter_count++;
 
                 break;
-            case 0:
-                if (strcmp(long_args[optind - 1].name, "completions") == 0)
-                {
-                    laser_cli_generate_completions(argv[optind - 1]);
-                    exit(0);
-                }
-                break;
+            case 'C':
+                laser_cli_generate_completions(optarg);
+                exit(0);
             default:
                 exit(1);
         }

@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 LSR="lsr"
 if [[ -x "build/lsr" ]]; then
@@ -9,7 +9,7 @@ mkdir -p completions/bash
 mkdir -p completions/zsh
 mkdir -p completions/fish
 
-$LSR --completions=fish > completions/fish/lsr.fish
-$LSR --completions=zsh > completions/zsh/_lsr
-$LSR --completions=bash > completions/bash/lsr
+$LSR --completions fish > completions/fish/lsr.fish
+$LSR --completions zsh > completions/zsh/_lsr
+$LSR --completions bash > completions/bash/lsr
 

@@ -10,8 +10,7 @@ static void lgit_getDirsStatus(laser_opts opts, struct laser_dirent *entry,
 
     git_status_options status_opts = GIT_STATUS_OPTIONS_INIT;
     status_opts.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
-    status_opts.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED |
-                        GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS;
+    status_opts.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED;
 
     git_status_list *status_list;
     if (git_status_list_new(&status_list, opts.git_repo, &status_opts) != 0)
@@ -34,7 +33,7 @@ static void lgit_getDirsStatus(laser_opts opts, struct laser_dirent *entry,
 
         if (strncmp(path, full_path, strlen(full_path)) == 0)
         {
-            entry->git_status = 'M';
+            entry->git_status = status_entry->head_to_index ? 'M' : 'm';
             break;
         }
     }

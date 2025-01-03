@@ -3,6 +3,8 @@
 #include <git2.h>
 #include <git2/repository.h>
 
+static int completionsset;
+
 static const struct option long_args[] = {
     {"all", 0, 0, 'a'},
     {"Files", 0, 0, 'F'},
@@ -16,7 +18,7 @@ static const struct option long_args[] = {
     {"filter", required_argument, 0, 'f'},
     {"version", 0, 0, 'v'},
     {"help", 0, 0, 'h'},
-    {"completions", required_argument, 0, 'C'},
+    {"completions", required_argument, &completionsset, 1},
     {0, 0, 0, 0}};
 
 // UPDATE THIS TO MATCH long_args!!
@@ -217,9 +219,13 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 filter_count++;
 
                 break;
-            case 'C':
-                laser_cli_generate_completions(optarg);
-                exit(0);
+            case 0:
+                if (completionsset)
+                {
+                    laser_cli_generate_completions(optarg);
+                    exit(0);
+                }
+                break;
             default:
                 exit(1);
         }
@@ -269,10 +275,9 @@ void laser_cli_generate_completions(const char *shell)
         printf("    opts=\"");
         for (int i = 0; long_args[i].name != NULL; i++)
         {
-            char short_flag = long_args[i].val ? long_args[i].val : '\0';
-            if (short_flag)
+            if (long_args[i].val != 1)
             {
-                printf("-%c ", short_flag);
+                printf("-%c ", long_args[i].val);
             }
             printf("--%s ", long_args[i].name);
         }
@@ -294,12 +299,11 @@ void laser_cli_generate_completions(const char *shell)
         printf("    _arguments -s \\\n");
         for (int i = 0; long_args[i].name != NULL; i++)
         {
-            char short_flag = long_args[i].val ? long_args[i].val : '\0';
-            if (short_flag)
+            if (long_args[i].val != 1)
             {
-                printf("        '(-%c --%s)'{-%c,--%s}'[%s]' \\\n", short_flag,
-                       long_args[i].name, short_flag, long_args[i].name,
-                       descriptions[i]);
+                printf("        '(-%c --%s)'{-%c,--%s}'[%s]' \\\n",
+                       long_args[i].val, long_args[i].name, long_args[i].val,
+                       long_args[i].name, descriptions[i]);
             }
             else
             {
@@ -318,7 +322,7 @@ void laser_cli_generate_completions(const char *shell)
         for (int i = 0; long_args[i].name != NULL; i++)
         {
             printf("complete -c lsr");
-            if (long_args[i].val)
+            if (long_args[i].val != 1)
             {
                 printf(" -s %c", long_args[i].val);
             }
@@ -341,9 +345,8 @@ void laser_cli_print_help(void)
     printf("Options:\n");
     for (int i = 0; long_args[i].name != NULL; i++)
     {
-        char short_flag = long_args[i].val ? long_args[i].val : '\0';
-        if (short_flag)
-            printf("  -%c, --%-28s %s\n", short_flag, long_args[i].name,
+        if (long_args[i].val != 1)
+            printf("  -%c, --%-28s %s\n", long_args[i].val, long_args[i].name,
                    descriptions[i]);
         else
             printf("      --%-28s %s\n", long_args[i].name, descriptions[i]);

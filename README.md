@@ -146,6 +146,9 @@ you can directly pass in the flags.
   Lua.  
   - For more information, see [CONFIGURATION.md](CONFIGURATION.md#L_filters).
 
+- `-!` / `--no-lua` Ignores the `~/.lsr/lsr.lua` file and runs without user 
+  config and user defined filters.
+
 # Contributing
 
 Feel free to contribute to this project to make it better :rocket: check the 

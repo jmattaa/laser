@@ -34,7 +34,13 @@ int main(int argc, char **argv)
 
     const char *script_to_load = default_script;
 
-    if (user_config_path[0] != '\0' && access(user_config_path, R_OK) == 0)
+    unsigned char use_user_config = 1;
+    for (int i = 0; i < argc; i++)
+        if (strcmp(argv[i], "--no-lua") == 0 || strcmp(argv[i], "-!") == 0)
+            use_user_config = 0;
+
+    if (user_config_path[0] != '\0' && access(user_config_path, R_OK) == 0 &&
+        use_user_config)
         script_to_load = user_config_path;
 
     // set the package path of user first, to get priority

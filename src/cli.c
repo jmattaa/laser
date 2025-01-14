@@ -16,6 +16,7 @@ static const struct option long_args[] = {
     {"long", 0, 0, 'l'},
     {"recursive", optional_argument, 0, 'r'},
     {"filter", required_argument, 0, 'f'},
+    {"no-lua", 0, 0, '!'},
     {"version", 0, 0, 'v'},
     {"help", 0, 0, 'h'},
     {"completions", required_argument, &completionsset, 1},
@@ -33,6 +34,7 @@ static const char *descriptions[] = {
     "Use long format",
     "Show in tree format",
     "Filter out files using lua filters (`L_filters` in lsr.lua)",
+    "Don't use user defined configuration from lsr.lua",
     "Print the current version",
     "Print help message",
     "Generate shell completions",
@@ -141,8 +143,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     if (lua_isnumber(L, -1))
         recursive_depth = (int)lua_tointeger(L, -1);
 
-    // 'C' is not defined in this string because it is only long val
-    while ((opt = getopt_long(argc, argv, "aFDSG::g::i::r::lvhf::", long_args,
+    while ((opt = getopt_long(argc, argv, "aFDSG::g::i::r::lvhf::!", long_args,
                               NULL)) != -1)
     {
         switch (opt)
@@ -225,6 +226,8 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                     laser_cli_generate_completions(optarg);
                     exit(0);
                 }
+                break;
+            case '!':
                 break;
             default:
                 exit(1);

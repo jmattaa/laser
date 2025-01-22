@@ -2,7 +2,7 @@
 #include "init_lua.h"
 #include <lua.h>
 
-laser_color *LASER_COLORS;
+laser_color LASER_COLORS[COLOR_COUNT];
 
 void laser_colors_set(const char *key, const char *value)
 {
@@ -10,9 +10,7 @@ void laser_colors_set(const char *key, const char *value)
     {
         if (strcmp(LASER_COLORS[i].key, key) == 0)
         {
-            free((void *)LASER_COLORS[i].value); // free old default value
-
-            LASER_COLORS[i].value = strdup(value);
+            LASER_COLORS[i].value = value;
             return;
         }
     }
@@ -20,12 +18,11 @@ void laser_colors_set(const char *key, const char *value)
 
 // macro stuff be 🔥
 #define _X(name, vaule)                                                        \
-    LASER_COLORS[LASER_COLOR_##name].key = strdup(#name);                      \
-    LASER_COLORS[LASER_COLOR_##name].value = strdup(vaule);
+    LASER_COLORS[LASER_COLOR_##name].key = #name;                      \
+    LASER_COLORS[LASER_COLOR_##name].value = vaule;
 
 void laser_colors_init(void)
 {
-    LASER_COLORS = malloc(sizeof(laser_color) * COLOR_COUNT);
     LASER_COLORS_ITER(_X)
 
     lua_getglobal(L, "L_colors");
@@ -41,17 +38,5 @@ void laser_colors_init(void)
     }
 
     lua_settop(L, 0);
-}
-#undef _X
-
-#define _X(name, _)                                                            \
-    free((void *)LASER_COLORS[LASER_COLOR_##name].key);                        \
-    free((void *)LASER_COLORS[LASER_COLOR_##name].value);
-
-void laser_colors_free(void)
-{
-    LASER_COLORS_ITER(_X)
-
-    free(LASER_COLORS);
 }
 #undef _X

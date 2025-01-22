@@ -37,12 +37,10 @@ typedef enum laser_color_type
     LASER_COLORS_ITER(_X)
 } laser_color_type;
 
-extern laser_color *LASER_COLORS;
+extern laser_color LASER_COLORS[COLOR_COUNT];
 
-// TODO: get the colors from lua instead of ENV var
 void laser_colors_init(void);
 void laser_colors_parseToken(const char *token);
-void laser_colors_free(void);
 
 #undef _X
 #endif

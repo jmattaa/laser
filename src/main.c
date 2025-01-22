@@ -60,7 +60,6 @@ int main(int argc, char **argv)
     laser_list_directory(opts, 0, opts.recursive_depth);
 
     laser_cli_destroy_opts(opts);
-    laser_colors_free();
 
     laser_lua_destroy();
 

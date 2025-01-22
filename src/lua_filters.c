@@ -30,6 +30,10 @@ int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
                       : S_ISSOCK(entry->s.st_mode) ? "s"
                                                    : "-");
     lua_setfield(L, -2, "type");
+
+    lua_pushstring(L, (char[]){entry->git_status, 0});
+    lua_setfield(L, -2, "git_status");
+
     for (int i = 0; i < opts.filter_count; i++)
     {
         lua_getfield(L, -2, opts.filters[i]);

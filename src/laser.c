@@ -71,6 +71,9 @@ void laser_print_long_entry(struct laser_dirent *entry, const char *color,
                                                    : "-");
     lua_setfield(L, -2, "type");
 
+    lua_pushstring(L, (char[]){entry->git_status, 0});
+    lua_setfield(L, -2, "git_status");
+
     lua_pushinteger(L, longest_ownername);
 
     if (lua_pcall(L, 2, 1, 0) != LUA_OK)
@@ -173,6 +176,11 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
                 continue;
         }
 
+        // default status to ' '
+        entry->git_status = ' ';
+        if (opts.show_git->show_git_status)
+            lgit_getGitStatus(opts, entry, full_path);
+
         if (!lua_filters_apply(opts, entry))
             continue;
 
@@ -197,14 +205,11 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
             entries[entry_count] = malloc(entry_size);
 
+            entries[entry_count]->git_status = entry->git_status;
+
             entries[entry_count]->s = entry->s;
             entries[entry_count]->d = malloc(offsetof(struct dirent, d_name) +
                                              strlen(entry->d->d_name) + 1);
-
-            // default status to ' '
-            entries[entry_count]->git_status = ' ';
-            if (opts.show_git->show_git_status)
-                lgit_getGitStatus(opts, entries[entry_count], full_path);
 
             memcpy(entries[entry_count]->d, entry->d,
                    offsetof(struct dirent, d_name) + strlen(entry->d->d_name) +

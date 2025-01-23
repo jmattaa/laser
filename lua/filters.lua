@@ -6,5 +6,6 @@ L_filters = {
     small = function(entry) return entry.size < 1024 * 1024 end,
     me = function(entry)
         return entry.owner == user
-    end
+    end,
+    changed = function(entry) return entry.git_status ~= "" end
 }

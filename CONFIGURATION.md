@@ -114,7 +114,8 @@ L_filters = {
     small = function(entry) return entry.size < 1024 * 1024 end,
     me = function(entry) 
         return entry.owner == user -- the user variable is gotten from os.getenv
-    end
+    end,
+    changed = function(entry) return entry.git_status ~= "" end
 }
 ```
 
@@ -191,6 +192,14 @@ Where `entry` is a table with the following keys:
     - `p`: Named pipe (fifo)
     - `s`: Socket
     - `-`: File
+- `git_status`: The git status of the entry
+    - If there is no status for the entry it will be set to `""`
+    - The values returned could be (uppercase letters are staged, 
+    lowercase letters are not staged):
+        - `A` = added
+        - `M` = modified
+        - `R` = renamed
+        - `T` = type changed
 
 The `longest_name` is the length of the longest name in the directory. This
 could be used to align the output.

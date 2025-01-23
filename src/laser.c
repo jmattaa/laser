@@ -71,7 +71,8 @@ void laser_print_long_entry(struct laser_dirent *entry, const char *color,
                                                    : "-");
     lua_setfield(L, -2, "type");
 
-    lua_pushstring(L, (char[]){entry->git_status, 0});
+    lua_pushstring(
+        L, (char[]){entry->git_status == ' ' ? 0 : entry->git_status, 0});
     lua_setfield(L, -2, "git_status");
 
     lua_pushinteger(L, longest_ownername);
@@ -178,6 +179,9 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
         // default status to ' '
         entry->git_status = ' ';
+        if (opts.show_git->show_git_status)
+            lgit_getGitStatus(opts, entry, full_path);
+
         if (opts.show_git->show_git_status)
             lgit_getGitStatus(opts, entry, full_path);
 

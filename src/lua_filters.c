@@ -31,7 +31,8 @@ int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
                                                    : "-");
     lua_setfield(L, -2, "type");
 
-    lua_pushstring(L, (char[]){entry->git_status, 0});
+    lua_pushstring(
+        L, (char[]){entry->git_status == ' ' ? 0 : entry->git_status, 0});
     lua_setfield(L, -2, "git_status");
 
     for (int i = 0; i < opts.filter_count; i++)

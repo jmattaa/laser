@@ -4,7 +4,7 @@
 
 laser_color LASER_COLORS[COLOR_COUNT];
 
-void laser_colors_set(const char *key, const char *value)
+static void laser_colors_set(const char *key, const char *value)
 {
     for (int i = 0; i < COLOR_COUNT; i++)
     {

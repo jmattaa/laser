@@ -40,8 +40,9 @@ static int laser_cmp_dirent(const void *a, const void *b, const void *arg)
     return result;
 }
 
-void laser_print_long_entry(struct laser_dirent *entry, const char *color,
-                            char *indent, const char *branch)
+static void laser_print_long_entry(struct laser_dirent *entry,
+                                   const char *color, char *indent,
+                                   const char *branch)
 {
     lua_getglobal(L, "L_long_format");
 
@@ -127,8 +128,8 @@ static laser_color_type laser_color_for_format(const char *filename)
     return LASER_COLOR_FILE;
 }
 
-void laser_process_entries(laser_opts opts, int depth, int max_depth,
-                           char *indent)
+static void laser_process_entries(laser_opts opts, int depth, int max_depth,
+                                  char *indent)
 
 {
     DIR *dir = opendir(opts.dir);

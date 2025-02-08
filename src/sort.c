@@ -2,7 +2,7 @@
 #include "utils.h"
 
 // HELPER FUNCTIONS
-void *median_of_three(void *a, void *b, void *c,
+static void *median_of_three(void *a, void *b, void *c,
                       int(cmp)(const void *, const void *, const void *),
                       const void *arg)
 {
@@ -11,7 +11,7 @@ void *median_of_three(void *a, void *b, void *c,
                : (cmp(a, c, arg) < 0 ? a : (cmp(b, c, arg) < 0 ? c : b));
 }
 
-void *partition(void *base, size_t n, size_t size,
+static void *partition(void *base, size_t n, size_t size,
                 int(cmp)(const void *, const void *, const void *),
                 const void *arg)
 {

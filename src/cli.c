@@ -114,6 +114,12 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     int recursive_depth = -1;
 
     struct lgit_show_git *show_git = malloc(sizeof(struct lgit_show_git));
+    if (show_git == NULL)
+    {
+        fprintf(stderr, "lsr: malloc failed\n");
+        exit(1);
+    }
+
     show_git->show_git_status = 0;
     show_git->hide_git_ignored = 0;
 

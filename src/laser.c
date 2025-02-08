@@ -40,8 +40,9 @@ static int laser_cmp_dirent(const void *a, const void *b, const void *arg)
     return result;
 }
 
-void laser_print_long_entry(struct laser_dirent *entry, const char *color,
-                            char *indent, const char *branch)
+static void laser_print_long_entry(struct laser_dirent *entry,
+                                   const char *color, char *indent,
+                                   const char *branch)
 {
     lua_getglobal(L, "L_long_format");
 
@@ -127,8 +128,8 @@ static laser_color_type laser_color_for_format(const char *filename)
     return LASER_COLOR_FILE;
 }
 
-void laser_process_entries(laser_opts opts, int depth, int max_depth,
-                           char *indent)
+static void laser_process_entries(laser_opts opts, int depth, int max_depth,
+                                  char *indent)
 
 {
     DIR *dir = opendir(opts.dir);
@@ -140,7 +141,19 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
     }
 
     struct laser_dirent *entry = malloc(sizeof(struct laser_dirent));
+    if (entry == NULL)
+    {
+        fprintf(stderr, "lsr: malloc failed\n");
+        return;
+    }
+
     struct laser_dirent **entries = malloc(sizeof(struct laser_dirent *));
+    if (entries == NULL)
+    {
+        fprintf(stderr, "lsr: malloc failed\n");
+        return;
+    }
+
     int entry_count = 0;
 
     int entry_ignored = 0;
@@ -208,12 +221,22 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
                                 strlen(entry->d->d_name) + 1;
 
             entries[entry_count] = malloc(entry_size);
+            if (entries[entry_count] == NULL)
+            {
+                fprintf(stderr, "lsr: malloc failed\n");
+                return;
+            }
 
             entries[entry_count]->git_status = entry->git_status;
 
             entries[entry_count]->s = entry->s;
             entries[entry_count]->d = malloc(offsetof(struct dirent, d_name) +
                                              strlen(entry->d->d_name) + 1);
+            if (entries[entry_count]->d == NULL)
+            {
+                fprintf(stderr, "lsr: malloc failed\n");
+                return;
+            }
 
             memcpy(entries[entry_count]->d, entry->d,
                    offsetof(struct dirent, d_name) + strlen(entry->d->d_name) +
@@ -279,10 +302,20 @@ void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
                     struct laser_dirent *ent =
                         malloc(sizeof(struct laser_dirent));
+                    if (ent == NULL)
+                    {
+                        fprintf(stderr, "lsr: malloc failed\n");
+                        return;
+                    }
 
                     ent->s = entries[i]->s;
                     ent->d = malloc(offsetof(struct dirent, d_name) +
                                     strlen(res_string) + 1);
+                    if (ent->d == NULL)
+                    {
+                        fprintf(stderr, "lsr: malloc failed\n");
+                        return;
+                    }
 
                     strcpy(ent->d->d_name, res_string);
 
@@ -338,6 +371,12 @@ void laser_list_directory(laser_opts opts, int depth, int max_depth)
     const char *pipe = "│   ";
     size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
     char *indent = malloc(indent_len + 1);
+    if (indent == NULL)
+    {
+        fprintf(stderr, "lsr: malloc failed\n");
+        return;
+    }
+
     indent[0] = '\0';
     if (depth > 0)
         for (int i = 1; i < depth; i++)

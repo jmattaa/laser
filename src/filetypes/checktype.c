@@ -1,4 +1,5 @@
 #include "filetypes/checktypes.h"
+#include "logger.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -32,7 +33,7 @@ int laser_checktype(const char *filename, const struct laser_filetype formats[])
             perror("open");
             break;
         case CannotRead:
-            fprintf(stderr, "lsr: cannot read %s", filename);
+            laser_logger_error("cannot read %s", filename);
             break;
         default:
             break;

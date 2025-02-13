@@ -1,5 +1,7 @@
 #include "cli.h"
 #include "init_lua.h"
+#include "logger.h"
+#include <errno.h>
 #include <git2.h>
 #include <git2/repository.h>
 
@@ -115,10 +117,8 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
 
     struct lgit_show_git *show_git = malloc(sizeof(struct lgit_show_git));
     if (show_git == NULL)
-    {
-        fprintf(stderr, "lsr: malloc failed\n");
-        exit(1);
-    }
+        laser_logger_fatal(1, "Failed to allocate show_git struct: %s",
+                           strerror(errno));
 
     show_git->show_git_status = 0;
     show_git->hide_git_ignored = 0;
@@ -214,7 +214,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
             case 'f':
                 if (optarg == NULL)
                 {
-                    fprintf(stderr,
+                    laser_logger_error(
                             "lsr: couldn't filter files, filter not passed or "
                             "not formatted correctly\nlsr: filter usage "
                             "`-fmyfilter` or `--filter=myfilter\n");
@@ -261,7 +261,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
         int err = git_repository_open(&git_repo, gitDir);
         if (err != 0)
         {
-            fprintf(stderr, "lsr: couldn't open git repo at '%s'\n", gitDir);
+            laser_logger_error("couldn't open git repo at '%s'\n", gitDir);
             show_git = 0;
         }
     }
@@ -340,7 +340,7 @@ void laser_cli_generate_completions(const char *shell)
     }
     else
     {
-        fprintf(stderr,
+        laser_logger_error(
                 "lsr: unsupported shell '%s'. Supported shells are bash, "
                 "zsh, and fish.\n",
                 shell);

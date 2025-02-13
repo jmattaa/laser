@@ -3,6 +3,7 @@
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "init_lua.h"
+#include "logger.h"
 #include "lua_filters.h"
 #include "utils.h"
 #include <fcntl.h>
@@ -28,7 +29,7 @@ static int laser_cmp_dirent(const void *a, const void *b, const void *arg)
 
     if (lua_pcall(L, 4, 1, 0) != LUA_OK)
     {
-        fprintf(stderr, "lsr: error in L_compare_entries: %s\n",
+        laser_logger_error("error in L_compare_entries: %s\n",
                 lua_tostring(L, -1));
         lua_pop(L, 1);
         return 0;
@@ -80,7 +81,7 @@ static void laser_print_long_entry(struct laser_dirent *entry,
 
     if (lua_pcall(L, 2, 1, 0) != LUA_OK)
     {
-        fprintf(stderr, "Error in long_format: %s\n", lua_tostring(L, -1));
+        laser_logger_error("error in long_format: %s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
         return;
     }
@@ -135,24 +136,20 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
     DIR *dir = opendir(opts.dir);
     if (dir == NULL)
     {
-        fprintf(stderr, "lsr: couldn't open %s, %s\n", opts.dir,
+        laser_logger_error("couldn't open %s, %s\n", opts.dir,
                 strerror(errno));
         return;
     }
 
     struct laser_dirent *entry = malloc(sizeof(struct laser_dirent));
     if (entry == NULL)
-    {
-        fprintf(stderr, "lsr: malloc failed\n");
-        return;
-    }
+        laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+                           strerror(errno));
 
     struct laser_dirent **entries = malloc(sizeof(struct laser_dirent *));
     if (entries == NULL)
-    {
-        fprintf(stderr, "lsr: malloc failed\n");
-        return;
-    }
+        laser_logger_fatal(1, "Failed to allocate entries struct: %s",
+                           strerror(errno));
 
     int entry_count = 0;
 
@@ -166,7 +163,7 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
         if (lstat(full_path, &entry->s) == -1)
         {
-            fprintf(stderr, "lsr: %s\n", strerror(errno));
+            laser_logger_error("%s\n", strerror(errno));
             continue;
         }
 
@@ -182,7 +179,7 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
                                                ? &full_path[2]
                                                : full_path) < 0)
             {
-                fprintf(stderr, "lsr: %s\n", git_error_last()->message);
+                laser_logger_error("%s\n", git_error_last()->message);
                 continue;
             }
 
@@ -222,10 +219,8 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
             entries[entry_count] = malloc(entry_size);
             if (entries[entry_count] == NULL)
-            {
-                fprintf(stderr, "lsr: malloc failed\n");
-                return;
-            }
+                laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+                                   strerror(errno));
 
             entries[entry_count]->git_status = entry->git_status;
 
@@ -233,10 +228,8 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
             entries[entry_count]->d = malloc(offsetof(struct dirent, d_name) +
                                              strlen(entry->d->d_name) + 1);
             if (entries[entry_count]->d == NULL)
-            {
-                fprintf(stderr, "lsr: malloc failed\n");
-                return;
-            }
+                laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+                                   strerror(errno));
 
             memcpy(entries[entry_count]->d, entry->d,
                    offsetof(struct dirent, d_name) + strlen(entry->d->d_name) +
@@ -256,7 +249,7 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
     lua_getglobal(L, "L_pre_print_entries");
     if (lua_pcall(L, 0, 0, 0) != LUA_OK)
     {
-        fprintf(stderr, "lsr: lua error (L_pre_print_entries): %s\n",
+        laser_logger_error("lua error (L_pre_print_entries): %s\n",
                 lua_tostring(L, -1));
         lua_pop(L, 1); // pop error message
         exit(1);
@@ -303,19 +296,17 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
                     struct laser_dirent *ent =
                         malloc(sizeof(struct laser_dirent));
                     if (ent == NULL)
-                    {
-                        fprintf(stderr, "lsr: malloc failed\n");
-                        return;
-                    }
+                        laser_logger_fatal(
+                            1, "Failed to allocate entry struct: %s",
+                            strerror(errno));
 
                     ent->s = entries[i]->s;
                     ent->d = malloc(offsetof(struct dirent, d_name) +
                                     strlen(res_string) + 1);
                     if (ent->d == NULL)
-                    {
-                        fprintf(stderr, "lsr: malloc failed\n");
-                        return;
-                    }
+                        laser_logger_fatal(
+                            1, "Failed to allocate entry struct: %s",
+                            strerror(errno));
 
                     strcpy(ent->d->d_name, res_string);
 
@@ -372,10 +363,7 @@ void laser_list_directory(laser_opts opts, int depth, int max_depth)
     size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
     char *indent = malloc(indent_len + 1);
     if (indent == NULL)
-    {
-        fprintf(stderr, "lsr: malloc failed\n");
-        return;
-    }
+        laser_logger_fatal(1, "Malloc function failed: %s", strerror(errno));
 
     indent[0] = '\0';
     if (depth > 0)

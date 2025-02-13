@@ -1,5 +1,6 @@
 #include "init_lua.h"
 #include "laser.h"
+#include "logger.h"
 #include <string.h>
 
 lua_State *L;
@@ -16,8 +17,8 @@ void laser_lua_load_script(const char *script_path)
 {
     if (luaL_dofile(L, script_path) != LUA_OK)
     {
-        fprintf(stderr, "lsr: error loading Lua script: %s\n",
-                lua_tostring(L, -1));
+        laser_logger_error("error loading Lua script: %s\n",
+                           lua_tostring(L, -1));
         lua_pop(L, 1);
     }
 }

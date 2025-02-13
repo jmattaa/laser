@@ -1,4 +1,5 @@
 #include "git/lgit.h"
+#include "logger.h"
 #include <git2/errors.h>
 #include <git2/global.h>
 #include <git2/status.h>
@@ -15,9 +16,9 @@ static void lgit_getDirsStatus(laser_opts opts, struct laser_dirent *entry,
     git_status_list *status_list;
     if (git_status_list_new(&status_list, opts.git_repo, &status_opts) != 0)
     {
-        fprintf(stderr, "lsr: failed to get status list for directory %s\n",
-                full_path);
-        fprintf(stderr, "lsr: %s\n", git_error_last()->message);
+        laser_logger_error("failed to get status list for directory %s\n",
+                           full_path);
+        laser_logger_error("%s\n", git_error_last()->message);
         return;
     }
 
@@ -61,8 +62,8 @@ void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
     unsigned int status;
     if (git_status_file(&status, opts.git_repo, full_path) != 0)
     {
-        fprintf(stderr, "lsr: failed to get status for %s\n", full_path);
-        fprintf(stderr, "lsr: %s\n", git_error_last()->message);
+        laser_logger_error("failed to get status for %s\n", full_path);
+        laser_logger_error("%s\n", git_error_last()->message);
         return;
     }
 

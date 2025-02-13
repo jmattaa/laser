@@ -1,4 +1,5 @@
 #include "lua_filters.h"
+#include "logger.h"
 
 int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
 {
@@ -42,16 +43,16 @@ int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
         lua_pushvalue(L, -2);
         if (lua_pcall(L, 1, 1, 0) != LUA_OK)
         {
-            fprintf(stderr, "lsr: error calling filter with name '%s': %s\n",
-                    opts.filters[i], lua_tostring(L, -1));
+            laser_logger_error("error calling filter with name '%s': %s\n",
+                               opts.filters[i], lua_tostring(L, -1));
             lua_pop(L, 1); // pop the error message
             exit(1);
         }
         if (!lua_isboolean(L, -1))
         {
-            fprintf(stderr,
-                    "lsr: filter with name '%s' did not return a boolean!\n",
-                    opts.filters[i]);
+            laser_logger_error(
+                "filter with name '%s' did not return a boolean!\n",
+                opts.filters[i]);
             lua_pop(L, 1); // pop the error message
             exit(1);
         }

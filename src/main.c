@@ -2,6 +2,7 @@
 #include "colors.h"
 #include "init_lua.h"
 #include "laser.h"
+#include "logger.h"
 #include <git2.h>
 #include <git2/global.h>
 #include <lauxlib.h>
@@ -57,12 +58,24 @@ int main(int argc, char **argv)
     laser_colors_init();
     laser_opts opts = laser_cli_parsecmd(argc, argv);
 
+    struct stat path_stat;
+    if (stat(opts.dir, &path_stat) != 0)
+    {
+        laser_logger_error("Error checking %s: %s\n", opts.dir,
+                           strerror(errno));
+        goto clean;
+    }
+
+    if (S_ISREG(path_stat.st_mode))
+    {
+        laser_process_single_file(opts);
+        goto clean;
+    }
     laser_list_directory(opts, 0, opts.recursive_depth);
 
+clean:
     laser_cli_destroy_opts(opts);
-
     laser_lua_destroy();
-
     git_libgit2_shutdown();
 
     return 0;

@@ -215,9 +215,9 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 if (optarg == NULL)
                 {
                     laser_logger_error(
-                            "lsr: couldn't filter files, filter not passed or "
-                            "not formatted correctly\nlsr: filter usage "
-                            "`-fmyfilter` or `--filter=myfilter\n");
+                        "lsr: couldn't filter files, filter not passed or "
+                        "not formatted correctly\nlsr: filter usage "
+                        "`-fmyfilter` or `--filter=myfilter\n");
                     exit(1);
                 }
 
@@ -241,9 +241,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     }
 
     if (optind < argc)
-    {
         dir = argv[optind];
-    }
 
     // check if default lua values have been overriden by cli
     // if not then use them if yes then use cli values
@@ -341,9 +339,9 @@ void laser_cli_generate_completions(const char *shell)
     else
     {
         laser_logger_error(
-                "lsr: unsupported shell '%s'. Supported shells are bash, "
-                "zsh, and fish.\n",
-                shell);
+            "lsr: unsupported shell '%s'. Supported shells are bash, "
+            "zsh, and fish.\n",
+            shell);
         exit(1);
     }
 }

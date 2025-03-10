@@ -2,19 +2,20 @@
 autoload -U is-at-least
 _lsr() {
     _arguments -s \
-        '(-a --all)'{-a,--all}'[Show all entries, including hidden]' \
-        '(-F --Files)'{-F,--Files}'[Show files only]' \
-        '(-D --Directories)'{-D,--Directories}'[Show directories only]' \
-        '(-S --Symlinks)'{-S,--Symlinks}'[Show symlinks only]' \
-        '(-G --Git)'{-G,--Git}'[Do not show ignored git files and show git status]' \
-        '(-g --git-status)'{-g,--git-status}'[Show git status for entries]' \
-        '(-i --git-ignored)'{-i,--git-ignored}'[Ignore git ignored files]' \
-        '(-l --long)'{-l,--long}'[Use long format]' \
-        '(-r --recursive)'{-r,--recursive}'[Show in tree format]' \
-        '(-f --filter)'{-f,--filter}'[Filter out files using lua filters (`L_filters` in lsr.lua)]' \
-        '(-v --version)'{-v,--version}'[Print the current version]' \
-        '(-h --help)'{-h,--help}'[Print help message]' \
-        '--completions[Generate shell completions]' \
-        '*:file:_files'
+        "(-a --all)"{-a,--all}"[Show all entries, including hidden]" \
+        "(-F --Files)"{-F,--Files}"[Show files only]" \
+        "(-D --Directories)"{-D,--Directories}"[Show directories only]" \
+        "(-S --Symlinks)"{-S,--Symlinks}"[Show symlinks only]" \
+        "--Git[Specify Git]:Do not show ignored git files:" \
+        "--git-status[Specify git-status]:Show git status for entries:" \
+        "--git-ignored[Specify git-ignored]:Ignore git ignored files:" \
+        "(-l --long)"{-l,--long}"[Use long format]" \
+        "--recursive[Specify recursive]:Show in tree format:" \
+        "--filter[Specify filter]:Filter out files using lua filters (L_filters in lsr.lua):" \
+        "(-! --no-lua)"{-!,--no-lua}"[Don't use user defined configuration from lsr.lua]" \
+        "(-v --version)"{-v,--version}"[Print the current version]" \
+        "(-h --help)"{-h,--help}"[Print help message]" \
+        "--completions[Specify completions]:Generate shell completions:" \
+        "*:file:_files"
 }
 compdef _lsr lsr

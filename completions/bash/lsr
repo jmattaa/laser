@@ -1,10 +1,13 @@
 _lsr() {
-    local cur prev opts
+    local cur prev opts opts_with_args
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
-    opts="-a --all -F --Files -D --Directories -S --Symlinks -G --Git -g --git-status -i --git-ignored -l --long -r --recursive -f --filter -v --version -h --help --completions "
-    if [[ ${cur} == -* ]]; then
+    opts="-a --all -F --Files -D --Directories -S --Symlinks -G --Git -g --git-status -i --git-ignored -l --long -r --recursive -f --filter -! --no-lua -v --version -h --help --completions "
+    opts_with_args="--Git --git-status --git-ignored --recursive --filter --completions "
+    if [[ ${cur} == --* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    elif [[ ${opts_with_args} =~ ${prev} ]]; then
+        compopt -o nospace
     fi
     return 0
 }

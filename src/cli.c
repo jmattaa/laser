@@ -7,40 +7,33 @@
 
 static int completionsset;
 
-static const struct option long_args[] = {
-    {"all", 0, 0, 'a'},
-    {"Files", 0, 0, 'F'},
-    {"Directories", 0, 0, 'D'},
-    {"Symlinks", 0, 0, 'S'},
-    {"Git", optional_argument, 0, 'G'},
-    {"git-status", optional_argument, 0, 'g'},
-    {"git-ignored", optional_argument, 0, 'i'},
-    {"long", 0, 0, 'l'},
-    {"recursive", optional_argument, 0, 'r'},
-    {"filter", required_argument, 0, 'f'},
-    {"no-lua", 0, 0, '!'},
-    {"version", 0, 0, 'v'},
-    {"help", 0, 0, 'h'},
-    {"completions", required_argument, &completionsset, 1},
-    {0, 0, 0, 0}};
+#define ARGS_ITER(_X, ...)                                                     \
+    _X("all", 0, 0, 'a', "Show all entries, including hidden")                 \
+    _X("Files", 0, 0, 'F', "Show files only")                                  \
+    _X("Directories", 0, 0, 'D', "Show directories only")                      \
+    _X("Symlinks", 0, 0, 'S', "Show symlinks only")                            \
+    _X("Git", optional_argument, 0, 'G', "Do not show ignored git files")      \
+    _X("git-status", optional_argument, 0, 'g', "Show git status for entries") \
+    _X("git-ignored", optional_argument, 0, 'i', "Ignore git ignored files")   \
+    _X("long", 0, 0, 'l', "Use long format")                                   \
+    _X("recursive", optional_argument, 0, 'r', "Show in tree format")          \
+    _X("filter", required_argument, 0, 'f',                                    \
+       "Filter out files using lua filters (L_filters in lsr.lua)")            \
+    _X("no-lua", 0, 0, '!',                                                    \
+       "Don't use user defined configuration from lsr.lua")                    \
+    _X("version", 0, 0, 'v', "Print the current version")                      \
+    _X("help", 0, 0, 'h', "Print help message")                                \
+    _X("completions", required_argument, &completionsset, 1,                   \
+       "Generate shell completions")
 
-// UPDATE THIS TO MATCH long_args!!
+#define _X(name, a, b, short, ...) {name, a, b, short},
+static const struct option long_args[] = {ARGS_ITER(_X){0, 0, 0, 0}};
+#undef _X
+#define _X(name, a, b, short, description) description,
 static const char *descriptions[] = {
-    "Show all entries, including hidden",
-    "Show files only",
-    "Show directories only",
-    "Show symlinks only",
-    "Do not show ignored git files and show git status",
-    "Show git status for entries",
-    "Ignore git ignored files",
-    "Use long format",
-    "Show in tree format",
-    "Filter out files using lua filters (`L_filters` in lsr.lua)",
-    "Don't use user defined configuration from lsr.lua",
-    "Print the current version",
-    "Print help message",
-    "Generate shell completions",
+    ARGS_ITER(_X)
 };
+#undef _X
 
 #define L_DEFAULT_SIMPLE_ARGS(_X)                                              \
     _X(all, boolean)                                                           \
@@ -275,7 +268,7 @@ void laser_cli_generate_completions(const char *shell)
     if (strcmp(shell, "bash") == 0)
     {
         printf("_lsr() {\n");
-        printf("    local cur prev opts\n");
+        printf("    local cur prev opts opts_with_args\n");
         printf("    COMPREPLY=()\n");
         printf("    cur=\"${COMP_WORDS[COMP_CWORD]}\"\n");
 
@@ -290,8 +283,20 @@ void laser_cli_generate_completions(const char *shell)
         }
         printf("\"\n");
 
-        printf("    if [[ ${cur} == -* ]]; then\n");
+        printf("    opts_with_args=\"");
+        for (int i = 0; long_args[i].name != NULL; i++)
+        {
+            if (long_args[i].has_arg)
+            {
+                printf("--%s ", long_args[i].name);
+            }
+        }
+        printf("\"\n");
+
+        printf("    if [[ ${cur} == --* ]]; then\n");
         printf("        COMPREPLY=( $(compgen -W \"${opts}\" -- ${cur}) )\n");
+        printf("    elif [[ ${opts_with_args} =~ ${prev} ]]; then\n");
+        printf("        compopt -o nospace\n");
         printf("    fi\n");
 
         printf("    return 0\n");
@@ -306,19 +311,24 @@ void laser_cli_generate_completions(const char *shell)
         printf("    _arguments -s \\\n");
         for (int i = 0; long_args[i].name != NULL; i++)
         {
-            if (long_args[i].val != 1)
+            if (long_args[i].has_arg)
             {
-                printf("        '(-%c --%s)'{-%c,--%s}'[%s]' \\\n",
+                printf("        \"--%s[Specify %s]:%s:\" \\\n",
+                       long_args[i].name, long_args[i].name, descriptions[i]);
+            }
+            else if (long_args[i].val != 1)
+            {
+                printf("        \"(-%c --%s)\"{-%c,--%s}\"[%s]\" \\\n",
                        long_args[i].val, long_args[i].name, long_args[i].val,
                        long_args[i].name, descriptions[i]);
             }
             else
             {
-                printf("        '--%s[%s]' \\\n", long_args[i].name,
+                printf("        \"--%s[%s]\" \\\n", long_args[i].name,
                        descriptions[i]);
             }
         }
-        printf("        '*:file:_files'\n");
+        printf("        \"*:file:_files\"\n");
         printf("}\n");
 
         printf("compdef _lsr lsr\n");
@@ -333,7 +343,10 @@ void laser_cli_generate_completions(const char *shell)
             {
                 printf(" -s %c", long_args[i].val);
             }
-            printf(" -l %s -d '%s'\n", long_args[i].name, descriptions[i]);
+            printf(" -l %s -d \"%s\"", long_args[i].name, descriptions[i]);
+            if (long_args[i].has_arg)
+                printf(" -r");
+            printf("\n");
         }
     }
     else

@@ -67,12 +67,17 @@ void laser_process_single_file(laser_opts opts)
 
     strcpy(entry.d->d_name, opts.dir);
 
+    // default status to ' '
+    entry.git_status = ' ';
+    if (opts.show_git->show_git_status)
+        lgit_getGitStatus(opts, &entry, opts.dir);
+
     char *ownername = getpwuid(entry.s.st_uid)->pw_name;
     longest_ownername = strlen(ownername); // this has to be the longest name
                                            // cus it be the ownly name
 
-    laser_print_entry(&entry, LASER_COLORS[LASER_COLOR_FILE].value, "", 0,
-                      opts, 1);
+    laser_print_entry(&entry, LASER_COLORS[LASER_COLOR_FILE].value, "", 0, opts,
+                      1);
 
     free(entry.d);
 }
@@ -137,9 +142,6 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
         // default status to ' '
         entry->git_status = ' ';
-        if (opts.show_git->show_git_status)
-            lgit_getGitStatus(opts, entry, full_path);
-
         if (opts.show_git->show_git_status)
             lgit_getGitStatus(opts, entry, full_path);
 

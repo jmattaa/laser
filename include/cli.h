@@ -28,6 +28,8 @@ typedef struct laser_opts
     int filter_count;
     const char **filters;
 
+    int ensure_colors;
+
     const char *dir;
     const char *parentDir;
 } laser_opts;

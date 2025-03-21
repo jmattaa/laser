@@ -56,7 +56,7 @@ int main(int argc, char **argv)
         laser_lua_load_script(script_to_load);
 
     laser_opts opts = laser_cli_parsecmd(argc, argv);
-    laser_colors_init();
+    laser_colors_init(opts);
 
     struct stat path_stat;
     if (stat(opts.dir, &path_stat) != 0)

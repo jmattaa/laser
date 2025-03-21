@@ -19,6 +19,7 @@ static int completionsset;
     _X("recursive", optional_argument, 0, 'r', "Show in tree format")          \
     _X("filter", required_argument, 0, 'f',                                    \
        "Filter out files using lua filters (L_filters in lsr.lua)")            \
+    _X("ensure-colors", 0, 0, 'c', "Force colored output")                     \
     _X("no-lua", 0, 0, '!',                                                    \
        "Don't use user defined configuration from lsr.lua")                    \
     _X("version", 0, 0, 'v', "Print the current version")                      \
@@ -30,70 +31,14 @@ static int completionsset;
 static const struct option long_args[] = {ARGS_ITER(_X){0, 0, 0, 0}};
 #undef _X
 #define _X(name, a, b, short, description) description,
-static const char *descriptions[] = {
-    ARGS_ITER(_X)
-};
+static const char *descriptions[] = {ARGS_ITER(_X)};
 #undef _X
-
-#define L_DEFAULT_SIMPLE_ARGS(_X)                                              \
-    _X(all, boolean)                                                           \
-    _X(files, boolean)                                                         \
-    _X(directories, boolean)                                                   \
-    _X(symlinks, boolean)                                                      \
-    _X(long, boolean)
-
-#define L_DEFAULT_SIMPLE_ARGS_GET(arg, type)                                   \
-    lua_pushstring(L, #arg);                                                   \
-    lua_gettable(L, -2);                                                       \
-    if (lua_is##type(L, -1))                                                   \
-        *show_##arg = lua_toboolean(L, -1);                                    \
-    lua_pop(L, 1);
 
 static void lua_get_L_default_args(int *show_all, int *show_files,
                                    int *show_directories, int *show_symlinks,
                                    int *show_long,
                                    struct lgit_show_git *show_git,
-                                   const char ***filters, int *filter_count)
-{
-    lua_getglobal(L, "L_default_args");
-    if (!lua_istable(L, -1))
-        return;
-
-    L_DEFAULT_SIMPLE_ARGS(L_DEFAULT_SIMPLE_ARGS_GET)
-
-    lua_pushstring(L, "git");
-    lua_gettable(L, -2);
-    if (lua_istable(L, -1))
-    {
-        lua_pushstring(L, "status");
-        lua_gettable(L, -2);
-        if (lua_isboolean(L, -1))
-            show_git->show_git_status = lua_toboolean(L, -1);
-        lua_pop(L, 1);
-        lua_pushstring(L, "ignored");
-        lua_gettable(L, -2);
-        if (lua_isboolean(L, -1))
-            show_git->hide_git_ignored = lua_toboolean(L, -1);
-        lua_pop(L, 1);
-    }
-    lua_pop(L, 1);
-
-    lua_pushstring(L, "filters");
-    lua_gettable(L, -2);
-    if (lua_istable(L, -1))
-    {
-        lua_pushnil(L);
-        while (lua_next(L, -2) != 0)
-        {
-            (*filters) =
-                realloc(*filters, sizeof(char *) * ((*filter_count) + 1));
-            (*filters)[*filter_count] = strdup(lua_tostring(L, -1));
-            (*filter_count)++;
-            lua_pop(L, 1);
-        }
-    }
-    lua_pop(L, 1);
-}
+                                   const char ***filters, int *filter_count);
 
 #define L_DEFAULT_ARG_TYPES(_X)                                                \
     _X(show_files)                                                             \
@@ -126,6 +71,8 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     int filter_count = 0;
     const char **filters = NULL;
 
+    int ensure_colors = 0;
+
     int opt;
 
 #define _X(name) int default_##name;
@@ -142,7 +89,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     if (lua_isnumber(L, -1))
         recursive_depth = (int)lua_tointeger(L, -1);
 
-    while ((opt = getopt_long(argc, argv, "aFDSG::g::i::r::lvhf::!", long_args,
+    while ((opt = getopt_long(argc, argv, "aFDSG::g::i::r::lcvhf::!", long_args,
                               NULL)) != -1)
     {
         switch (opt)
@@ -197,6 +144,9 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 break;
             case 'l':
                 show_long = 1;
+                break;
+            case 'c':
+                ensure_colors = 1;
                 break;
             case 'v':
                 printf("laser %s\n", LASER_VERSION);
@@ -257,10 +207,11 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
         }
     }
 
-    return (laser_opts){
-        show_all, show_files, show_directories, show_symlinks,   show_git,
-        git_repo, show_tree,  show_long,        recursive_depth, filter_count,
-        filters,  dir,        .parentDir = dir};
+    return (laser_opts){show_all,      show_files,      show_directories,
+                        show_symlinks, show_git,        git_repo,
+                        show_tree,     show_long,       recursive_depth,
+                        filter_count,  filters,         ensure_colors,
+                        dir,           .parentDir = dir};
 }
 
 void laser_cli_generate_completions(const char *shell)
@@ -383,4 +334,64 @@ void laser_cli_destroy_opts(laser_opts opts)
     for (int i = 0; i < opts.filter_count; i++)
         free((void *)opts.filters[i]);
     free(opts.filters);
+}
+
+// ------------------------- helper function decl -----------------------------
+#define L_DEFAULT_SIMPLE_ARGS(_X)                                              \
+    _X(all, boolean)                                                           \
+    _X(files, boolean)                                                         \
+    _X(directories, boolean)                                                   \
+    _X(symlinks, boolean)                                                      \
+    _X(long, boolean)
+
+#define L_DEFAULT_SIMPLE_ARGS_GET(arg, type)                                   \
+    lua_pushstring(L, #arg);                                                   \
+    lua_gettable(L, -2);                                                       \
+    if (lua_is##type(L, -1))                                                   \
+        *show_##arg = lua_toboolean(L, -1);                                    \
+    lua_pop(L, 1);
+static void lua_get_L_default_args(int *show_all, int *show_files,
+                                   int *show_directories, int *show_symlinks,
+                                   int *show_long,
+                                   struct lgit_show_git *show_git,
+                                   const char ***filters, int *filter_count)
+{
+    lua_getglobal(L, "L_default_args");
+    if (!lua_istable(L, -1))
+        return;
+
+    L_DEFAULT_SIMPLE_ARGS(L_DEFAULT_SIMPLE_ARGS_GET);
+
+    lua_pushstring(L, "git");
+    lua_gettable(L, -2);
+    if (lua_istable(L, -1))
+    {
+        lua_pushstring(L, "status");
+        lua_gettable(L, -2);
+        if (lua_isboolean(L, -1))
+            show_git->show_git_status = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+        lua_pushstring(L, "ignored");
+        lua_gettable(L, -2);
+        if (lua_isboolean(L, -1))
+            show_git->hide_git_ignored = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "filters");
+    lua_gettable(L, -2);
+    if (lua_istable(L, -1))
+    {
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0)
+        {
+            (*filters) =
+                realloc(*filters, sizeof(char *) * ((*filter_count) + 1));
+            (*filters)[*filter_count] = strdup(lua_tostring(L, -1));
+            (*filter_count)++;
+            lua_pop(L, 1);
+        }
+    }
+    lua_pop(L, 1);
 }

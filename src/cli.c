@@ -34,23 +34,27 @@ static const struct option long_args[] = {ARGS_ITER(_X){0, 0, 0, 0}};
 static const char *descriptions[] = {ARGS_ITER(_X)};
 #undef _X
 
-static void lua_get_L_default_args(int *show_all, int *show_files,
-                                   int *show_directories, int *show_symlinks,
-                                   int *show_long,
-                                   struct lgit_show_git *show_git,
-                                   const char ***filters, int *filter_count);
+#define L_DEFAULT_SIMPLE_ARGS(_X)                                              \
+    _X(all, 0, show_)                                                          \
+    _X(files, -1, default_show_)                                               \
+    _X(directories, -1, default_show_)                                         \
+    _X(symlinks, -1, default_show_)                                            \
+    _X(long, 0, show_)                                                         \
+    _X(ensure_colors, 0, show_)
 
-#define L_DEFAULT_ARG_TYPES(_X)                                                \
+#define L_ADVANCED_DEFAULT_ARGS_IN_SIMPLE_ARGS(_X)                             \
     _X(show_files)                                                             \
     _X(show_directories)                                                       \
     _X(show_symlinks)
 
+#define _X(name, ...) int *show_##name,
+static void
+lua_get_L_default_args(L_DEFAULT_SIMPLE_ARGS(_X) struct lgit_show_git *show_git,
+                       const char ***filters, int *filter_count);
+#undef _X
+
 laser_opts laser_cli_parsecmd(int argc, char **argv)
 {
-    int show_all = 0;
-    int show_files = -1;
-    int show_directories = -1;
-    int show_symlinks = -1;
     int recursive_depth = -1;
 
     struct lgit_show_git *show_git = malloc(sizeof(struct lgit_show_git));
@@ -63,7 +67,6 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
 
     git_repository *git_repo = NULL;
     int show_tree = 0;
-    int show_long = 0;
 
     const char *dir = ".";
     const char *gitDir = dir;
@@ -71,17 +74,19 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     int filter_count = 0;
     const char **filters = NULL;
 
-    int ensure_colors = 0;
-
     int opt;
 
-#define _X(name) int default_##name;
-    L_DEFAULT_ARG_TYPES(_X)
+#define _X(name, default, ...) int show_##name = default;
+    L_DEFAULT_SIMPLE_ARGS(_X)
 #undef _X
 
-#define _X(name) &default_##name,
-    lua_get_L_default_args(&show_all, L_DEFAULT_ARG_TYPES(_X)(&show_long),
-                           show_git, &filters, &filter_count);
+#define _X(name) int default_##name = -1;
+    L_ADVANCED_DEFAULT_ARGS_IN_SIMPLE_ARGS(_X)
+#undef _X
+
+#define _X(name, default, prefix) &prefix##name,
+    lua_get_L_default_args(L_DEFAULT_SIMPLE_ARGS(_X) show_git, &filters,
+                           &filter_count);
 #undef _X
 
     // set default recursive_depth from lua
@@ -146,7 +151,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 show_long = 1;
                 break;
             case 'c':
-                ensure_colors = 1;
+                show_ensure_colors = 1;
                 break;
             case 'v':
                 printf("laser %s\n", LASER_VERSION);
@@ -188,12 +193,15 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
 
     // check if default lua values have been overriden by cli
     // if not then use them if yes then use cli values
-#define _X(name) name == -1 &&
-    if (L_DEFAULT_ARG_TYPES(_X) 1) // there is prolly a better way than to put 1
+    // this is for the stuff with -1 vals
+    // symlinks, files, directories
+#define _X(name, ...) name == -1 &&
+    if (L_ADVANCED_DEFAULT_ARGS_IN_SIMPLE_ARGS(
+            _X) 1) // there is prolly a better way than to put 1
 #undef _X
     {
-#define _X(name) name = default_##name;
-        L_DEFAULT_ARG_TYPES(_X)
+#define _X(name, ...) name = default_##name;
+        L_ADVANCED_DEFAULT_ARGS_IN_SIMPLE_ARGS(_X)
 #undef _X
     }
 
@@ -210,7 +218,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     return (laser_opts){show_all,      show_files,      show_directories,
                         show_symlinks, show_git,        git_repo,
                         show_tree,     show_long,       recursive_depth,
-                        filter_count,  filters,         ensure_colors,
+                        filter_count,  filters,         show_ensure_colors,
                         dir,           .parentDir = dir};
 }
 
@@ -337,25 +345,19 @@ void laser_cli_destroy_opts(laser_opts opts)
 }
 
 // ------------------------- helper function decl -----------------------------
-#define L_DEFAULT_SIMPLE_ARGS(_X)                                              \
-    _X(all, boolean)                                                           \
-    _X(files, boolean)                                                         \
-    _X(directories, boolean)                                                   \
-    _X(symlinks, boolean)                                                      \
-    _X(long, boolean)
-
-#define L_DEFAULT_SIMPLE_ARGS_GET(arg, type)                                   \
+#define L_DEFAULT_SIMPLE_ARGS_GET(arg, ...)                                    \
     lua_pushstring(L, #arg);                                                   \
     lua_gettable(L, -2);                                                       \
-    if (lua_is##type(L, -1))                                                   \
+    if (lua_isboolean(L, -1))                                                  \
         *show_##arg = lua_toboolean(L, -1);                                    \
     lua_pop(L, 1);
-static void lua_get_L_default_args(int *show_all, int *show_files,
-                                   int *show_directories, int *show_symlinks,
-                                   int *show_long,
-                                   struct lgit_show_git *show_git,
-                                   const char ***filters, int *filter_count)
+
+#define _X(name, ...) int *show_##name,
+static void
+lua_get_L_default_args(L_DEFAULT_SIMPLE_ARGS(_X) struct lgit_show_git *show_git,
+                       const char ***filters, int *filter_count)
 {
+#undef _X
     lua_getglobal(L, "L_default_args");
     if (!lua_istable(L, -1))
         return;
@@ -388,6 +390,10 @@ static void lua_get_L_default_args(int *show_all, int *show_files,
         {
             (*filters) =
                 realloc(*filters, sizeof(char *) * ((*filter_count) + 1));
+            if (*filters == NULL)
+                laser_logger_fatal(
+                    1, "Failed to allocate memory for filters, %s\n",
+                    strerror(errno));
             (*filters)[*filter_count] = strdup(lua_tostring(L, -1));
             (*filter_count)++;
             lua_pop(L, 1);

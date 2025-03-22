@@ -1,6 +1,7 @@
 #include "colors.h"
 #include "init_lua.h"
 #include <lua.h>
+#include <unistd.h>
 
 laser_color LASER_COLORS[COLOR_COUNT];
 
@@ -16,14 +17,20 @@ static void laser_colors_set(const char *key, const char *value)
     }
 }
 
-// macro stuff be 🔥
-#define _X(name, vaule)                                                        \
-    LASER_COLORS[LASER_COLOR_##name].key = #name;                      \
-    LASER_COLORS[LASER_COLOR_##name].value = vaule;
-
-void laser_colors_init(void)
+void laser_colors_init(struct laser_opts opts)
 {
-    LASER_COLORS_ITER(_X)
+    int isStdout = isatty(STDOUT_FILENO);
+#define PRINT_COLORS (isStdout || opts.ensure_colors) // dis () is importante 😭
+
+// macro stuff be 🔥
+#define _X(name, val)                                                          \
+    LASER_COLORS[LASER_COLOR_##name].key = #name;                              \
+    LASER_COLORS[LASER_COLOR_##name].value = PRINT_COLORS ? val : "";
+    LASER_COLORS_ITER(_X);
+#undef _X
+
+    if (!PRINT_COLORS)
+        return;
 
     lua_getglobal(L, "L_colors");
 
@@ -39,4 +46,3 @@ void laser_colors_init(void)
 
     lua_settop(L, 0);
 }
-#undef _X

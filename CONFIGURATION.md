@@ -43,7 +43,7 @@ you can do with a blank `lsr.lua` file.
 
 ### Constants
 
-#### `L_colors`
+#### L_colors
 
 You can configure the colors of the different entry types by modifying the
 global `L_colors` table. You can even add glyphs or text as it is just a normal
@@ -67,7 +67,7 @@ L_colors = {
     DOCUMENT = "\x1b[35;3m",
 }
 ```
-#### `L_recursive_max_depth`
+#### L_recursive_max_depth
 
 You can configure the maximum depth of the directory tree by modifying the
 global `L_recursive_max_depth` variable. It defaults to -1 (which means
@@ -78,7 +78,7 @@ a `-rN` you can set the maximum depth to `N` and override the default value.
 L_recursive_max_depth = -1
 ```
 
-#### `L_default_args`
+#### L_default_args
 
 You can configure the default arguments that should be used when running `lsr`
 by creating the global `L_default_args` table. 
@@ -90,8 +90,11 @@ L_default_args = {
     files = true, -- show files
     directories = true, -- show directories
     symlinks = true, -- show symlinks
-    git = false, -- show git status and entries tracked by git
     long = false, -- show long format
+    git = { 
+        status = false, -- show git status
+        ignored = false, -- show git ignored files
+    }, 
 
     filters = {}, -- apply filters defined in `L_filters` 
                     -- (NOTE: the name should be a string)
@@ -99,7 +102,7 @@ L_default_args = {
 
 ```
 
-#### `L_filters`
+#### L_filters
 
 You can configure the default filters by modifying the global table named
 `L_filters`. You can create your own filters by adding a key with the filter name
@@ -139,7 +142,7 @@ L_filters.myotherfilter = function(entry) return false end
 
 There are a few functions you can use to modify the behavior of the program.
 
-#### `L_compare_entries()`
+#### L_compare_entries()
 
 This function is used to sort the entries in the directory. This is by default
 used to add "gravity" to files so that they fall at the bottom of the list. And
@@ -162,7 +165,7 @@ function L_compare_entries(entry1, entry2, entry1_is_dir, entry2_is_dir)
 end
 ```
 
-#### `L_long_format()`
+#### L_long_format()
 
 This function is used to format the entries in long format. This is by default
 used to show the permissions, the size, last modified and owner of the entry.
@@ -222,7 +225,7 @@ function L_long_format(entry, longest_name)
 end
 ```
 
-#### `L_pre_print_entries()`
+#### L_pre_print_entries()
 
 This function is called before the entries are printed. It can be used to add
 anything before the entries are printed. The function takes no arguments, and it

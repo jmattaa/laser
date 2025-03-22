@@ -142,6 +142,10 @@ you can directly pass in the flags.
 - `-l` / `--long`  Displays detailed file information, including permissions,
   last modified date, size, and owner.
 
+- `-c` / `--ensure-colors`  Ensures that the output is colorized even if output
+  is redirected to another file than stdout (e.g. `lsr > file.txt` or `lsr |
+  less`).
+
 - `-fmyfilter` / `--filter=myfilter`  Applies a user-defined filter written in
   Lua.  
   - For more information, see [CONFIGURATION.md](CONFIGURATION.md#L_filters).

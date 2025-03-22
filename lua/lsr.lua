@@ -33,7 +33,8 @@ L_default_args = {
     files = true,
     directories = true,
     symlinks = true,
-    git = false,
+    git = { status = false, ignore = false },
     long = false,
+    ensure_colors = false,
     filters = {},
 }

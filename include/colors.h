@@ -1,6 +1,7 @@
 #ifndef LASER_COLORS_H
 #define LASER_COLORS_H
 
+#include "cli.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +40,7 @@ typedef enum laser_color_type
 
 extern laser_color LASER_COLORS[COLOR_COUNT];
 
-void laser_colors_init(void);
+void laser_colors_init(struct laser_opts opts);
 void laser_colors_parseToken(const char *token);
 
 #undef _X

@@ -150,8 +150,8 @@ you can directly pass in the flags.
   Lua.  
   - For more information, see [CONFIGURATION.md](CONFIGURATION.md#L_filters).
 
-- `-!` / `--no-lua` Ignores the `~/.lsr/lsr.lua` file and runs without user 
-  config and user defined filters.
+- `-!` / `--no-lua` Ignores the `~/.config/lsr/lsr.lua` file and runs without
+  user config and user defined filters.
 
 # Contributing
 

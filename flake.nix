@@ -19,7 +19,7 @@
         src = pkgs.fetchFromGitHub {
           owner = "jmattaa";
           repo = pname;
-          rev = "v${version}";
+          rev = "v1.5.0";
           sha256 = "c1825cfbefcc2d4122259db5eb91284bd784da7cc2d8c3d40ea03855131bbf65";
         };
 

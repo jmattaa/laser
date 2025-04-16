@@ -33,6 +33,6 @@ jobs:
         run: ./update-homebrew.sh "$RELEASE_VERSION" "$SHA256"
 
       - name: Update flake.nix
-        run: ./update-flake.sh "$RELEASE_VERSION" "$SHA256"
+        run: ./update-flake.sh "$RELEASE_VERSION"
 
 

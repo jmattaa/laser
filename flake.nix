@@ -20,7 +20,7 @@
           owner = "jmattaa";
           repo = pname;
           rev = "v1.5.0";
-          sha256 = "c1825cfbefcc2d4122259db5eb91284bd784da7cc2d8c3d40ea03855131bbf65";
+          sha256 = "0jhm2rvp0kmg4mm1yh0xkd0zx7zd3mv2qdy3c226h87a2sw7vlma";
         };
 
       in
@@ -37,14 +37,17 @@
 
           installPhase = ''
             runHook preInstall
-            install -Dm755 build/lsr $out/bin/lsr
-            cp -r $src/lsr $out/lsr
+            cmake --install . --prefix=$out
             runHook postInstall
           '';
 
           postInstall = ''
             mkdir -p $out/share/bash-completion/completions
-            $out/bin/lsr --completions > $out/share/bash-completion/completions/lsr
+            mkdir -p $out/share/zsh/site-functions
+            mkdir -p $out/share/fish/vendor_completions.d
+            $out/bin/lsr --completions bash > $out/share/bash-completion/completions/lsr
+            $out/bin/lsr --completions zsh > $out/share/zsh/site-functions/_lsr
+            $out/bin/lsr --completions fish > $out/share/fish/vendor_completions.d/lsr.fish
           '';
         };
 

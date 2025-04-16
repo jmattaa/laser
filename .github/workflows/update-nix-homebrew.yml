@@ -1,0 +1,38 @@
+name: Update Homebrew & Nix
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.PAT }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set release version from tag
+        run: echo "RELEASE_VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Download release tarball
+        run: wget https://github.com/jmattaa/laser/archive/${RELEASE_VERSION}.tar.gz -O laser.tar.gz
+
+      - name: Calculate SHA256 for Homebrew
+        run: echo "SHA256=$(sha256sum laser.tar.gz | awk '{print $1}')" >> $GITHUB_ENV
+
+      - name: Set up Nix
+        uses: cachix/install-nix-action@v24
+
+      - name: Update Homebrew formula
+        run: ./update-homebrew.sh "$RELEASE_VERSION" "$SHA256"
+
+      - name: Update flake.nix
+        run: ./update-flake.sh "$RELEASE_VERSION" "$SHA256"
+
+

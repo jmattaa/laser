@@ -1,5 +1,6 @@
 #include "colors.h"
 #include "init_lua.h"
+#include "logger.h"
 #include <lua.h>
 #include <unistd.h>
 
@@ -23,16 +24,30 @@ void laser_colors_init(struct laser_opts opts)
 #define PRINT_COLORS (isStdout || opts.ensure_colors) // dis () is importante 😭
 
 // macro stuff be 🔥
-#define _X(name, val)                                                          \
+#define _X(name, def_val)                                                      \
     LASER_COLORS[LASER_COLOR_##name].key = #name;                              \
-    LASER_COLORS[LASER_COLOR_##name].value = PRINT_COLORS ? val : "";
+    LASER_COLORS[LASER_COLOR_##name].value = PRINT_COLORS ? def_val : "";
     LASER_COLORS_ITER(_X);
 #undef _X
 
-    if (!PRINT_COLORS)
-        return;
-
     lua_getglobal(L, "L_colors");
+    if (!lua_istable(L, -1))
+    {
+        lua_pop(L, 1);
+        laser_logger_fatal(1, "L_colors is not a table!\n"
+                              "https://github.com/jmattaa/laser/blob/main/"
+                              "CONFIGURATION.md#l_colors\n");
+    }
+
+    if (!PRINT_COLORS)
+    {
+        // set the colors in lua to empty strings
+        lua_getglobal(L, "L_nocolors");
+        lua_pushvalue(L, -1);
+        lua_setglobal(L, "L_colors");
+
+        return;
+    }
 
     lua_pushnil(L);
     while (lua_next(L, -2))

@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// should be set by the compiler
 #ifndef DEFAULT_SCRIPT_PATH
 #define DEFAULT_SCRIPT_PATH "/usr/local/.lsr"
 #endif

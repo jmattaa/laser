@@ -8,3 +8,14 @@ L_colors = {
     MEDIA = "\x1b[33m",
     DOCUMENT = "\x1b[35;3m",
 }
+
+L_nocolors = {
+    DIR = "",
+    SYMLINK = "",
+    FILE = "",
+    HIDDEN = "",
+    EXEC = "",
+    ARCHIVE = "",
+    MEDIA = "",
+    DOCUMENT = "",
+}

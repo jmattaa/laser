@@ -1,6 +1,6 @@
-require "colors"
-require "filters"
-local utils = require "utils"
+require "laser_default_colors"
+require "laser_default_filters"
+local utils = require "laser_default_utils"
 
 L_recursive_max_depth = -1
 

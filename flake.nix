@@ -20,7 +20,7 @@
           owner = "jmattaa";
           repo = pname;
           rev = "v1.5.1";
-          sha256 = "17q42mgrjbj8z3nbyy9r0wxk3xkr8ygnx5zbkcwmdnpwii5s0ikb";
+          sha256 = "1zmjrnrqaqra9ml2h6kbvw90lvfsdb8sfmq4s23ylygnclyzg8rk";
         };
 
       in

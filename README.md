@@ -19,12 +19,16 @@
 1. [Contributing](#contributing)
 2. [Authors](#authors)
 
+> [!NOTE]
+> You can do some cool stuff with the [filters](/CONFIGURATION.md#L_filters),
+> if you have some good filters please reach out and get them showcased. 🔥
+
 **lsr** basically `ls` but with colorization and sorting for better readability.
 It offers filtering options, making it easy to
 locate specific files and folders (with grep you'll find exactly what you need)
 It can even display the directory contents in a tree-like structure! :fire:
 If that wasn't enough you can even extend the program with lua! 
-(I'm too proud of that )
+(I'm too proud of that)
 
 ## Installation
 

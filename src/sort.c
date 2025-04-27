@@ -3,8 +3,8 @@
 
 // HELPER FUNCTIONS
 static void *median_of_three(void *a, void *b, void *c,
-                      int(cmp)(const void *, const void *, const void *),
-                      const void *arg)
+                             int(cmp)(const void *, const void *, const void *),
+                             const void *arg)
 {
     return cmp(a, b, arg) < 0
                ? (cmp(b, c, arg) < 0 ? b : (cmp(a, c, arg) < 0 ? c : a))
@@ -12,8 +12,8 @@ static void *median_of_three(void *a, void *b, void *c,
 }
 
 static void *partition(void *base, size_t n, size_t size,
-                int(cmp)(const void *, const void *, const void *),
-                const void *arg)
+                       int(cmp)(const void *, const void *, const void *),
+                       const void *arg)
 {
     char *array = base;
     // first middle and last

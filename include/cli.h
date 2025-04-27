@@ -1,7 +1,6 @@
 #ifndef LASER_CLI_H
 #define LASER_CLI_H
 
-#include "utils.h"
 #include <git2/types.h>
 #include <stdio.h>
 

@@ -304,7 +304,8 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
     closedir(dir);
 }
 
-static int laser_cmp_dirent(const void *a, const void *b, const void *arg)
+// last parameter is only to match the signature for laser_sort
+static int laser_cmp_dirent(const void *a, const void *b, const void *_)
 {
     struct laser_dirent *dirent_a = *(struct laser_dirent **)a;
     struct laser_dirent *dirent_b = *(struct laser_dirent **)b;

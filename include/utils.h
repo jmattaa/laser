@@ -13,7 +13,6 @@
 char **laser_utils_grow_strarray(char **array, size_t *alloc_size,
                                  size_t count);
 int laser_string_in_sorted_array(char *target, char **array, int size);
-int laser_cmp_string(const void *a, const void *b, const void *arg);
 void laser_swap(void *a, void *b, size_t size);
 int laser_charcmp(const char *a, const char *b);
 

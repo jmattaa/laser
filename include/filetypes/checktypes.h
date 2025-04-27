@@ -9,7 +9,7 @@
 struct laser_filetype
 {
     unsigned char *magic;
-    size_t magic_size;
+    long magic_size;
 
     const char **extensions;
     size_t extensions_count;

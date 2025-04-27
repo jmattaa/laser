@@ -2,12 +2,14 @@
 #include "init_lua.h"
 #include "logger.h"
 #include <errno.h>
+#include <getopt.h>
 #include <git2.h>
 #include <git2/repository.h>
+#include <string.h>
 
 static int completionsset;
 
-#define ARGS_ITER(_X, ...)                                                     \
+#define ARGS_ITER(_X)                                                          \
     _X("all", 0, 0, 'a', "Show all entries, including hidden")                 \
     _X("Files", 0, 0, 'F', "Show files only")                                  \
     _X("Directories", 0, 0, 'D', "Show directories only")                      \
@@ -195,12 +197,13 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     // if not then use them if yes then use cli values
     // this is for the stuff with -1 vals
     // symlinks, files, directories
-#define _X(name, ...) name == -1 &&
+    // NOTE: THERE IS NO \ AT THE END OF THE _X IT IS ONLY ONE LINE!!
+#define _X(name) name == -1 &&
     if (L_ADVANCED_DEFAULT_ARGS_IN_SIMPLE_ARGS(
             _X) 1) // there is prolly a better way than to put 1
 #undef _X
     {
-#define _X(name, ...) name = default_##name;
+#define _X(name) name = default_##name;
         L_ADVANCED_DEFAULT_ARGS_IN_SIMPLE_ARGS(_X)
 #undef _X
     }

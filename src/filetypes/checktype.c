@@ -85,7 +85,7 @@ int laser_checktype_magic(int fd, const struct laser_filetype formats[])
     // should be updated if there is a magic number larger than 8 bits
     unsigned char buffer[8];
 
-    ssize_t bytesRead = read(fd, buffer, sizeof(buffer));
+    long bytesRead = read(fd, buffer, sizeof(buffer));
 
     if (bytesRead < 0)
     {

@@ -28,7 +28,7 @@ typedef struct laser_opts
     const char **filters;
 
     int ensure_colors;
-    int no_sorting;
+    int sort;
 
     const char *dir;
     const char *parentDir;

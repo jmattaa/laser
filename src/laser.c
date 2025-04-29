@@ -184,7 +184,6 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
             memcpy(entries[entry_count]->d, entry->d,
                    offsetof(struct dirent, d_name) + strlen(entry->d->d_name) +
                        1);
-
             entry_count++;
         }
 
@@ -205,9 +204,14 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
         exit(1);
     }
 
-    // sort and print stuff
-    laser_sort(entries, entry_count, sizeof(struct laser_dirent *),
-               laser_cmp_dirent, NULL);
+    // TODO: sort option is not just to stop the sorting rather speed up the 
+    // listing process, we've gotta find a way to merge the two loops into one
+    // if we ain't sorting
+    if (opts.sort)
+        // sort and print stuff
+        laser_sort(entries, entry_count, sizeof(struct laser_dirent *),
+                   laser_cmp_dirent, NULL);
+
     for (int i = 0; i < entry_count; i++)
     {
         int is_last = (i == entry_count - 1);

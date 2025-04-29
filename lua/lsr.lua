@@ -36,5 +36,6 @@ L_default_args = {
     git = { status = false, ignore = false },
     long = false,
     ensure_colors = false,
+    sort = false,
     filters = {},
 }

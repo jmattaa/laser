@@ -91,11 +91,11 @@ L_default_args = {
     directories = true, -- show directories
     symlinks = true, -- show symlinks
     long = false, -- show long format
+    sorting = true, -- sort entries using the `L_compare_entries` function
     git = { 
         status = false, -- show git status
         ignored = false, -- show git ignored files
     }, 
-
     filters = {}, -- apply filters defined in `L_filters` 
                     -- (NOTE: the name should be a string)
 }

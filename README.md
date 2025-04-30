@@ -150,6 +150,10 @@ you can directly pass in the flags.
   is redirected to another file than stdout (e.g. `lsr > file.txt` or `lsr |
   less`).
 
+- `-n` / `--no-sort` Dissables sorting. (The speed difference between sorting
+  and not sorting is really small, got an idea to make it faster?
+  [open an issue](https://github.com/jmattaa/laser/issues/new))
+
 - `-fmyfilter` / `--filter=myfilter`  Applies a user-defined filter written in
   Lua.  
   - For more information, see [CONFIGURATION.md](CONFIGURATION.md#L_filters).

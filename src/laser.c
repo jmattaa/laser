@@ -100,7 +100,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
         laser_logger_fatal(1, "Failed to allocate entry struct: %s",
                            strerror(errno));
 
-    struct laser_dirent **entries;
+    struct laser_dirent **entries = NULL;
     if (opts.sort)
     {
         entries = malloc(sizeof(struct laser_dirent *));
@@ -237,7 +237,8 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
     }
 
 cleanup:
-    free(entries);
+    if (entries != NULL)
+        free(entries);
     closedir(dir);
 }
 

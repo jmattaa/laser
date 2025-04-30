@@ -10,6 +10,7 @@ complete -c lsr -s l -l long -d "Use long format"
 complete -c lsr -s r -l recursive -d "Show in tree format" -r
 complete -c lsr -s f -l filter -d "Filter out files using lua filters (L_filters in lsr.lua)" -r
 complete -c lsr -s c -l ensure-colors -d "Force colored output"
+complete -c lsr -s n -l no-sort -d "Disable sorting"
 complete -c lsr -s ! -l no-lua -d "Don't use user defined configuration from lsr.lua"
 complete -c lsr -s v -l version -d "Print the current version"
 complete -c lsr -s h -l help -d "Print help message"

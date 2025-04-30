@@ -13,6 +13,7 @@ _lsr() {
         "--recursive[Specify recursive]:Show in tree format:" \
         "--filter[Specify filter]:Filter out files using lua filters (L_filters in lsr.lua):" \
         "(-c --ensure-colors)"{-c,--ensure-colors}"[Force colored output]" \
+        "(-n --no-sort)"{-n,--no-sort}"[Disable sorting]" \
         "(-! --no-lua)"{-!,--no-lua}"[Don't use user defined configuration from lsr.lua]" \
         "(-v --version)"{-v,--version}"[Print the current version]" \
         "(-h --help)"{-h,--help}"[Print help message]" \

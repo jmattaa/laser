@@ -2,7 +2,7 @@ _lsr() {
     local cur prev opts opts_with_args
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
-    opts="-a --all -F --Files -D --Directories -S --Symlinks -G --Git -g --git-status -i --git-ignored -l --long -r --recursive -f --filter -c --ensure-colors -! --no-lua -v --version -h --help --completions "
+    opts="-a --all -F --Files -D --Directories -S --Symlinks -G --Git -g --git-status -i --git-ignored -l --long -r --recursive -f --filter -c --ensure-colors -n --no-sort -! --no-lua -v --version -h --help --completions "
     opts_with_args="--Git --git-status --git-ignored --recursive --filter --completions "
     if [[ ${cur} == --* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )

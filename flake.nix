@@ -14,13 +14,13 @@
         };
 
         pname = "laser";
-        version = "1.6.1";
+        version = "1.6.2";
 
         src = pkgs.fetchFromGitHub {
           owner = "jmattaa";
           repo = pname;
-          rev = "v1.6.1";
-          sha256 = "10b0csv6lgzpkkskzl9z8dmx9zwbi5r7fv7465nyavqjs98dg82k";
+          rev = "v1.6.2";
+          sha256 = "1g560r43vhb9f9r6235dm2a7ll95jxsfkvblpw63q4m16s98zykz";
         };
 
       in

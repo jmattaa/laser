@@ -16,8 +16,10 @@
 static ssize_t longest_ownername = 0;
 
 // ------------------------- helper function decl -----------------------------
-static void laser_process_entries(laser_opts opts, int depth, int max_depth,
-                                  char *indent);
+static void laser_process_entries(laser_opts opts, int depth, char *indent);
+static void laser_handle_entry(struct laser_dirent *entry,
+                               const char *full_path, char *indent, int depth,
+                               laser_opts opts, int is_last);
 static int laser_cmp_dirent(const void *a, const void *b, const void *arg);
 static void laser_print_long_entry(struct laser_dirent *entry,
                                    const char *color, char *indent,
@@ -28,9 +30,9 @@ static void laser_print_entry(struct laser_dirent *entry, const char *color,
 static laser_color_type laser_color_for_format(const char *filename);
 // ----------------------------------------------------------------------------
 
-void laser_list_directory(laser_opts opts, int depth, int max_depth)
+void laser_list_directory(laser_opts opts, int depth)
 {
-    if (max_depth >= 0 && depth > max_depth)
+    if (opts.recursive_depth >= 0 && depth > opts.recursive_depth)
         return;
 
     const char *pipe = "│   ";
@@ -44,7 +46,7 @@ void laser_list_directory(laser_opts opts, int depth, int max_depth)
         for (int i = 1; i < depth; i++)
             strcat(indent, pipe);
 
-    laser_process_entries(opts, depth, max_depth, indent);
+    laser_process_entries(opts, depth, indent);
     free(indent);
 }
 
@@ -83,8 +85,7 @@ void laser_process_single_file(laser_opts opts)
 }
 
 // ------------------------- helper function impl -----------------------------
-static void laser_process_entries(laser_opts opts, int depth, int max_depth,
-                                  char *indent)
+static void laser_process_entries(laser_opts opts, int depth, char *indent)
 
 {
     DIR *dir = opendir(opts.dir);
@@ -99,15 +100,26 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
         laser_logger_fatal(1, "Failed to allocate entry struct: %s",
                            strerror(errno));
 
-    struct laser_dirent **entries = malloc(sizeof(struct laser_dirent *));
-    if (entries == NULL)
-        laser_logger_fatal(1, "Failed to allocate entries struct: %s",
-                           strerror(errno));
+    struct laser_dirent **entries;
+    if (opts.sort)
+    {
+        entries = malloc(sizeof(struct laser_dirent *));
+        if (entries == NULL)
+            laser_logger_fatal(1, "Failed to allocate entries struct: %s",
+                               strerror(errno));
+    }
+
+    lua_getglobal(L, "L_pre_print_entries");
+    if (lua_pcall(L, 0, 0, 0) != LUA_OK)
+    {
+        laser_logger_error("lua error (L_pre_print_entries): %s\n",
+                           lua_tostring(L, -1));
+        lua_pop(L, 1); // pop error message
+        exit(1);
+    }
 
     int entry_count = 0;
-
     int entry_ignored = 0;
-
     char full_path[LASER_PATH_MAX];
     while ((entry->d = readdir(dir)) != NULL)
     {
@@ -122,11 +134,9 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
 
         if (opts.show_git->hide_git_ignored)
         {
-            // always ignore .git
             if (strcmp(entry->d->d_name, ".git") == 0)
                 continue;
 
-            // skip the leading "./" cuz libgit dosen't like it
             if (git_ignore_path_is_ignored(&entry_ignored, opts.git_repo,
                                            strncmp(full_path, "./", 2) == 0
                                                ? &full_path[2]
@@ -140,7 +150,6 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
                 continue;
         }
 
-        // default status to ' '
         entry->git_status = ' ';
         if (opts.show_git->show_git_status)
             lgit_getGitStatus(opts, entry, full_path);
@@ -160,8 +169,23 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
                  strcmp(entry->d->d_name, "..") == 0))
                 continue;
 
+            char *ownername = getpwuid(entry->s.st_uid)->pw_name;
+            ssize_t ownername_len = strlen(ownername);
+            if (ownername_len > longest_ownername)
+                longest_ownername = ownername_len;
+
+            if (!opts.sort)
+            {
+                // we dunno what dir is gon be last
+                laser_handle_entry(entry, full_path, indent, depth, opts, 0);
+                continue;
+            }
+
             entries = realloc(entries, (entry_count + 1) *
                                            sizeof(struct laser_dirent *));
+            if (entries == NULL)
+                laser_logger_fatal(1, "Failed to realloc entries: %s",
+                                   strerror(errno));
 
             size_t entry_size = sizeof(struct laser_dirent) +
                                 offsetof(struct dirent, d_name) +
@@ -173,44 +197,31 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
                                    strerror(errno));
 
             entries[entry_count]->git_status = entry->git_status;
-
             entries[entry_count]->s = entry->s;
             entries[entry_count]->d = malloc(offsetof(struct dirent, d_name) +
                                              strlen(entry->d->d_name) + 1);
             if (entries[entry_count]->d == NULL)
-                laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+                laser_logger_fatal(1, "Failed to allocate dirent struct: %s",
                                    strerror(errno));
 
             memcpy(entries[entry_count]->d, entry->d,
                    offsetof(struct dirent, d_name) + strlen(entry->d->d_name) +
                        1);
+
             entry_count++;
         }
-
-        char *ownername = getpwuid(entry->s.st_uid)->pw_name;
-        ssize_t ownername_len = strlen(ownername);
-        if (ownername_len > longest_ownername)
-            longest_ownername = ownername_len;
     }
+
+    free(entry->d);
     free(entry); // entry is no longer needed it's been copied to entries
                  // u see my dumbass created mem leaks
 
-    lua_getglobal(L, "L_pre_print_entries");
-    if (lua_pcall(L, 0, 0, 0) != LUA_OK)
-    {
-        laser_logger_error("lua error (L_pre_print_entries): %s\n",
-                           lua_tostring(L, -1));
-        lua_pop(L, 1); // pop error message
-        exit(1);
-    }
+    if (!opts.sort)
+        goto cleanup;
 
-    // TODO: sort option is not just to stop the sorting rather speed up the 
-    // listing process, we've gotta find a way to merge the two loops into one
-    // if we ain't sorting
-    if (opts.sort)
-        // sort and print stuff
-        laser_sort(entries, entry_count, sizeof(struct laser_dirent *),
-                   laser_cmp_dirent, NULL);
+    // sort and print stuff
+    laser_sort(entries, entry_count, sizeof(struct laser_dirent *),
+               laser_cmp_dirent, NULL);
 
     for (int i = 0; i < entry_count; i++)
     {
@@ -219,93 +230,89 @@ static void laser_process_entries(laser_opts opts, int depth, int max_depth,
         snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
                  entries[i]->d->d_name);
 
-        if (S_ISDIR(entries[i]->s.st_mode))
-        {
-            laser_print_entry(entries[i], LASER_COLORS[LASER_COLOR_DIR].value,
-                              indent, depth, opts, is_last);
-
-            if (opts.show_tree)
-            {
-                laser_opts sub_opts = opts;
-                sub_opts.dir = full_path;
-                laser_list_directory(sub_opts, depth + 1, max_depth);
-            }
-        }
-        else
-        {
-            if (S_ISLNK(entries[i]->s.st_mode) && opts.show_symlinks)
-            {
-                char symlink_target[LASER_PATH_MAX];
-                int len = readlink(full_path, symlink_target,
-                                   sizeof(symlink_target) - 1);
-                if (len != -1)
-                {
-                    symlink_target[len] = '\0';
-
-                    char res_string[LASER_PATH_MAX * 2 + 4]; // 4 is " -> "
-
-                    snprintf(res_string, sizeof(res_string), "%s -> %s",
-                             entries[i]->d->d_name, symlink_target);
-
-                    struct laser_dirent *ent =
-                        malloc(sizeof(struct laser_dirent));
-                    if (ent == NULL)
-                        laser_logger_fatal(
-                            1, "Failed to allocate entry struct: %s",
-                            strerror(errno));
-
-                    ent->s = entries[i]->s;
-                    ent->d = malloc(offsetof(struct dirent, d_name) +
-                                    strlen(res_string) + 1);
-                    if (ent->d == NULL)
-                        laser_logger_fatal(
-                            1, "Failed to allocate entry struct: %s",
-                            strerror(errno));
-
-                    strcpy(ent->d->d_name, res_string);
-
-                    laser_print_entry(ent,
-                                      LASER_COLORS[LASER_COLOR_SYMLINK].value,
-                                      indent, depth, opts, is_last);
-
-                    free(ent->d);
-                    free(ent);
-                }
-            }
-            else if (laser_is_filestat_exec(&entries[i]->s))
-            {
-                laser_print_entry(entries[i],
-                                  LASER_COLORS[LASER_COLOR_EXEC].value, indent,
-                                  depth, opts, is_last);
-            }
-            else if (entries[i]->d->d_name[0] == '.')
-            {
-                laser_print_entry(entries[i],
-                                  LASER_COLORS[LASER_COLOR_HIDDEN].value,
-                                  indent, depth, opts, is_last);
-            }
-            else
-            {
-                // coloring which depends on formats
-                laser_color_type color_type = laser_color_for_format(full_path);
-                if (color_type != LASER_COLOR_FILE)
-                {
-                    laser_print_entry(entries[i],
-                                      LASER_COLORS[color_type].value, indent,
-                                      depth, opts, is_last);
-                }
-                else if (S_ISREG(entries[i]->s.st_mode))
-                    laser_print_entry(entries[i],
-                                      LASER_COLORS[LASER_COLOR_FILE].value,
-                                      indent, depth, opts, is_last);
-            }
-        }
+        laser_handle_entry(entries[i], full_path, indent, depth, opts, is_last);
 
         free(entries[i]->d);
         free(entries[i]);
     }
+
+cleanup:
     free(entries);
     closedir(dir);
+}
+
+static void laser_handle_entry(struct laser_dirent *entry,
+                               const char *full_path, char *indent, int depth,
+                               laser_opts opts, int is_last)
+{
+    if (S_ISDIR(entry->s.st_mode))
+    {
+        laser_print_entry(entry, LASER_COLORS[LASER_COLOR_DIR].value, indent,
+                          depth, opts, is_last);
+        if (opts.show_tree)
+        {
+            laser_opts sub_opts = opts;
+            sub_opts.dir = full_path;
+            laser_list_directory(sub_opts, depth + 1);
+        }
+
+        return;
+    }
+
+    if (S_ISLNK(entry->s.st_mode) && opts.show_symlinks)
+    {
+        char symlink_target[LASER_PATH_MAX];
+        int len =
+            readlink(full_path, symlink_target, sizeof(symlink_target) - 1);
+        if (len != -1)
+        {
+            symlink_target[len] = '\0';
+
+            char res_string[LASER_PATH_MAX * 2 + 4]; // 4 is " -> "
+
+            snprintf(res_string, sizeof(res_string), "%s -> %s",
+                     entry->d->d_name, symlink_target);
+
+            struct laser_dirent *ent = malloc(sizeof(struct laser_dirent));
+            if (ent == NULL)
+                laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+                                   strerror(errno));
+
+            ent->s = entry->s;
+            ent->d = malloc(offsetof(struct dirent, d_name) +
+                            strlen(res_string) + 1);
+            if (ent->d == NULL)
+                laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+                                   strerror(errno));
+
+            strcpy(ent->d->d_name, res_string);
+
+            laser_print_entry(ent, LASER_COLORS[LASER_COLOR_SYMLINK].value,
+                              indent, depth, opts, is_last);
+
+            free(ent->d);
+            free(ent);
+        }
+        return;
+    }
+
+    if (laser_is_filestat_exec(&entry->s))
+        laser_print_entry(entry, LASER_COLORS[LASER_COLOR_EXEC].value, indent,
+                          depth, opts, is_last);
+    else if (entry->d->d_name[0] == '.')
+        laser_print_entry(entry, LASER_COLORS[LASER_COLOR_HIDDEN].value, indent,
+                          depth, opts, is_last);
+    else
+    {
+        // coloring which depends on formats
+        laser_color_type color_type = laser_color_for_format(full_path);
+        if (color_type != LASER_COLOR_FILE)
+            laser_print_entry(entry, LASER_COLORS[color_type].value, indent,
+                              depth, opts, is_last);
+        else if (S_ISREG(entry->s.st_mode))
+            laser_print_entry(entry, LASER_COLORS[LASER_COLOR_FILE].value,
+                              indent, depth, opts, is_last);
+    }
 }
 
 // last parameter is only to match the signature for laser_sort

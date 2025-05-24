@@ -6,3 +6,5 @@ assets/demo-dir
 compile_commands.json
 
 .quickmarks
+
+.DS_Store

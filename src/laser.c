@@ -164,7 +164,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
             (S_ISLNK(entry->s.st_mode) && opts.show_symlinks) ||
             (S_ISREG(entry->s.st_mode) && opts.show_files))
         {
-            if ((S_ISDIR(entry->s.st_mode) && opts.show_tree) &&
+            if ((S_ISDIR(entry->s.st_mode) && opts.show_recursive) &&
                 (strcmp(entry->d->d_name, ".") == 0 ||
                  strcmp(entry->d->d_name, "..") == 0))
                 continue;
@@ -250,7 +250,7 @@ static void laser_handle_entry(struct laser_dirent *entry,
     {
         laser_print_entry(entry, LASER_COLORS[LASER_COLOR_DIR].value, indent,
                           depth, opts, is_last);
-        if (opts.show_tree)
+        if (opts.show_recursive)
         {
             laser_opts sub_opts = opts;
             sub_opts.dir = full_path;

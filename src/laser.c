@@ -11,6 +11,7 @@
 #include <pwd.h>
 #include <sys/stat.h>
 
+#define BLOCK_SIZE 512
 #define BRANCH_SIZE 8
 
 static ssize_t longest_ownername = 0;
@@ -490,7 +491,9 @@ static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
             s += sub_s;
         }
         else
-            s += e.s.st_size;
+            // s += e.s.st_size; // this will give the logical size
+            // while this will give how much space is on disk
+            s += e.s.st_blocks * BLOCK_SIZE;
     }
 
     closedir(dir);

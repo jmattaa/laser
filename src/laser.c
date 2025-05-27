@@ -453,13 +453,9 @@ static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
     if (!S_ISDIR(ent->s.st_mode))
         return -1;
 
-    size_t s = 0;
+    off_t s = 0;
 
-    struct laser_dirent *e = malloc(sizeof(struct laser_dirent));
-    if (e == NULL)
-        laser_logger_fatal(1, "Failed to allocate entry struct: %s",
-                           strerror(errno));
-
+    struct laser_dirent e;
     char full_path[LASER_PATH_MAX];
 
     DIR *dir = opendir(fp);
@@ -470,31 +466,33 @@ static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
         return -1;
     }
 
-    while ((e->d = readdir(dir)) != NULL)
+    while ((e.d = readdir(dir)) != NULL)
     {
-        if (strcmp(e->d->d_name, ".") == 0 || strcmp(e->d->d_name, "..") == 0)
+        if (strcmp(e.d->d_name, ".") == 0 || strcmp(e.d->d_name, "..") == 0)
             continue;
 
-        snprintf(full_path, sizeof(full_path), "%s/%s", fp, e->d->d_name);
-        if (stat(full_path, &e->s) == -1)
+        snprintf(full_path, sizeof(full_path), "%s/%s", fp, e.d->d_name);
+        if (stat(full_path, &e.s) == -1)
         {
             laser_logger_error("couldn't stat %s, %s\n", full_path,
                                strerror(errno));
             continue;
         }
 
-        if (S_ISDIR(e->s.st_mode))
+        if (S_ISDIR(e.s.st_mode))
         {
-            int sub_s = laser_git_dir_size(e, full_path);
+            off_t sub_s = laser_git_dir_size(&e, full_path);
             if (sub_s == -1) // unable to calculate the size
+            {
+                closedir(dir);
                 return -1;
+            }
             s += sub_s;
         }
         else
-            s += e->s.st_size;
+            s += e.s.st_size;
     }
 
-    free(e);
     closedir(dir);
 
     return s;

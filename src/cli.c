@@ -18,6 +18,8 @@ static int completionsset;
     _X("git-status", optional_argument, 0, 'g', "Show git status for entries") \
     _X("git-ignored", optional_argument, 0, 'i', "Ignore git ignored files")   \
     _X("long", 0, 0, 'l', "Use long format")                                   \
+    _X("directory-size", 0, 0, 's',                                            \
+       "Show directory size (forces the --long flag)")                         \
     _X("recursive", optional_argument, 0, 'r', "Show in tree format")          \
     _X("filter", required_argument, 0, 'f',                                    \
        "Filter out files using lua filters (L_filters in lsr.lua)")            \
@@ -44,6 +46,7 @@ static const char *descriptions[] = {ARGS_ITER(_X)};
     _X(symlinks, -1, default_show_)                                            \
     _X(recursive, 0, show_)                                                    \
     _X(long, 0, show_)                                                         \
+    _X(directory_size, 0, show_)                                               \
     _X(ensure_colors, 0, show_)                                                \
     _X(sort, 1, show_)
 
@@ -98,7 +101,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     if (lua_isnumber(L, -1))
         recursive_depth = (int)lua_tointeger(L, -1);
 
-    while ((opt = getopt_long(argc, argv, "aFDSG::g::i::r::lcnvhf::!",
+    while ((opt = getopt_long(argc, argv, "aFDSG::g::i::r::lscnvhf::!",
                               long_args, NULL)) != -1)
     {
         switch (opt)
@@ -153,6 +156,11 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                 break;
             case 'l':
                 show_long = 1;
+                break;
+            case 's':
+                // force the long flag cuz without it we aint seeing size
+                show_long = 1;
+                show_directory_size = 1;
                 break;
             case 'c':
                 show_ensure_colors = 1;
@@ -223,11 +231,22 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
         }
     }
 
-    return (laser_opts){
-        show_all,  show_files,   show_directories, show_symlinks,
-        show_git,  git_repo,     show_recursive,   recursive_depth,
-        show_long, filter_count, filters,          show_ensure_colors,
-        show_sort, dir,          .parentDir = dir};
+    return (laser_opts){show_all,
+                        show_files,
+                        show_directories,
+                        show_symlinks,
+                        show_git,
+                        git_repo,
+                        show_recursive,
+                        recursive_depth,
+                        show_long,
+                        show_directory_size,
+                        filter_count,
+                        filters,
+                        show_ensure_colors,
+                        show_sort,
+                        dir,
+                        .parentDir = dir};
 }
 
 void laser_cli_generate_completions(const char *shell)

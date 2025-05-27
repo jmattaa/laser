@@ -36,6 +36,7 @@ L_default_args = {
     git = { status = false, ignore = false },
     recursive = false,
     long = false,
+    directory_size = false, -- it be sad to set this to true and not set the long to true
     ensure_colors = false,
     sort = true,
     filters = {},

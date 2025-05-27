@@ -4,7 +4,7 @@
 #include <git2/types.h>
 #include <stdio.h>
 
-#define LASER_VERSION "1.6.3"
+#define LASER_VERSION "1.7.0"
 
 typedef struct laser_opts
 {
@@ -23,6 +23,8 @@ typedef struct laser_opts
     int show_recursive;
     int recursive_depth;
     int show_long;
+
+    int show_directory_size;
 
     int filter_count;
     const char **filters;

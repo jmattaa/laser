@@ -11,6 +11,7 @@
 #include <pwd.h>
 #include <sys/stat.h>
 
+#define BLOCK_SIZE 512
 #define BRANCH_SIZE 8
 
 static ssize_t longest_ownername = 0;
@@ -23,11 +24,14 @@ static void laser_handle_entry(struct laser_dirent *entry,
 static int laser_cmp_dirent(const void *a, const void *b, const void *arg);
 static void laser_print_long_entry(struct laser_dirent *entry,
                                    const char *color, char *indent,
-                                   const char *branch);
+                                   const char *branch, laser_opts opts);
 static void laser_print_entry(struct laser_dirent *entry, const char *color,
                               char *indent, int depth, laser_opts opts,
                               int is_last);
 static laser_color_type laser_color_for_format(const char *filename);
+
+// returns size of directory if able. else returns -1
+static off_t laser_git_dir_size(struct laser_dirent *entry, char *fp);
 // ----------------------------------------------------------------------------
 
 void laser_list_directory(laser_opts opts, int depth)
@@ -164,10 +168,21 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
             (S_ISLNK(entry->s.st_mode) && opts.show_symlinks) ||
             (S_ISREG(entry->s.st_mode) && opts.show_files))
         {
-            if ((S_ISDIR(entry->s.st_mode) && opts.show_recursive) &&
+            if ((S_ISDIR(entry->s.st_mode) &&
+                 (opts.show_recursive || opts.show_directory_size)) &&
                 (strcmp(entry->d->d_name, ".") == 0 ||
                  strcmp(entry->d->d_name, "..") == 0))
                 continue;
+
+            if (S_ISDIR(entry->s.st_mode) && opts.show_directory_size)
+            {
+                int dirsize = laser_git_dir_size(entry, full_path);
+                if (dirsize == -1)
+                    laser_logger_error("couldn't calculate the size of %s\n",
+                                       entry->d->d_name);
+                else
+                    entry->s.st_size = dirsize;
+            }
 
             char *ownername = getpwuid(entry->s.st_uid)->pw_name;
             ssize_t ownername_len = strlen(ownername);
@@ -345,7 +360,7 @@ static int laser_cmp_dirent(const void *a, const void *b, const void *_)
 
 static void laser_print_long_entry(struct laser_dirent *entry,
                                    const char *color, char *indent,
-                                   const char *branch)
+                                   const char *branch, laser_opts opts)
 {
     lua_getglobal(L, "L_long_format");
 
@@ -357,7 +372,9 @@ static void laser_print_long_entry(struct laser_dirent *entry,
     lua_pushinteger(L, entry->s.st_mode);
     lua_setfield(L, -2, "mode");
 
-    off_t size = (S_ISDIR(entry->s.st_mode)) ? -1 : entry->s.st_size;
+    off_t size = entry->s.st_size;
+    if (S_ISDIR(entry->s.st_mode) && !opts.show_directory_size)
+        size = -1;
     lua_pushinteger(L, size);
     lua_setfield(L, -2, "size");
 
@@ -409,7 +426,7 @@ static void laser_print_entry(struct laser_dirent *entry, const char *color,
 
     if (opts.show_long)
     {
-        laser_print_long_entry(entry, color, indent, branch);
+        laser_print_long_entry(entry, color, indent, branch, opts);
         return;
     }
 
@@ -430,5 +447,57 @@ static laser_color_type laser_color_for_format(const char *filename)
         return LASER_COLOR_DOCUMENT;
 
     return LASER_COLOR_FILE;
+}
+
+static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
+{
+    if (!S_ISDIR(ent->s.st_mode))
+        return -1;
+
+    off_t s = 0;
+
+    struct laser_dirent e;
+    char full_path[LASER_PATH_MAX];
+
+    DIR *dir = opendir(fp);
+    if (dir == NULL)
+    {
+        laser_logger_error("couldn't open %s, %s\n", ent->d->d_name,
+                           strerror(errno));
+        return -1;
+    }
+
+    while ((e.d = readdir(dir)) != NULL)
+    {
+        if (strcmp(e.d->d_name, ".") == 0 || strcmp(e.d->d_name, "..") == 0)
+            continue;
+
+        snprintf(full_path, sizeof(full_path), "%s/%s", fp, e.d->d_name);
+        if (stat(full_path, &e.s) == -1)
+        {
+            laser_logger_error("couldn't stat %s, %s\n", full_path,
+                               strerror(errno));
+            continue;
+        }
+
+        if (S_ISDIR(e.s.st_mode))
+        {
+            off_t sub_s = laser_git_dir_size(&e, full_path);
+            if (sub_s == -1) // unable to calculate the size
+            {
+                closedir(dir);
+                return -1;
+            }
+            s += sub_s;
+        }
+        else
+            // s += e.s.st_size; // this will give the logical size
+            // while this will give how much space is on disk
+            s += e.s.st_blocks * BLOCK_SIZE;
+    }
+
+    closedir(dir);
+
+    return s;
 }
 // ----------------------------------------------------------------------------

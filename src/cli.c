@@ -42,6 +42,7 @@ static const char *descriptions[] = {ARGS_ITER(_X)};
     _X(files, -1, default_show_)                                               \
     _X(directories, -1, default_show_)                                         \
     _X(symlinks, -1, default_show_)                                            \
+    _X(recursive, 0, show_)                                                    \
     _X(long, 0, show_)                                                         \
     _X(ensure_colors, 0, show_)                                                \
     _X(sort, 1, show_)
@@ -70,7 +71,6 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
     show_git->hide_git_ignored = 0;
 
     git_repository *git_repo = NULL;
-    int show_tree = 0;
 
     const char *dir = ".";
     const char *gitDir = dir;
@@ -138,7 +138,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                     gitDir = optarg;
                 break;
             case 'r':
-                show_tree = 1;
+                show_recursive = 1;
                 // recursive listing has to ovveride dir flag
                 show_directories = 1;
 
@@ -223,11 +223,11 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
         }
     }
 
-    return (laser_opts){show_all,      show_files, show_directories,
-                        show_symlinks, show_git,   git_repo,
-                        show_tree,     show_long,  recursive_depth,
-                        filter_count,  filters,    show_ensure_colors,
-                        show_sort,     dir,        .parentDir = dir};
+    return (laser_opts){
+        show_all,  show_files,   show_directories, show_symlinks,
+        show_git,  git_repo,     show_recursive,   recursive_depth,
+        show_long, filter_count, filters,          show_ensure_colors,
+        show_sort, dir,          .parentDir = dir};
 }
 
 void laser_cli_generate_completions(const char *shell)

@@ -34,8 +34,9 @@ L_default_args = {
     directories = true,
     symlinks = true,
     git = { status = false, ignore = false },
+    recursive = false,
     long = false,
     ensure_colors = false,
-    sort = false,
+    sort = true,
     filters = {},
 }

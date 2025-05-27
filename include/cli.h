@@ -20,9 +20,9 @@ typedef struct laser_opts
     } *show_git;
     git_repository *git_repo;
 
-    int show_tree;
-    int show_long;
+    int show_recursive;
     int recursive_depth;
+    int show_long;
 
     int filter_count;
     const char **filters;

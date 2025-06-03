@@ -295,13 +295,14 @@ static void laser_handle_entry(struct laser_dirent *entry,
                                    strerror(errno));
 
             ent->s = entry->s;
-            ent->d = malloc(offsetof(struct dirent, d_name) +
-                            strlen(res_string) + 1);
+            ent->d = malloc(sizeof(struct dirent));
             if (ent->d == NULL)
                 laser_logger_fatal(1, "Failed to allocate entry struct: %s",
                                    strerror(errno));
 
             strcpy(ent->d->d_name, res_string);
+
+            ent->git_status = entry->git_status;
 
             laser_print_entry(ent, LASER_COLORS[LASER_COLOR_SYMLINK].value,
                               indent, depth, opts, is_last);
@@ -432,8 +433,9 @@ static void laser_print_entry(struct laser_dirent *entry, const char *color,
 
     printf("%s%s%s%s%s", indent, branch, color, entry->d->d_name,
            LASER_COLORS[LASER_COLOR_RESET].value);
-    if (entry->git_status && entry->git_status != ' ')
-        printf("\x1b[33m [%c]\x1b[0m", entry->git_status);
+    (entry->git_status && entry->git_status != ' ')
+        ? printf("\x1b[33m [%c]\x1b[0m", entry->git_status)
+        : 0;
     printf("\n");
 }
 

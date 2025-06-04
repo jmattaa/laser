@@ -3,6 +3,8 @@ build/
 assets/demo-dir
 .cache/
 
+test
+
 compile_commands.json
 
 .quickmarks

@@ -82,8 +82,7 @@ void laser_process_single_file(laser_opts opts)
     longest_ownername = strlen(ownername); // this has to be the longest name
                                            // cus it be the ownly name
 
-    laser_print_entry(&entry, LASER_COLORS[LASER_COLOR_FILE].value, "", 0, opts,
-                      1);
+    laser_handle_entry(&entry, opts.dir, "", 0, opts, 1);
 
     free(entry.d);
 }

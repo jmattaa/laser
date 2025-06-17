@@ -72,7 +72,7 @@ int main(int argc, char **argv)
         laser_process_single_file(opts);
         goto clean;
     }
-    laser_list_directory(opts, 0);
+    laser_start(opts);
 
 clean:
     laser_cli_destroy_opts(opts);

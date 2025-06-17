@@ -7,6 +7,7 @@ complete -c lsr -s G -l Git -d "Do not show ignored git files" -r
 complete -c lsr -s g -l git-status -d "Show git status for entries" -r
 complete -c lsr -s i -l git-ignored -d "Ignore git ignored files" -r
 complete -c lsr -s l -l long -d "Use long format"
+complete -c lsr -s s -l directory-size -d "Show directory size (forces the --long flag and the --all flag)"
 complete -c lsr -s r -l recursive -d "Show in tree format" -r
 complete -c lsr -s f -l filter -d "Filter out files using lua filters (L_filters in lsr.lua)" -r
 complete -c lsr -s c -l ensure-colors -d "Force colored output"

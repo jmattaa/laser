@@ -15,8 +15,8 @@ function M.getPerms(mode)
     return perms
 end
 
-function M.formatSize(size)
-    if size == -1 then -- -1 size means it's a directory
+function LASER_BUILTIN_formatSize(size)
+    if size == -1 then
         return "      ---"
     end
 

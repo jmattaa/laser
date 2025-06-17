@@ -23,7 +23,7 @@ struct laser_dirent
     char git_status;
 };
 
-void laser_list_directory(laser_opts opts, int depth);
+void laser_start(laser_opts opts);
 void laser_process_single_file(laser_opts opts);
 
 #endif

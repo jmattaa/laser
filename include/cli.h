@@ -4,7 +4,7 @@
 #include <git2/types.h>
 #include <stdio.h>
 
-#define LASER_VERSION "1.7.1"
+#define LASER_VERSION "1.7.2"
 
 typedef struct laser_opts
 {

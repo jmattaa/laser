@@ -15,6 +15,7 @@
 #define BRANCH_SIZE 8
 
 static ssize_t longest_ownername = 0;
+static size_t current_dir_total_size = 0;
 
 // ------------------------- helper function decl -----------------------------
 static void laser_process_entries(laser_opts opts, int depth, char *indent);
@@ -32,26 +33,39 @@ static laser_color_type laser_color_for_format(const char *filename);
 
 // returns size of directory if able. else returns -1
 static off_t laser_git_dir_size(struct laser_dirent *entry, char *fp);
+static void laser_list_directory(laser_opts opts, int depth);
 // ----------------------------------------------------------------------------
 
-void laser_list_directory(laser_opts opts, int depth)
+void laser_start(laser_opts opts)
 {
-    if (opts.recursive_depth >= 0 && depth > opts.recursive_depth)
-        return;
+    laser_list_directory(opts, 0);
 
-    const char *pipe = "│   ";
-    size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
-    char *indent = malloc(indent_len + 1);
-    if (indent == NULL)
-        laser_logger_fatal(1, "Malloc function failed: %s", strerror(errno));
+    if (opts.show_directory_size)
+    {
+        const char *errtemp =
+            "error when trying to call LASER_BUILTIN_formatSize: %s\n"
+            "Please open a issue on github with this message as this is"
+            " an internal error!\n";
 
-    indent[0] = '\0';
-    if (depth > 0)
-        for (int i = 1; i < depth; i++)
-            strcat(indent, pipe);
+        lua_getglobal(L, "LASER_BUILTIN_formatSize");
+        lua_pushinteger(L, current_dir_total_size);
 
-    laser_process_entries(opts, depth, indent);
-    free(indent);
+        if (lua_pcall(L, 1, 1, 0) != LUA_OK)
+        {
+            laser_logger_error(errtemp, lua_tostring(L, -1));
+            lua_pop(L, 1);
+            return;
+        }
+
+        const char *size = lua_tostring(L, -1);
+        if (size == NULL)
+        {
+            laser_logger_error(errtemp, "");
+            lua_pop(L, 1);
+            return;
+        }
+        printf("\nTotal size: %s\n", size);
+    }
 }
 
 void laser_process_single_file(laser_opts opts)
@@ -88,6 +102,26 @@ void laser_process_single_file(laser_opts opts)
 }
 
 // ------------------------- helper function impl -----------------------------
+static void laser_list_directory(laser_opts opts, int depth)
+{
+    if (opts.recursive_depth >= 0 && depth > opts.recursive_depth)
+        return;
+
+    const char *pipe = "│   ";
+    size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
+    char *indent = malloc(indent_len + 1);
+    if (indent == NULL)
+        laser_logger_fatal(1, "Malloc function failed: %s", strerror(errno));
+
+    indent[0] = '\0';
+    if (depth > 0)
+        for (int i = 1; i < depth; i++)
+            strcat(indent, pipe);
+
+    laser_process_entries(opts, depth, indent);
+    free(indent);
+}
+
 static void laser_process_entries(laser_opts opts, int depth, char *indent)
 
 {
@@ -173,14 +207,19 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
                  strcmp(entry->d->d_name, "..") == 0))
                 continue;
 
-            if (S_ISDIR(entry->s.st_mode) && opts.show_directory_size)
+            if (opts.show_directory_size)
             {
-                int dirsize = laser_git_dir_size(entry, full_path);
-                if (dirsize == -1)
-                    laser_logger_error("couldn't calculate the size of %s\n",
-                                       entry->d->d_name);
-                else
-                    entry->s.st_size = dirsize;
+                if (S_ISDIR(entry->s.st_mode))
+                {
+                    off_t dirsize = laser_git_dir_size(entry, full_path);
+                    if (dirsize == -1)
+                        laser_logger_error(
+                            "couldn't calculate the size of %s\n",
+                            entry->d->d_name);
+                    else
+                        entry->s.st_size = dirsize;
+                }
+                current_dir_total_size += entry->s.st_size;
             }
 
             char *ownername = getpwuid(entry->s.st_uid)->pw_name;

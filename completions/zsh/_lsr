@@ -10,6 +10,7 @@ _lsr() {
         "--git-status[Specify git-status]:Show git status for entries:" \
         "--git-ignored[Specify git-ignored]:Ignore git ignored files:" \
         "(-l --long)"{-l,--long}"[Use long format]" \
+        "(-s --directory-size)"{-s,--directory-size}"[Show directory size (forces the --long flag and the --all flag)]" \
         "--recursive[Specify recursive]:Show in tree format:" \
         "--filter[Specify filter]:Filter out files using lua filters (L_filters in lsr.lua):" \
         "(-c --ensure-colors)"{-c,--ensure-colors}"[Force colored output]" \

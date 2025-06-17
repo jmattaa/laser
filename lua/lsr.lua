@@ -15,7 +15,7 @@ function L_long_format(entry, longest_name)
     local perms = string.format("%s%s", entry.type, utils.getPerms(entry.mode))
 
     local last_modified = os.date("%b %d %H:%M", entry.mtime)
-    local size = utils.formatSize(entry.size)
+    local size = LASER_BUILTIN_formatSize(entry.size)
     local owner = string.format("%-" .. longest_name .. "s ", entry.owner)
 
     return string.format("%s %s%s %s%s %s%s ",

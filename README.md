@@ -147,7 +147,7 @@ you can directly pass in the flags.
   last modified date, size, and owner.
 
 - `-s` / `--directory-size` Displays the physical disk usage of the all the
-subdirectories. (will force the `-l`/`--long` flag)
+subdirectories. (will force the `-l`/`--long` flag and the `-a`/`--all` flag)
 
 - `-c` / `--ensure-colors`  Ensures that the output is colorized even if output
   is redirected to another file than stdout (e.g. `lsr > file.txt` or `lsr |

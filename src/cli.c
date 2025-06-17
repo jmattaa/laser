@@ -19,7 +19,7 @@ static int completionsset;
     _X("git-ignored", optional_argument, 0, 'i', "Ignore git ignored files")   \
     _X("long", 0, 0, 'l', "Use long format")                                   \
     _X("directory-size", 0, 0, 's',                                            \
-       "Show directory size (forces the --long flag)")                         \
+       "Show directory size (forces the --long flag and the --all flag)")      \
     _X("recursive", optional_argument, 0, 'r', "Show in tree format")          \
     _X("filter", required_argument, 0, 'f',                                    \
        "Filter out files using lua filters (L_filters in lsr.lua)")            \
@@ -160,6 +160,8 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
             case 's':
                 // force the long flag cuz without it we aint seeing size
                 show_long = 1;
+                // force showing hidden too cuz we wanna calc the size
+                show_all = 1;
                 show_directory_size = 1;
                 break;
             case 'c':

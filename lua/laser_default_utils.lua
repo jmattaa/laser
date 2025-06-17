@@ -15,7 +15,7 @@ function M.getPerms(mode)
     return perms
 end
 
-function M.formatSize(size)
+function LASER_BUILTIN_formatSize(size)
     if size == -1 then
         return "      ---"
     end
@@ -29,10 +29,6 @@ function M.formatSize(size)
     else
         return string.format("%6.2f GB", size / (1024 * 1024 * 1024))
     end
-end
-
-function LASER_BUILTIN_formatSize(size)
-    return M.formatSize(size)
 end
 
 return M

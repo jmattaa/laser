@@ -3,6 +3,7 @@
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "init_lua.h"
+#include "laser_pwuid.h"
 #include "logger.h"
 #include "lua_filters.h"
 #include "utils.h"
@@ -92,7 +93,7 @@ void laser_process_single_file(laser_opts opts)
     if (opts.show_git->show_git_status)
         lgit_getGitStatus(opts, &entry, opts.dir);
 
-    char *ownername = getpwuid(entry.s.st_uid)->pw_name;
+    char *ownername = laser_getpwuid(entry.s.st_uid)->name;
     longest_ownername = strlen(ownername); // this has to be the longest name
                                            // cus it be the ownly name
 
@@ -222,7 +223,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
                 current_dir_total_size += entry->s.st_size;
             }
 
-            char *ownername = getpwuid(entry->s.st_uid)->pw_name;
+            char *ownername = laser_getpwuid(entry->s.st_uid)->name;
             ssize_t ownername_len = strlen(ownername);
             if (ownername_len > longest_ownername)
                 longest_ownername = ownername_len;
@@ -420,7 +421,7 @@ static void laser_print_long_entry(struct laser_dirent *entry,
     lua_pushinteger(L, entry->s.st_mtime);
     lua_setfield(L, -2, "mtime");
 
-    lua_pushstring(L, getpwuid(entry->s.st_uid)->pw_name);
+    lua_pushstring(L, laser_getpwuid(entry->s.st_uid)->name);
     lua_setfield(L, -2, "owner");
     lua_pushstring(L, S_ISDIR(entry->s.st_mode)    ? "d"
                       : S_ISLNK(entry->s.st_mode)  ? "l"

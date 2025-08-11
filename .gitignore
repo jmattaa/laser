@@ -8,5 +8,6 @@ test
 compile_commands.json
 
 .quickmarks
+.firecmds
 
 .DS_Store

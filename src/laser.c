@@ -15,6 +15,8 @@
 #define BLOCK_SIZE 512
 #define BRANCH_SIZE 8
 
+#define INITIAL_ENTRIES_CAPACITY 8
+
 static ssize_t longest_ownername = 0;
 static size_t current_dir_total_size = 0;
 
@@ -124,7 +126,6 @@ static void laser_list_directory(laser_opts opts, int depth)
 }
 
 static void laser_process_entries(laser_opts opts, int depth, char *indent)
-
 {
     DIR *dir = opendir(opts.dir);
     if (dir == NULL)
@@ -139,9 +140,11 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
                            strerror(errno));
 
     struct laser_dirent **entries = NULL;
+    size_t entries_capacity = 0;
     if (opts.sort)
     {
-        entries = malloc(sizeof(struct laser_dirent *));
+        entries_capacity = INITIAL_ENTRIES_CAPACITY;
+        entries = malloc(sizeof(*entries) * entries_capacity);
         if (entries == NULL)
             laser_logger_fatal(1, "Failed to allocate entries struct: %s",
                                strerror(errno));
@@ -156,7 +159,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
         exit(1);
     }
 
-    int entry_count = 0;
+    size_t entry_count = 0;
     int entry_ignored = 0;
     char full_path[LASER_PATH_MAX];
     while ((entry->d = readdir(dir)) != NULL)
@@ -230,16 +233,18 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
 
             if (!opts.sort)
             {
-                // we dunno what dir is gon be last
                 laser_handle_entry(entry, full_path, indent, depth, opts, 0);
                 continue;
             }
 
-            entries = realloc(entries, (entry_count + 1) *
-                                           sizeof(struct laser_dirent *));
-            if (entries == NULL)
-                laser_logger_fatal(1, "Failed to realloc entries: %s",
-                                   strerror(errno));
+            if (entry_count >= entries_capacity)
+            {
+                entries_capacity += INITIAL_ENTRIES_CAPACITY;
+                entries = realloc(entries, sizeof(*entries) * entries_capacity);
+                if (entries == NULL)
+                    laser_logger_fatal(1, "Failed to realloc entries: %s",
+                                       strerror(errno));
+            }
 
             size_t entry_size = sizeof(struct laser_dirent) +
                                 offsetof(struct dirent, d_name) +
@@ -277,9 +282,9 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
     laser_sort(entries, entry_count, sizeof(struct laser_dirent *),
                laser_cmp_dirent, NULL);
 
-    for (int i = 0; i < entry_count; i++)
+    for (size_t i = 0; i < entry_count; i++)
     {
-        int is_last = (i == entry_count - 1);
+        size_t is_last = (i == entry_count - 1);
 
         snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
                  entries[i]->d->d_name);

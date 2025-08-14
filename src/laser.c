@@ -15,7 +15,8 @@
 #define BLOCK_SIZE 512
 #define BRANCH_SIZE 8
 
-#define INITIAL_ENTRIES_CAPACITY 8
+#define INITIAL_ENTRIES_CAPACITY 16
+#define ENTRIES_GROWTH_FACTOR 2
 
 static ssize_t longest_ownername = 0;
 static size_t current_dir_total_size = 0;
@@ -239,7 +240,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
 
             if (entry_count >= entries_capacity)
             {
-                entries_capacity += INITIAL_ENTRIES_CAPACITY;
+                entries_capacity += ENTRIES_GROWTH_FACTOR;
                 entries = realloc(entries, sizeof(*entries) * entries_capacity);
                 if (entries == NULL)
                     laser_logger_fatal(1, "Failed to realloc entries: %s",
@@ -500,11 +501,6 @@ static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
     if (!S_ISDIR(ent->s.st_mode))
         return -1;
 
-    off_t s = 0;
-
-    struct laser_dirent e;
-    char full_path[LASER_PATH_MAX];
-
     DIR *dir = opendir(fp);
     if (dir == NULL)
     {
@@ -513,14 +509,28 @@ static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
         return -1;
     }
 
+    off_t s = 0;
+
+    struct laser_dirent e;
+    size_t fp_len = strlen(fp);
+
+    char full_path[LASER_PATH_MAX];
+    memcpy(full_path, fp, fp_len);
+    full_path[fp_len] = '/';
+
     while ((e.d = readdir(dir)) != NULL)
     {
         if (strcmp(e.d->d_name, ".") == 0 || strcmp(e.d->d_name, "..") == 0)
             continue;
 
-        snprintf(full_path, sizeof(full_path), "%s/%s", fp, e.d->d_name);
+        // first +1 is to ensure that / is added
+        memcpy(full_path + fp_len + 1, e.d->d_name, strlen(e.d->d_name) + 1);
         if (stat(full_path, &e.s) == -1)
         {
+            // just ignore Eror NO ENTry
+            if (errno == ENOENT)
+                continue;
+
             laser_logger_error("couldn't stat %s, %s\n", full_path,
                                strerror(errno));
             continue;

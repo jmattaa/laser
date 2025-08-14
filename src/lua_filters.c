@@ -1,4 +1,5 @@
 #include "lua_filters.h"
+#include "laser_pwuid.h"
 #include "logger.h"
 
 int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
@@ -20,7 +21,7 @@ int lua_filters_apply(laser_opts opts, struct laser_dirent *entry)
     lua_pushinteger(L, entry->s.st_mtime);
     lua_setfield(L, -2, "mtime");
 
-    lua_pushstring(L, getpwuid(entry->s.st_uid)->pw_name);
+    lua_pushstring(L, laser_getpwuid(entry->s.st_uid)->name);
     lua_setfield(L, -2, "owner");
 
     lua_pushstring(L, S_ISDIR(entry->s.st_mode)    ? "d"

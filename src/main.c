@@ -2,6 +2,7 @@
 #include "colors.h"
 #include "init_lua.h"
 #include "laser.h"
+#include "laser_pwuid.h"
 #include "logger.h"
 #include <git2.h>
 #include <git2/global.h>
@@ -77,6 +78,7 @@ int main(int argc, char **argv)
 clean:
     laser_cli_destroy_opts(opts);
     laser_lua_destroy();
+    laser_pwuid_free_cache();
     git_libgit2_shutdown();
 
     return 0;

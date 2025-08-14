@@ -3,6 +3,7 @@
 #include "filetypes/checktypes.h"
 #include "git/lgit.h"
 #include "init_lua.h"
+#include "laser_pwuid.h"
 #include "logger.h"
 #include "lua_filters.h"
 #include "utils.h"
@@ -13,6 +14,9 @@
 
 #define BLOCK_SIZE 512
 #define BRANCH_SIZE 8
+
+#define INITIAL_ENTRIES_CAPACITY 16
+#define ENTRIES_GROWTH_FACTOR 2
 
 static ssize_t longest_ownername = 0;
 static size_t current_dir_total_size = 0;
@@ -92,7 +96,7 @@ void laser_process_single_file(laser_opts opts)
     if (opts.show_git->show_git_status)
         lgit_getGitStatus(opts, &entry, opts.dir);
 
-    char *ownername = getpwuid(entry.s.st_uid)->pw_name;
+    char *ownername = laser_getpwuid(entry.s.st_uid)->name;
     longest_ownername = strlen(ownername); // this has to be the longest name
                                            // cus it be the ownly name
 
@@ -123,7 +127,6 @@ static void laser_list_directory(laser_opts opts, int depth)
 }
 
 static void laser_process_entries(laser_opts opts, int depth, char *indent)
-
 {
     DIR *dir = opendir(opts.dir);
     if (dir == NULL)
@@ -138,9 +141,11 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
                            strerror(errno));
 
     struct laser_dirent **entries = NULL;
+    size_t entries_capacity = 0;
     if (opts.sort)
     {
-        entries = malloc(sizeof(struct laser_dirent *));
+        entries_capacity = INITIAL_ENTRIES_CAPACITY;
+        entries = malloc(sizeof(*entries) * entries_capacity);
         if (entries == NULL)
             laser_logger_fatal(1, "Failed to allocate entries struct: %s",
                                strerror(errno));
@@ -155,7 +160,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
         exit(1);
     }
 
-    int entry_count = 0;
+    size_t entry_count = 0;
     int entry_ignored = 0;
     char full_path[LASER_PATH_MAX];
     while ((entry->d = readdir(dir)) != NULL)
@@ -222,23 +227,25 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
                 current_dir_total_size += entry->s.st_size;
             }
 
-            char *ownername = getpwuid(entry->s.st_uid)->pw_name;
+            char *ownername = laser_getpwuid(entry->s.st_uid)->name;
             ssize_t ownername_len = strlen(ownername);
             if (ownername_len > longest_ownername)
                 longest_ownername = ownername_len;
 
             if (!opts.sort)
             {
-                // we dunno what dir is gon be last
                 laser_handle_entry(entry, full_path, indent, depth, opts, 0);
                 continue;
             }
 
-            entries = realloc(entries, (entry_count + 1) *
-                                           sizeof(struct laser_dirent *));
-            if (entries == NULL)
-                laser_logger_fatal(1, "Failed to realloc entries: %s",
-                                   strerror(errno));
+            if (entry_count >= entries_capacity)
+            {
+                entries_capacity += ENTRIES_GROWTH_FACTOR;
+                entries = realloc(entries, sizeof(*entries) * entries_capacity);
+                if (entries == NULL)
+                    laser_logger_fatal(1, "Failed to realloc entries: %s",
+                                       strerror(errno));
+            }
 
             size_t entry_size = sizeof(struct laser_dirent) +
                                 offsetof(struct dirent, d_name) +
@@ -276,9 +283,9 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
     laser_sort(entries, entry_count, sizeof(struct laser_dirent *),
                laser_cmp_dirent, NULL);
 
-    for (int i = 0; i < entry_count; i++)
+    for (size_t i = 0; i < entry_count; i++)
     {
-        int is_last = (i == entry_count - 1);
+        size_t is_last = (i == entry_count - 1);
 
         snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
                  entries[i]->d->d_name);
@@ -420,7 +427,7 @@ static void laser_print_long_entry(struct laser_dirent *entry,
     lua_pushinteger(L, entry->s.st_mtime);
     lua_setfield(L, -2, "mtime");
 
-    lua_pushstring(L, getpwuid(entry->s.st_uid)->pw_name);
+    lua_pushstring(L, laser_getpwuid(entry->s.st_uid)->name);
     lua_setfield(L, -2, "owner");
     lua_pushstring(L, S_ISDIR(entry->s.st_mode)    ? "d"
                       : S_ISLNK(entry->s.st_mode)  ? "l"
@@ -494,11 +501,6 @@ static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
     if (!S_ISDIR(ent->s.st_mode))
         return -1;
 
-    off_t s = 0;
-
-    struct laser_dirent e;
-    char full_path[LASER_PATH_MAX];
-
     DIR *dir = opendir(fp);
     if (dir == NULL)
     {
@@ -507,14 +509,28 @@ static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
         return -1;
     }
 
+    off_t s = 0;
+
+    struct laser_dirent e;
+    size_t fp_len = strlen(fp);
+
+    char full_path[LASER_PATH_MAX];
+    memcpy(full_path, fp, fp_len);
+    full_path[fp_len] = '/';
+
     while ((e.d = readdir(dir)) != NULL)
     {
         if (strcmp(e.d->d_name, ".") == 0 || strcmp(e.d->d_name, "..") == 0)
             continue;
 
-        snprintf(full_path, sizeof(full_path), "%s/%s", fp, e.d->d_name);
+        // first +1 is to ensure that / is added
+        memcpy(full_path + fp_len + 1, e.d->d_name, strlen(e.d->d_name) + 1);
         if (stat(full_path, &e.s) == -1)
         {
+            // just ignore Eror NO ENTry
+            if (errno == ENOENT)
+                continue;
+
             laser_logger_error("couldn't stat %s, %s\n", full_path,
                                strerror(errno));
             continue;

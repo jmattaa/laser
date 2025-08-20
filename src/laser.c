@@ -36,7 +36,7 @@ static void laser_print_entry(struct laser_dirent *entry, const char *color,
 static laser_color_type laser_color_for_format(const char *filename);
 
 // returns size of directory if able. else returns -1
-static off_t laser_git_dir_size(struct laser_dirent *entry, char *fp);
+static off_t laser_get_dir_size(struct laser_dirent *entry, char *fp);
 static void laser_list_directory(laser_opts opts, int depth);
 // ----------------------------------------------------------------------------
 
@@ -216,7 +216,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
             {
                 if (S_ISDIR(entry->s.st_mode))
                 {
-                    off_t dirsize = laser_git_dir_size(entry, full_path);
+                    off_t dirsize = laser_get_dir_size(entry, full_path);
                     if (dirsize == -1)
                         laser_logger_error(
                             "couldn't calculate the size of %s\n",
@@ -496,7 +496,7 @@ static laser_color_type laser_color_for_format(const char *filename)
     return LASER_COLOR_FILE;
 }
 
-static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
+static off_t laser_get_dir_size(struct laser_dirent *ent, char *fp)
 {
     if (!S_ISDIR(ent->s.st_mode))
         return -1;
@@ -538,7 +538,7 @@ static off_t laser_git_dir_size(struct laser_dirent *ent, char *fp)
 
         if (S_ISDIR(e.s.st_mode))
         {
-            off_t sub_s = laser_git_dir_size(&e, full_path);
+            off_t sub_s = laser_get_dir_size(&e, full_path);
             if (sub_s == -1) // unable to calculate the size
             {
                 closedir(dir);

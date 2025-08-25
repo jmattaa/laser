@@ -61,14 +61,14 @@ int main(int argc, char **argv)
     laser_colors_init(opts);
 
     struct stat path_stat;
-    if (stat(opts.dir, &path_stat) != 0)
+    if (lstat(opts.dir, &path_stat) != 0)
     {
         laser_logger_error("Error checking %s: %s\n", opts.dir,
                            strerror(errno));
         goto clean;
     }
 
-    if (S_ISREG(path_stat.st_mode))
+    if (!S_ISDIR(path_stat.st_mode))
     {
         laser_process_single_file(opts, path_stat);
         goto clean;

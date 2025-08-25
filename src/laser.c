@@ -34,6 +34,8 @@ static void laser_print_entry(struct laser_dirent *entry, const char *color,
                               char *indent, int depth, laser_opts opts,
                               int is_last);
 static laser_color_type laser_color_for_format(const char *filename);
+static laser_color_type laser_color_for_entry(struct laser_dirent *entry,
+                                              const char *full_path);
 
 // returns size of directory if able. else returns -1
 static off_t laser_get_dir_size(struct laser_dirent *entry, char *fp);
@@ -85,6 +87,24 @@ void laser_process_single_file(laser_opts opts, struct stat st)
                            strerror(errno));
 
     strcpy(entry.d->d_name, opts.dir);
+
+    // setup d_type cuz we ain't getting it
+    if (S_ISREG(st.st_mode))
+        entry.d->d_type = DT_REG;
+    else if (S_ISDIR(st.st_mode))
+        entry.d->d_type = DT_DIR;
+    else if (S_ISLNK(st.st_mode))
+        entry.d->d_type = DT_LNK;
+    else if (S_ISCHR(st.st_mode))
+        entry.d->d_type = DT_CHR;
+    else if (S_ISBLK(st.st_mode))
+        entry.d->d_type = DT_BLK;
+    else if (S_ISFIFO(st.st_mode))
+        entry.d->d_type = DT_FIFO;
+    else if (S_ISSOCK(st.st_mode))
+        entry.d->d_type = DT_SOCK;
+    else
+        entry.d->d_type = DT_UNKNOWN;
 
     // default status to ' '
     entry.git_status = ' ';
@@ -198,6 +218,11 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
             if (lstat(full_path, &entry->s) == -1)
                 continue;
             entry->stat_loaded = 1;
+
+            char *ownername = laser_getpwuid(entry->s.st_uid)->name;
+            ssize_t ownername_len = strlen(ownername);
+            if (ownername_len > longest_ownername)
+                longest_ownername = ownername_len;
         }
 
         if ((entry->d->d_type == DT_DIR && opts.show_directories) ||
@@ -224,11 +249,6 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
                 }
                 current_dir_total_size += entry->s.st_size;
             }
-
-            char *ownername = laser_getpwuid(entry->s.st_uid)->name;
-            ssize_t ownername_len = strlen(ownername);
-            if (ownername_len > longest_ownername)
-                longest_ownername = ownername_len;
 
             if (!opts.sort)
             {
@@ -345,6 +365,9 @@ static void laser_handle_entry(struct laser_dirent *entry,
 
             ent->git_status = entry->git_status;
 
+            ent->s = entry->s;
+            ent->stat_loaded = 1;
+
             laser_print_entry(ent, LASER_COLORS[LASER_COLOR_SYMLINK].value,
                               indent, depth, opts, is_last);
 
@@ -354,23 +377,9 @@ static void laser_handle_entry(struct laser_dirent *entry,
         return;
     }
 
-    if (laser_is_filestat_exec(&entry->s))
-        laser_print_entry(entry, LASER_COLORS[LASER_COLOR_EXEC].value, indent,
-                          depth, opts, is_last);
-    else if (entry->d->d_name[0] == '.')
-        laser_print_entry(entry, LASER_COLORS[LASER_COLOR_HIDDEN].value, indent,
-                          depth, opts, is_last);
-    else
-    {
-        // coloring which depends on formats
-        laser_color_type color_type = laser_color_for_format(full_path);
-        if (color_type != LASER_COLOR_FILE)
-            laser_print_entry(entry, LASER_COLORS[color_type].value, indent,
-                              depth, opts, is_last);
-        else if (entry->d->d_type == DT_REG)
-            laser_print_entry(entry, LASER_COLORS[LASER_COLOR_FILE].value,
-                              indent, depth, opts, is_last);
-    }
+    laser_color_type ctype = laser_color_for_entry(entry, full_path);
+    laser_print_entry(entry, LASER_COLORS[ctype].value, indent, depth, opts,
+                      is_last);
 }
 
 // last parameter is only to match the signature for laser_sort
@@ -488,6 +497,34 @@ static laser_color_type laser_color_for_format(const char *filename)
         return LASER_COLOR_MEDIA;
     else if (laser_checktype(filename, laser_documentformats))
         return LASER_COLOR_DOCUMENT;
+
+    return LASER_COLOR_FILE;
+}
+
+static laser_color_type laser_color_for_entry(struct laser_dirent *entry,
+                                              const char *full_path)
+{
+    if (entry->d->d_name[0] == '.')
+        return LASER_COLOR_HIDDEN;
+
+    laser_color_type fmt_color = laser_color_for_format(full_path);
+    if (fmt_color != LASER_COLOR_FILE)
+        return fmt_color;
+
+    if (entry->d->d_type == DT_REG)
+    {
+        if (!entry->stat_loaded)
+        {
+            if (lstat(full_path, &entry->s) == -1)
+                return LASER_COLOR_FILE;
+            entry->stat_loaded = 1;
+        }
+
+        if (laser_is_filestat_exec(&entry->s))
+            return LASER_COLOR_EXEC;
+
+        return LASER_COLOR_FILE;
+    }
 
     return LASER_COLOR_FILE;
 }

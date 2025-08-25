@@ -72,18 +72,13 @@ void laser_start(laser_opts opts)
     }
 }
 
-void laser_process_single_file(laser_opts opts)
+void laser_process_single_file(laser_opts opts, struct stat st)
 {
-    struct stat file_stat;
-    if (lstat(opts.dir, &file_stat) == -1)
-    {
-        laser_logger_error("Couldn't stat file %s, %s\n", opts.dir,
-                           strerror(errno));
-        return;
-    }
-
-    struct laser_dirent entry;
-    entry.s = file_stat;
+    struct laser_dirent entry = {0};
+    // always need to stat single files
+    // plus it ain't to bad cuz it just be only one stat call
+    entry.s = st;
+    entry.stat_loaded = 1;
     entry.d = malloc(sizeof(struct dirent) + strlen(opts.dir) + 1);
     if (entry.d == NULL)
         laser_logger_fatal(1, "Failed to allocate entry struct: %s",
@@ -168,12 +163,6 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
         snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
                  entry->d->d_name);
 
-        if (lstat(full_path, &entry->s) == -1)
-        {
-            laser_logger_error("%s\n", strerror(errno));
-            continue;
-        }
-
         if (opts.show_git->hide_git_ignored)
         {
             if (strcmp(entry->d->d_name, ".git") == 0)
@@ -196,17 +185,26 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
         if (opts.show_git->show_git_status)
             lgit_getGitStatus(opts, entry, full_path);
 
-        if (!lua_filters_apply(opts, entry))
+        if (!lua_filters_apply(opts, entry, full_path))
             continue;
 
         if (!opts.show_all && entry->d->d_name[0] == '.')
             continue;
 
-        if ((S_ISDIR(entry->s.st_mode) && opts.show_directories) ||
-            (S_ISLNK(entry->s.st_mode) && opts.show_symlinks) ||
-            (S_ISREG(entry->s.st_mode) && opts.show_files))
+        // stat will be needed
+        if (entry->d->d_type == DT_UNKNOWN || opts.show_long ||
+            opts.show_directory_size)
         {
-            if ((S_ISDIR(entry->s.st_mode) &&
+            if (lstat(full_path, &entry->s) == -1)
+                continue;
+            entry->stat_loaded = 1;
+        }
+
+        if ((entry->d->d_type == DT_DIR && opts.show_directories) ||
+            (entry->d->d_type == DT_LNK && opts.show_symlinks) ||
+            (entry->d->d_type == DT_REG && opts.show_files))
+        {
+            if ((entry->d->d_type == DT_DIR &&
                  (opts.show_recursive || opts.show_directory_size)) &&
                 (strcmp(entry->d->d_name, ".") == 0 ||
                  strcmp(entry->d->d_name, "..") == 0))
@@ -214,7 +212,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
 
             if (opts.show_directory_size)
             {
-                if (S_ISDIR(entry->s.st_mode))
+                if (entry->d->d_type == DT_DIR)
                 {
                     off_t dirsize = laser_get_dir_size(entry, full_path);
                     if (dirsize == -1)
@@ -306,7 +304,7 @@ static void laser_handle_entry(struct laser_dirent *entry,
                                const char *full_path, char *indent, int depth,
                                laser_opts opts, int is_last)
 {
-    if (S_ISDIR(entry->s.st_mode))
+    if (entry->d->d_type == DT_DIR)
     {
         laser_print_entry(entry, LASER_COLORS[LASER_COLOR_DIR].value, indent,
                           depth, opts, is_last);
@@ -320,7 +318,7 @@ static void laser_handle_entry(struct laser_dirent *entry,
         return;
     }
 
-    if (S_ISLNK(entry->s.st_mode) && opts.show_symlinks)
+    if (entry->d->d_type == DT_LNK && opts.show_symlinks)
     {
         char symlink_target[LASER_PATH_MAX];
         int len =
@@ -338,8 +336,6 @@ static void laser_handle_entry(struct laser_dirent *entry,
             if (ent == NULL)
                 laser_logger_fatal(1, "Failed to allocate entry struct: %s",
                                    strerror(errno));
-
-            ent->s = entry->s;
             ent->d = malloc(sizeof(struct dirent));
             if (ent->d == NULL)
                 laser_logger_fatal(1, "Failed to allocate entry struct: %s",
@@ -371,7 +367,7 @@ static void laser_handle_entry(struct laser_dirent *entry,
         if (color_type != LASER_COLOR_FILE)
             laser_print_entry(entry, LASER_COLORS[color_type].value, indent,
                               depth, opts, is_last);
-        else if (S_ISREG(entry->s.st_mode))
+        else if (entry->d->d_type == DT_REG)
             laser_print_entry(entry, LASER_COLORS[LASER_COLOR_FILE].value,
                               indent, depth, opts, is_last);
     }
@@ -387,8 +383,8 @@ static int laser_cmp_dirent(const void *a, const void *b, const void *_)
 
     lua_pushstring(L, dirent_a->d->d_name);
     lua_pushstring(L, dirent_b->d->d_name);
-    lua_pushboolean(L, S_ISDIR(dirent_a->s.st_mode));
-    lua_pushboolean(L, S_ISDIR(dirent_b->s.st_mode));
+    lua_pushboolean(L, dirent_a->d->d_type == DT_DIR);
+    lua_pushboolean(L, dirent_b->d->d_type == DT_DIR);
 
     if (lua_pcall(L, 4, 1, 0) != LUA_OK)
     {
@@ -419,7 +415,7 @@ static void laser_print_long_entry(struct laser_dirent *entry,
     lua_setfield(L, -2, "mode");
 
     off_t size = entry->s.st_size;
-    if (S_ISDIR(entry->s.st_mode) && !opts.show_directory_size)
+    if (entry->d->d_type == DT_DIR && !opts.show_directory_size)
         size = -1;
     lua_pushinteger(L, size);
     lua_setfield(L, -2, "size");
@@ -429,13 +425,13 @@ static void laser_print_long_entry(struct laser_dirent *entry,
 
     lua_pushstring(L, laser_getpwuid(entry->s.st_uid)->name);
     lua_setfield(L, -2, "owner");
-    lua_pushstring(L, S_ISDIR(entry->s.st_mode)    ? "d"
-                      : S_ISLNK(entry->s.st_mode)  ? "l"
-                      : S_ISCHR(entry->s.st_mode)  ? "c"
-                      : S_ISBLK(entry->s.st_mode)  ? "b"
-                      : S_ISFIFO(entry->s.st_mode) ? "p"
-                      : S_ISSOCK(entry->s.st_mode) ? "s"
-                                                   : "-");
+    lua_pushstring(L, entry->d->d_type == DT_DIR    ? "d"
+                      : entry->d->d_type == DT_LNK  ? "l"
+                      : entry->d->d_type == DT_CHR  ? "c"
+                      : entry->d->d_type == DT_BLK  ? "b"
+                      : entry->d->d_type == DT_FIFO ? "p"
+                      : entry->d->d_type == DT_SOCK ? "s"
+                                                    : "-");
     lua_setfield(L, -2, "type");
 
     lua_pushstring(
@@ -498,7 +494,7 @@ static laser_color_type laser_color_for_format(const char *filename)
 
 static off_t laser_get_dir_size(struct laser_dirent *ent, char *fp)
 {
-    if (!S_ISDIR(ent->s.st_mode))
+    if (ent->d->d_type != DT_DIR)
         return -1;
 
     DIR *dir = opendir(fp);
@@ -535,8 +531,9 @@ static off_t laser_get_dir_size(struct laser_dirent *ent, char *fp)
                                strerror(errno));
             continue;
         }
+        e.stat_loaded = 1;
 
-        if (S_ISDIR(e.s.st_mode))
+        if (e.d->d_type == DT_DIR)
         {
             off_t sub_s = laser_get_dir_size(&e, full_path);
             if (sub_s == -1) // unable to calculate the size

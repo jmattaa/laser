@@ -53,7 +53,7 @@ void lgit_getGitStatus(laser_opts opts, struct laser_dirent *entry,
         full_path += 2;
 
     // so... git dosent track dirs, only files
-    if (S_ISDIR(entry->s.st_mode))
+    if (entry->d->d_type == DT_DIR)
     {
         lgit_getDirsStatus(opts, entry, full_path);
         return;

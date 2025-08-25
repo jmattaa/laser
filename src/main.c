@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
     if (S_ISREG(path_stat.st_mode))
     {
-        laser_process_single_file(opts);
+        laser_process_single_file(opts, path_stat);
         goto clean;
     }
     laser_start(opts);

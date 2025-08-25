@@ -18,12 +18,15 @@
 struct laser_dirent
 {
     struct dirent *d;
+
+    // NOTE THIS WILL NOT ALWAYS BE SET!!
     struct stat s;
+    uint8_t stat_loaded : 1;
 
     char git_status;
 };
 
 void laser_start(laser_opts opts);
-void laser_process_single_file(laser_opts opts);
+void laser_process_single_file(laser_opts opts, struct stat st);
 
 #endif

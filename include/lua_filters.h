@@ -4,6 +4,7 @@
 #include "init_lua.h"
 #include "laser.h"
 
-int lua_filters_apply(laser_opts opts, struct laser_dirent *entry);
+int lua_filters_apply(laser_opts opts, struct laser_dirent *entry,
+                      const char *full_path);
 
 #endif

@@ -356,7 +356,10 @@ static void laser_handle_entry(struct laser_dirent *entry,
             if (ent == NULL)
                 laser_logger_fatal(1, "Failed to allocate entry struct: %s",
                                    strerror(errno));
-            ent->d = malloc(sizeof(struct dirent));
+            // +1 for the null
+            ent->d = malloc(offsetof(struct dirent, d_name) +
+                            strlen(res_string) + 1); // allocating enough size
+                                                     // for the name too
             if (ent->d == NULL)
                 laser_logger_fatal(1, "Failed to allocate entry struct: %s",
                                    strerror(errno));

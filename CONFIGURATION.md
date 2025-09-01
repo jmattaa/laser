@@ -93,7 +93,8 @@ L_default_args = {
     long = false, -- show long format
     recursive = false, -- show recursive
     directory_size = false, -- calculate the sizes of subdirectories
-    sorting = true, -- sort entries using the `L_compare_entries` function
+    ensure_colors = false, -- show colors even if output is redirected
+    sort = true, -- sort entries using the `L_compare_entries` function
     git = { 
         status = false, -- show git status
         ignored = false, -- show git ignored files
@@ -114,7 +115,7 @@ The default table looks like this:
 
 ```lua
 L_filters = {
-    recent = function(entry) return os.time() - entry.mtime < 24 * 60 * 60 end,
+    today = function(entry) return os.time() - entry.mtime < 24 * 60 * 60 end,
     large = function(entry) return entry.size > 1024 * 1024 end,
     small = function(entry) return entry.size < 1024 * 1024 end,
     me = function(entry) 

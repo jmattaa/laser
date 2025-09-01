@@ -4,7 +4,7 @@
 
 ###### (lsr) Basically `ls` but readable 
 
-![demo](./assets/demo.png)
+![demo](./assets/demo.gif)
 
 </div>
 

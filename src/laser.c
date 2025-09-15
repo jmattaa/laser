@@ -205,7 +205,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
         if (opts.show_git->show_git_status)
             lgit_getGitStatus(opts, entry, full_path);
 
-        if (!lua_filters_apply(opts, entry, full_path))
+        if (!lua_filters_apply(opts, entry, full_path) && opts.filter_count > 0)
             continue;
 
         if (!opts.show_all && entry->d->d_name[0] == '.')

@@ -5,6 +5,6 @@
 #include "laser.h"
 
 int lua_filters_apply(laser_opts opts, struct laser_dirent *entry,
-                      const char *full_path);
+                      const char *fp);
 
 #endif

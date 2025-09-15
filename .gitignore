@@ -4,6 +4,7 @@ assets/demo-dir
 .cache/
 
 test
+demo.tape
 
 compile_commands.json
 

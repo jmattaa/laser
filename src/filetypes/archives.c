@@ -21,6 +21,9 @@ const struct laser_filetype laser_archiveformats[] = {
      (const char *[]){"rar"}, 1}, // RAR v1.5 to 4.0
     {(unsigned char[]){0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00}, 8,
      (const char *[]){"rar"}, 1}, // RAR v5+
+
+    // STUFF WITHOUT MAGIC THEY SHOULD BE PLACED LAST
+    {NULL, 0, (const char *[]){"dmg"}, 1},
     // ADD MORE ARCHIVES
 
     {NULL, 0, NULL, 0}};

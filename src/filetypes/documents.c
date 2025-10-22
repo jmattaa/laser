@@ -8,6 +8,8 @@ const struct laser_filetype laser_documentformats[] = {
      5}, // compound bin file from microsoft
     {(unsigned char[]){0x41, 0x54, 0x26, 0x54, 0x46, 0x4F, 0x52, 0x4D}, 8,
      (const char *[]){"djvu", "djv"}, 2}, // DJVU
+    // STUFF WITHOUT MAGIC THEY SHOULD BE PLACED LAST
+    {NULL, 0, (const char *[]){"html", "txt", "xml", "json"}, 4},
     // ADD DOCUMENT TYPES
 
     {NULL, 0, NULL, 0}};

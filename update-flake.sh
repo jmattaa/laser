@@ -8,7 +8,11 @@ URL="https://github.com/jmattaa/laser/archive/${RELEASE_VERSION}.tar.gz"
 
 echo "Updating flake.nix for $RELEASE_VERSION..."
 
-NIX_SHA=$(nix-prefetch-url --unpack "https://github.com/jmattaa/laser/archive/${RELEASE_VERSION}.tar.gz")
+TMPDIR=$(mktemp -d)
+URL="https://github.com/jmattaa/laser/archive/${RELEASE_VERSION}.tar.gz"
+curl -L "$URL" | tar -xz -C "$TMPDIR"
+NIX_SHA=$(tar -C "$TMPDIR" -cf - . | shasum -a 256 | awk '{print $1}')
+
 sed -i.bak "s|rev = \".*\";|rev = \"${RELEASE_VERSION}\";|" flake.nix
 sed -i.bak "s|sha256 = \".*\";|sha256 = \"${NIX_SHA}\";|" flake.nix
 sed -i.bak "s|version = \".*\";|version = \"${RELEASE_VERSION#v}\";|" flake.nix

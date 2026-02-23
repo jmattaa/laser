@@ -127,7 +127,10 @@ static void laser_list_directory(laser_opts opts, int depth)
         return;
 
     laser_opts lopts = opts;
-    git_repository_open(&lopts.git_repo, opts.dir);
+
+    if (opts.show_git->show_git_status &&
+        strncmp(opts.git_dir, opts.dir, strlen(opts.git_dir)) != 0)
+        git_repository_open(&lopts.git_repo, opts.dir);
     if (lopts.git_repo == NULL)
         lopts.git_repo = opts.git_repo;
 
@@ -145,8 +148,9 @@ static void laser_list_directory(laser_opts opts, int depth)
     laser_process_entries(lopts, depth, indent);
 
     free(indent);
-    if (strncmp(opts.dir, opts.git_dir, strlen(opts.git_dir)) != 0)
-        git_repository_free(opts.git_repo);
+
+    if (lopts.git_repo && lopts.git_repo != opts.git_repo)
+        git_repository_free(lopts.git_repo);
 }
 
 static void laser_process_entries(laser_opts opts, int depth, char *indent)

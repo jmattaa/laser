@@ -19,6 +19,7 @@ typedef struct laser_opts
         int hide_git_ignored;
     } *show_git;
     git_repository *git_repo;
+    const char *git_dir;
 
     int show_recursive;
     int recursive_depth;

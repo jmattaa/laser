@@ -225,8 +225,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
 
     if (show_git->show_git_status || show_git->hide_git_ignored)
     {
-        int err = git_repository_open(&git_repo, gitDir);
-        if (err != 0)
+        if (git_repository_open(&git_repo, gitDir) != 0)
         {
             laser_logger_error("couldn't open git repo at '%s'\n", gitDir);
             show_git = 0;
@@ -239,6 +238,7 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
                         show_symlinks,
                         show_git,
                         git_repo,
+                        gitDir,
                         show_recursive,
                         recursive_depth,
                         show_long,
@@ -365,7 +365,6 @@ void laser_cli_destroy_opts(laser_opts opts)
 {
     if (opts.git_repo)
         git_repository_free(opts.git_repo);
-
     free(opts.show_git);
 
     for (int i = 0; i < opts.filter_count; i++)

@@ -4,7 +4,7 @@
 #include <git2/types.h>
 #include <stdio.h>
 
-#define LASER_VERSION "1.7.5"
+#define LASER_VERSION "1.7.7"
 
 typedef struct laser_opts
 {
@@ -19,6 +19,7 @@ typedef struct laser_opts
         int hide_git_ignored;
     } *show_git;
     git_repository *git_repo;
+    const char *git_dir;
 
     int show_recursive;
     int recursive_depth;

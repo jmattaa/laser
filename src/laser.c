@@ -109,7 +109,7 @@ void laser_process_single_file(laser_opts opts, struct stat st)
     // default status to ' '
     entry.git_status = ' ';
     if (opts.show_git->show_git_status)
-        lgit_getGitStatus(opts, &entry, opts.dir);
+        lgit_getGitStatus(opts.git_repo, &entry, opts.dir);
 
     char *ownername = laser_getpwuid(entry.s.st_uid)->name;
     longest_ownername = strlen(ownername); // this has to be the longest name
@@ -121,10 +121,43 @@ void laser_process_single_file(laser_opts opts, struct stat st)
 }
 
 // ------------------------- helper function impl -----------------------------
+static int laser_is_submodule(const char *dir_path)
+{
+    char git_file_path[LASER_PATH_MAX];
+    snprintf(git_file_path, sizeof(git_file_path), "%s/.git", dir_path);
+
+    struct stat st;
+    if (lstat(git_file_path, &st) == 0)
+        // submodules don't have a .git dir rather it's a file
+        return S_ISREG(st.st_mode);
+
+    return 0;
+}
+
 static void laser_list_directory(laser_opts opts, int depth)
 {
     if (opts.recursive_depth >= 0 && depth > opts.recursive_depth)
         return;
+
+    laser_opts lopts = opts;
+
+    if (opts.show_git->show_git_status)
+    {
+        if (laser_is_submodule(opts.dir))
+        {
+            git_repository_open(&lopts.git_repo, opts.dir);
+            lopts.git_dir = opts.dir;
+        }
+        else if (strncmp(opts.git_dir ? opts.git_dir : "", opts.dir,
+                         opts.git_dir ? strlen(opts.git_dir) : 0) != 0)
+        {
+            git_repository_open(&lopts.git_repo, opts.dir);
+            lopts.git_dir = opts.dir;
+        }
+    }
+
+    if (lopts.git_repo == NULL)
+        lopts.git_repo = opts.git_repo;
 
     const char *pipe = "│   ";
     size_t indent_len = depth > 0 ? depth * strlen(pipe) : 0;
@@ -137,8 +170,12 @@ static void laser_list_directory(laser_opts opts, int depth)
         for (int i = 1; i < depth; i++)
             strcat(indent, pipe);
 
-    laser_process_entries(opts, depth, indent);
+    laser_process_entries(lopts, depth, indent);
+
     free(indent);
+
+    if (lopts.git_repo && lopts.git_repo != opts.git_repo)
+        git_repository_free(lopts.git_repo);
 }
 
 static void laser_process_entries(laser_opts opts, int depth, char *indent)
@@ -203,7 +240,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
 
         entry->git_status = ' ';
         if (opts.show_git->show_git_status)
-            lgit_getGitStatus(opts, entry, full_path);
+            lgit_getGitStatus(opts.git_repo, entry, full_path);
 
         if (!lua_filters_apply(opts, entry, full_path) && opts.filter_count > 0)
             continue;

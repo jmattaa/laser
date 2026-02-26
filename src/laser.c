@@ -121,6 +121,19 @@ void laser_process_single_file(laser_opts opts, struct stat st)
 }
 
 // ------------------------- helper function impl -----------------------------
+static int laser_is_submodule(const char *dir_path)
+{
+    char git_file_path[LASER_PATH_MAX];
+    snprintf(git_file_path, sizeof(git_file_path), "%s/.git", dir_path);
+
+    struct stat st;
+    if (lstat(git_file_path, &st) == 0)
+        // submodules don't have a .git dir rather it's a file
+        return S_ISREG(st.st_mode);
+
+    return 0;
+}
+
 static void laser_list_directory(laser_opts opts, int depth)
 {
     if (opts.recursive_depth >= 0 && depth > opts.recursive_depth)
@@ -128,9 +141,21 @@ static void laser_list_directory(laser_opts opts, int depth)
 
     laser_opts lopts = opts;
 
-    if (opts.show_git->show_git_status &&
-        strncmp(opts.git_dir, opts.dir, strlen(opts.git_dir)) != 0)
-        git_repository_open(&lopts.git_repo, opts.dir);
+    if (opts.show_git->show_git_status)
+    {
+        if (laser_is_submodule(opts.dir))
+        {
+            git_repository_open(&lopts.git_repo, opts.dir);
+            lopts.git_dir = opts.dir;
+        }
+        else if (strncmp(opts.git_dir ? opts.git_dir : "", opts.dir,
+                         opts.git_dir ? strlen(opts.git_dir) : 0) != 0)
+        {
+            git_repository_open(&lopts.git_repo, opts.dir);
+            lopts.git_dir = opts.dir;
+        }
+    }
+
     if (lopts.git_repo == NULL)
         lopts.git_repo = opts.git_repo;
 

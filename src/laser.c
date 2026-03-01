@@ -399,43 +399,69 @@ static void laser_handle_entry(struct laser_dirent *entry,
 
     if (entry->d->d_type == DT_LNK && opts.show_symlinks)
     {
-        char symlink_target[LASER_PATH_MAX];
-        int len =
-            readlink(full_path, symlink_target, sizeof(symlink_target) - 1);
-        if (len != -1)
+        size_t size = 128;
+        char *symlink_targ = NULL;
+        ssize_t symlink_len;
+
+        for (;;)
         {
-            symlink_target[len] = '\0';
-
-            char res_string[LASER_PATH_MAX * 2 + 4]; // 4 is " -> "
-
-            snprintf(res_string, sizeof(res_string), "%s -> %s",
-                     entry->d->d_name, symlink_target);
-
-            struct laser_dirent *ent = malloc(sizeof(struct laser_dirent));
-            if (ent == NULL)
-                laser_logger_fatal(1, "Failed to allocate entry struct: %s",
-                                   strerror(errno));
-            // +1 for the null
-            ent->d = malloc(offsetof(struct dirent, d_name) +
-                            strlen(res_string) + 1); // allocating enough size
-                                                     // for the name too
-            if (ent->d == NULL)
-                laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+            char *tmp = realloc(symlink_targ, size);
+            if (!tmp)
+                laser_logger_fatal(1, "Failed to allocate symlink buffer: %s",
                                    strerror(errno));
 
-            strcpy(ent->d->d_name, res_string);
+            symlink_targ = tmp;
 
-            ent->git_status = entry->git_status;
+            symlink_len = readlink(full_path, symlink_targ, size - 1);
+            if (symlink_len < 0)
+            {
+                free(symlink_targ);
+                return;
+            }
 
-            ent->s = entry->s;
-            ent->stat_loaded = 1;
+            if ((size_t)symlink_len < size - 1)
+                break;
 
-            laser_print_entry(ent, LASER_COLORS[LASER_COLOR_SYMLINK].value,
-                              indent, depth, opts, is_last);
-
-            free(ent->d);
-            free(ent);
+            size *= 2;
         }
+
+        symlink_targ[symlink_len] = '\0';
+
+        size_t name_len = strlen(entry->d->d_name);
+        size_t res_len = name_len + 4 + symlink_len + 1; // " -> " + '\0'
+
+        char *res_string = malloc(res_len);
+        if (!res_string)
+            laser_logger_fatal(1, "Failed to allocate result string: %s",
+                               strerror(errno));
+
+        snprintf(res_string, res_len, "%s -> %s", entry->d->d_name,
+                 symlink_targ);
+
+        struct laser_dirent *ent = malloc(sizeof(struct laser_dirent));
+        if (!ent)
+            laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+                               strerror(errno));
+
+        ent->d = malloc(offsetof(struct dirent, d_name) + res_len);
+        if (!ent->d)
+            laser_logger_fatal(1, "Failed to allocate dirent struct: %s",
+                               strerror(errno));
+
+        strcpy(ent->d->d_name, res_string);
+
+        ent->git_status = entry->git_status;
+        ent->s = entry->s;
+        ent->stat_loaded = 1;
+
+        laser_print_entry(ent, LASER_COLORS[LASER_COLOR_SYMLINK].value, indent,
+                          depth, opts, is_last);
+
+        free(res_string);
+        free(symlink_targ);
+        free(ent->d);
+        free(ent);
+
         return;
     }
 
@@ -609,17 +635,22 @@ static off_t laser_get_dir_size(struct laser_dirent *ent, char *fp)
     struct laser_dirent e;
     size_t fp_len = strlen(fp);
 
-    char full_path[LASER_PATH_MAX];
-    memcpy(full_path, fp, fp_len);
-    full_path[fp_len] = '/';
-
     while ((e.d = readdir(dir)) != NULL)
     {
+        size_t full_path_len = fp_len + strlen(e.d->d_name) + 2;
+        char *full_path = malloc(full_path_len);
+        if (full_path == NULL)
+        {
+            laser_logger_error("couldn't allocate memory for full path\n");
+            break;
+        }
+        memcpy(full_path, fp, fp_len);
+        full_path[fp_len] = '/';
+
         if (strcmp(e.d->d_name, ".") == 0 || strcmp(e.d->d_name, "..") == 0)
             continue;
 
-        // first +1 is to ensure that / is added
-        memcpy(full_path + fp_len + 1, e.d->d_name, strlen(e.d->d_name) + 1);
+        memcpy(full_path + fp_len + 1, e.d->d_name, full_path_len - fp_len - 1);
         if (stat(full_path, &e.s) == -1)
         {
             // just ignore Eror NO ENTry
@@ -646,6 +677,9 @@ static off_t laser_get_dir_size(struct laser_dirent *ent, char *fp)
             // s += e.s.st_size; // this will give the logical size
             // while this will give how much space is on disk
             s += e.s.st_blocks * BLOCK_SIZE;
+
+        if (full_path != NULL)
+            free(full_path);
     }
 
     closedir(dir);

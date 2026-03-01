@@ -12,7 +12,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#define LASER_PATH_MAX 1024
+// macos - 1024 while linux - 4096 idk which one to use or make it dynamic???
+#define LASER_PATH_MAX 4096
 
 // dirent go brrrr 🔥
 struct laser_dirent

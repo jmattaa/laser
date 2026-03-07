@@ -648,18 +648,18 @@ static off_t laser_get_dir_size(struct laser_dirent *ent, char *fp)
         full_path[fp_len] = '/';
 
         if (strcmp(e.d->d_name, ".") == 0 || strcmp(e.d->d_name, "..") == 0)
-            continue;
+            goto next;
 
         memcpy(full_path + fp_len + 1, e.d->d_name, full_path_len - fp_len - 1);
         if (stat(full_path, &e.s) == -1)
         {
             // just ignore Eror NO ENTry
             if (errno == ENOENT)
-                continue;
+                goto next;
 
             laser_logger_error("couldn't stat %s, %s\n", full_path,
                                strerror(errno));
-            continue;
+            goto next;
         }
         e.stat_loaded = 1;
 
@@ -678,6 +678,7 @@ static off_t laser_get_dir_size(struct laser_dirent *ent, char *fp)
             // while this will give how much space is on disk
             s += e.s.st_blocks * BLOCK_SIZE;
 
+    next:
         if (full_path != NULL)
             free(full_path);
     }

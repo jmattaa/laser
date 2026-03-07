@@ -84,8 +84,7 @@ void lgit_getGitStatus(git_repository *repo, struct laser_dirent *entry,
     entry->git_status = ' ';
 
     char relative[LASER_PATH_MAX];
-
-    if (!laser_repo_relative(repo, full_path, relative, sizeof(relative)))
+    if (!laser_repo_relative(repo, full_path, relative, LASER_PATH_MAX))
         return;
 
     if (entry->d->d_type == DT_DIR)

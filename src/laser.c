@@ -123,14 +123,25 @@ void laser_process_single_file(laser_opts opts, struct stat st)
 // ------------------------- helper function impl -----------------------------
 static int laser_is_submodule(const char *dir_path)
 {
-    char git_file_path[LASER_PATH_MAX];
-    snprintf(git_file_path, sizeof(git_file_path), "%s/.git", dir_path);
+    size_t len = strlen(dir_path) + strlen("/.git") + 1;
+    char *git_file_path = malloc(len);
+    if (git_file_path == NULL)
+    {
+        laser_logger_error("Failed to allocate git_file_path: %s",
+                           strerror(errno));
+        return 0;
+    }
+    snprintf(git_file_path, len, "%s/.git", dir_path);
 
     struct stat st;
     if (lstat(git_file_path, &st) == 0)
+    {
         // submodules don't have a .git dir rather it's a file
+        free(git_file_path);
         return S_ISREG(st.st_mode);
+    }
 
+    free(git_file_path);
     return 0;
 }
 
@@ -214,16 +225,17 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
 
     size_t entry_count = 0;
     int entry_ignored = 0;
-    char full_path[LASER_PATH_MAX];
+
     while ((entry->d = readdir(dir)) != NULL)
     {
-        snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
-                 entry->d->d_name);
+        size_t fp_len = strlen(opts.dir) + 1 + strlen(entry->d->d_name) + 1;
+        char *full_path = malloc(fp_len);
+        snprintf(full_path, fp_len, "%s/%s", opts.dir, entry->d->d_name);
 
         if (opts.show_git->hide_git_ignored)
         {
             if (strcmp(entry->d->d_name, ".git") == 0)
-                continue;
+                goto next;
 
             if (git_ignore_path_is_ignored(&entry_ignored, opts.git_repo,
                                            strncmp(full_path, "./", 2) == 0
@@ -231,11 +243,11 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
                                                : full_path) < 0)
             {
                 laser_logger_error("%s\n", git_error_last()->message);
-                continue;
+                goto next;
             }
 
             if (entry_ignored == 1)
-                continue;
+                goto next;
         }
 
         entry->git_status = ' ';
@@ -243,17 +255,17 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
             lgit_getGitStatus(opts.git_repo, entry, full_path);
 
         if (!lua_filters_apply(opts, entry, full_path) && opts.filter_count > 0)
-            continue;
+            goto next;
 
         if (!opts.show_all && entry->d->d_name[0] == '.')
-            continue;
+            goto next;
 
         // stat will be needed
         if (entry->d->d_type == DT_UNKNOWN || opts.show_long ||
             opts.show_directory_size)
         {
             if (lstat(full_path, &entry->s) == -1)
-                continue;
+                goto next;
             entry->stat_loaded = 1;
 
             char *ownername = laser_getpwuid(entry->s.st_uid)->name;
@@ -270,7 +282,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
                  (opts.show_recursive || opts.show_directory_size)) &&
                 (strcmp(entry->d->d_name, ".") == 0 ||
                  strcmp(entry->d->d_name, "..") == 0))
-                continue;
+                goto next;
 
             if (opts.show_directory_size)
             {
@@ -290,7 +302,7 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
             if (!opts.sort)
             {
                 laser_handle_entry(entry, full_path, indent, depth, opts, 0);
-                continue;
+                goto next;
             }
 
             if (entry_count >= entries_capacity)
@@ -325,6 +337,10 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
 
             entry_count++;
         }
+
+    next:
+        if (full_path != NULL)
+            free(full_path);
     }
 
     free(entry->d);
@@ -341,14 +357,20 @@ static void laser_process_entries(laser_opts opts, int depth, char *indent)
     for (size_t i = 0; i < entry_count; i++)
     {
         size_t is_last = (i == entry_count - 1);
+        size_t path_len =
+            strlen(opts.dir) + 1 + strlen(entries[i]->d->d_name) + 1;
+        char *path = malloc(path_len);
+        if (path == NULL)
+            laser_logger_fatal(1, "Failed to allocate memory for path: %s",
+                               strerror(errno));
+        snprintf(path, path_len, "%s/%s", opts.dir, entries[i]->d->d_name);
 
-        snprintf(full_path, sizeof(full_path), "%s/%s", opts.dir,
-                 entries[i]->d->d_name);
-
-        laser_handle_entry(entries[i], full_path, indent, depth, opts, is_last);
+        laser_handle_entry(entries[i], path, indent, depth, opts, is_last);
 
         free(entries[i]->d);
         free(entries[i]);
+        if (path != NULL)
+            free(path);
     }
 
 cleanup:
@@ -377,43 +399,69 @@ static void laser_handle_entry(struct laser_dirent *entry,
 
     if (entry->d->d_type == DT_LNK && opts.show_symlinks)
     {
-        char symlink_target[LASER_PATH_MAX];
-        int len =
-            readlink(full_path, symlink_target, sizeof(symlink_target) - 1);
-        if (len != -1)
+        size_t size = 128;
+        char *symlink_targ = NULL;
+        ssize_t symlink_len;
+
+        for (;;)
         {
-            symlink_target[len] = '\0';
-
-            char res_string[LASER_PATH_MAX * 2 + 4]; // 4 is " -> "
-
-            snprintf(res_string, sizeof(res_string), "%s -> %s",
-                     entry->d->d_name, symlink_target);
-
-            struct laser_dirent *ent = malloc(sizeof(struct laser_dirent));
-            if (ent == NULL)
-                laser_logger_fatal(1, "Failed to allocate entry struct: %s",
-                                   strerror(errno));
-            // +1 for the null
-            ent->d = malloc(offsetof(struct dirent, d_name) +
-                            strlen(res_string) + 1); // allocating enough size
-                                                     // for the name too
-            if (ent->d == NULL)
-                laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+            char *tmp = realloc(symlink_targ, size);
+            if (!tmp)
+                laser_logger_fatal(1, "Failed to allocate symlink buffer: %s",
                                    strerror(errno));
 
-            strcpy(ent->d->d_name, res_string);
+            symlink_targ = tmp;
 
-            ent->git_status = entry->git_status;
+            symlink_len = readlink(full_path, symlink_targ, size - 1);
+            if (symlink_len < 0)
+            {
+                free(symlink_targ);
+                return;
+            }
 
-            ent->s = entry->s;
-            ent->stat_loaded = 1;
+            if ((size_t)symlink_len < size - 1)
+                break;
 
-            laser_print_entry(ent, LASER_COLORS[LASER_COLOR_SYMLINK].value,
-                              indent, depth, opts, is_last);
-
-            free(ent->d);
-            free(ent);
+            size *= 2;
         }
+
+        symlink_targ[symlink_len] = '\0';
+
+        size_t name_len = strlen(entry->d->d_name);
+        size_t res_len = name_len + 4 + symlink_len + 1; // " -> " + '\0'
+
+        char *res_string = malloc(res_len);
+        if (!res_string)
+            laser_logger_fatal(1, "Failed to allocate result string: %s",
+                               strerror(errno));
+
+        snprintf(res_string, res_len, "%s -> %s", entry->d->d_name,
+                 symlink_targ);
+
+        struct laser_dirent *ent = malloc(sizeof(struct laser_dirent));
+        if (!ent)
+            laser_logger_fatal(1, "Failed to allocate entry struct: %s",
+                               strerror(errno));
+
+        ent->d = malloc(offsetof(struct dirent, d_name) + res_len);
+        if (!ent->d)
+            laser_logger_fatal(1, "Failed to allocate dirent struct: %s",
+                               strerror(errno));
+
+        strcpy(ent->d->d_name, res_string);
+
+        ent->git_status = entry->git_status;
+        ent->s = entry->s;
+        ent->stat_loaded = 1;
+
+        laser_print_entry(ent, LASER_COLORS[LASER_COLOR_SYMLINK].value, indent,
+                          depth, opts, is_last);
+
+        free(res_string);
+        free(symlink_targ);
+        free(ent->d);
+        free(ent);
+
         return;
     }
 
@@ -587,26 +635,31 @@ static off_t laser_get_dir_size(struct laser_dirent *ent, char *fp)
     struct laser_dirent e;
     size_t fp_len = strlen(fp);
 
-    char full_path[LASER_PATH_MAX];
-    memcpy(full_path, fp, fp_len);
-    full_path[fp_len] = '/';
-
     while ((e.d = readdir(dir)) != NULL)
     {
-        if (strcmp(e.d->d_name, ".") == 0 || strcmp(e.d->d_name, "..") == 0)
-            continue;
+        size_t full_path_len = fp_len + strlen(e.d->d_name) + 2;
+        char *full_path = malloc(full_path_len);
+        if (full_path == NULL)
+        {
+            laser_logger_error("couldn't allocate memory for full path\n");
+            break;
+        }
+        memcpy(full_path, fp, fp_len);
+        full_path[fp_len] = '/';
 
-        // first +1 is to ensure that / is added
-        memcpy(full_path + fp_len + 1, e.d->d_name, strlen(e.d->d_name) + 1);
+        if (strcmp(e.d->d_name, ".") == 0 || strcmp(e.d->d_name, "..") == 0)
+            goto next;
+
+        memcpy(full_path + fp_len + 1, e.d->d_name, full_path_len - fp_len - 1);
         if (stat(full_path, &e.s) == -1)
         {
             // just ignore Eror NO ENTry
             if (errno == ENOENT)
-                continue;
+                goto next;
 
             laser_logger_error("couldn't stat %s, %s\n", full_path,
                                strerror(errno));
-            continue;
+            goto next;
         }
         e.stat_loaded = 1;
 
@@ -624,6 +677,10 @@ static off_t laser_get_dir_size(struct laser_dirent *ent, char *fp)
             // s += e.s.st_size; // this will give the logical size
             // while this will give how much space is on disk
             s += e.s.st_blocks * BLOCK_SIZE;
+
+    next:
+        if (full_path != NULL)
+            free(full_path);
     }
 
     closedir(dir);

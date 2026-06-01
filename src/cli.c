@@ -30,7 +30,9 @@ static int completionsset;
     _X("version", 0, 0, 'v', "Print the current version")                      \
     _X("help", 0, 0, 'h', "Print help message")                                \
     _X("completions", required_argument, &completionsset, 1,                   \
-       "Generate shell completions")
+       "Generate shell completions for a given shell. If the argument is "     \
+       "`filters` then this flag will print out the available filters "        \
+       "specified in lua")
 
 #define _X(name, a, b, short, ...) {name, a, b, short},
 static const struct option long_args[] = {ARGS_ITER(_X){0, 0, 0, 0}};
@@ -60,6 +62,8 @@ static void
 lua_get_L_default_args(L_DEFAULT_SIMPLE_ARGS(_X) struct lgit_show_git *show_git,
                        const char ***filters, int *filter_count);
 #undef _X
+
+static void cli_list_filters(void);
 
 laser_opts laser_cli_parsecmd(int argc, char **argv)
 {
@@ -194,6 +198,11 @@ laser_opts laser_cli_parsecmd(int argc, char **argv)
             case 0:
                 if (completionsset)
                 {
+                    if (strcmp(optarg, "filters") == 0)
+                    {
+                        cli_list_filters();
+                        exit(0);
+                    }
                     laser_cli_generate_completions(optarg);
                     exit(0);
                 }
@@ -341,7 +350,8 @@ void laser_cli_generate_completions(const char *shell)
     {
         laser_logger_error(
             "lsr: unsupported shell '%s'. Supported shells are bash, "
-            "zsh, and fish.\n",
+            "zsh, and fish.\n It's also possible to use the argument `filters` "
+            "too (see --help)\n",
             shell);
         exit(1);
     }
@@ -372,7 +382,7 @@ void laser_cli_destroy_opts(laser_opts opts)
     free(opts.filters);
 }
 
-// ------------------------- helper function decl -----------------------------
+// ------------------------- helper function impl -----------------------------
 #define L_DEFAULT_SIMPLE_ARGS_GET(arg, ...)                                    \
     lua_pushstring(L, #arg);                                                   \
     lua_gettable(L, -2);                                                       \
@@ -427,5 +437,28 @@ lua_get_L_default_args(L_DEFAULT_SIMPLE_ARGS(_X) struct lgit_show_git *show_git,
             lua_pop(L, 1);
         }
     }
+    lua_pop(L, 1);
+}
+
+static void cli_list_filters(void)
+{
+    lua_getglobal(L, "L_filters");
+
+    if (!lua_istable(L, -1))
+    {
+        laser_logger_error(
+            "L_filters is not a table! This is either an internal issue/bug "
+            "or you fucked up :) Either way, please open an issue on github "
+            "and I'll try to help you\n");
+        return;
+    }
+
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0)
+    {
+        printf("%s\n", lua_tostring(L, -2));
+        lua_pop(L, 1);
+    }
+
     lua_pop(L, 1);
 }
